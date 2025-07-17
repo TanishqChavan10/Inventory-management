@@ -1,32 +1,36 @@
-// src/app/layout.tsx
-import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Poppins } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Poppins } from 'next/font/google';
+import './globals.css';
+import Navbar from '@/components/landing/Navbar';
+import Footer from '@/components/landing/Footer';
+import PageWrapper from '@/components/landing/PageWrapper';
 
 const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 export const metadata: Metadata = {
-  title: "Inventory Management",
-  description: "Admin portal",
+  title: 'MyWebsite - Modern Inventory Management',
+  description: 'Our modern inventory platform helps you understand your audience and drive meaningful interactions.',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={`${poppins.variable} font-sans antialiased`}>
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={`${poppins.className} text-gray-800`}>
+        <PageWrapper>
+          <Navbar />
+          <main>
+            {children}
+          </main>
+          <Footer />
+        </PageWrapper>
+      </body>
+    </html>
   );
 }

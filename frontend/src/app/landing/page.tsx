@@ -1,41 +1,29 @@
-// src/app/(landing)/page.tsx
-
-import  Navbar  from "@/components/landing/Navbar";
-import Image from "next/image";
-
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
-    <>
-      {/* Navbar */}
-      <Navbar></Navbar>
-
-      {/* Hero Section */}
-      <section className="flex flex-col-reverse md:flex-row items-center justify-between px-8 md:px-16 py-20 bg-gray-50">
-        {/* Left Text Content */}
-        <div className="max-w-xl">
-          <h1 className="text-5xl font-bold text-gray-800 leading-tight mb-6">
-            Engagement <br /> Rate
-          </h1>
-          <p className="text-gray-600 mb-6 text-base">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget libero feugiat, faucibus libero id, scelerisque quam
-          </p>
-          <button className="bg-pink-500 text-white px-6 py-3 rounded-full text-sm hover:bg-pink-600 transition">
-            Learn More
-          </button>
-        </div>
-
-        {/* Right Image */}
-        <div className="mb-10 md:mb-0">
+    // Hero Section
+    <section className="relative bg-white py-24 md:py-40 fade-in-section">
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+      <div className="container mx-auto px-6 text-center">
+        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
+          Boost Your <span className="gradient-text">Engagement Rate</span>
+        </h1>
+        <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+          Our modern inventory platform helps you understand your audience and drive meaningful interactions. Turn data into growth.
+        </p>
+        <div className="mt-20">
           <Image
-            src="/assets/illustration.png"
+            src="https://placehold.co/800x500/E0E7FF/4F46E5?text=Dashboard+Preview"
             alt="Dashboard Illustration"
-            width={500}
-            height={400}
+            width={800}
+            height={500}
+            className="mx-auto rounded-xl shadow-2xl hero-image-glow"
             priority
           />
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
+
