@@ -1,77 +1,96 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  const navItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Inventory", href: "/inventory" },
+    { label: "Suppliers", href: "/suppliers" },
+    { label: "Reports", href: "/reports" },
+  ];
 
   return (
-    <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
-      <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="inline-block w-9 h-9 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></span>
-            <span className="text-2xl font-bold text-gray-800 tracking-tight group-hover:text-indigo-600 transition">
-              Inventory-Management
-            </span>
-          </Link>
-        </div>
-        <div className="hidden md:flex items-center space-x-8">
-          <a
-            href="#dashboard"
-            className="text-gray-600 hover:text-indigo-600 transition duration-300"
-          >
-            Dashboard
-          </a>
-          <Link
-            href="/about"
-            className="text-gray-600 hover:text-indigo-600 transition duration-300"
-          >
-            About
-          </Link>
-        </div>
-        <Link
-          href="/login"
-          className="hidden md:block bg-indigo-600 text-white py-2 px-5 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300 shadow-md hover:shadow-lg"
-        >
-          Login
+    <header className="bg-white sticky top-0 z-50 border-b border-neutral-200">
+      <nav className="container mx-auto flex items-center justify-between px-6 py-4">
+        {/* Logo and Brand */}
+        <Link href="/" className="flex items-center gap-2 group">
+          {/* Black minimalist icon or placeholder */}
+          <span className="inline-block w-7 h-7 bg-black rounded-sm"></span>
+          <span className="text-2xl font-extrabold tracking-tight text-black">InventoryMS</span>
         </Link>
+
+        {/* Navigation links (large, spaced) */}
+        <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`text-lg font-medium transition-colors px-1 ${
+                pathname === item.href
+                  ? "text-black font-semibold underline underline-offset-4"
+                  : "text-neutral-700 hover:text-black"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Login Button */}
+        <div>
+          <Link href="/login">
+            <Button className="bg-black text-white px-6 py-2 text-base font-semibold rounded hover:bg-neutral-800 shadow-none">
+              Login
+            </Button>
+          </Link>
+        </div>
+
+        {/* Hamburger for mobile */}
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          id="mobile-menu-button"
-          className="md:hidden text-gray-700 focus:outline-none"
+          className="md:hidden ml-2 text-black"
+          onClick={() => setOpen(!open)}
+          aria-label="Toggle Mobile Menu"
         >
-          <svg
-            className="w-7 h-7"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path
+              d={open ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16"}
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
+            />
           </svg>
         </button>
       </nav>
-      {/* Mobile Menu */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden px-6 pb-4`}>
-        <a href="#dashboard" className="block py-2 text-gray-600 hover:text-indigo-600">
-          Dashboard
-        </a>
-        <Link href="/about" className="block py-2 text-gray-600 hover:text-indigo-600">
-          About
-        </Link>
-        <Link
-          href="/login"
-          className="block mt-2 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 text-center"
-        >
-          Login
-        </Link>
+
+      {/* Mobile menu */}
+      <div className={`md:hidden bg-white border-t border-neutral-200 transition-all duration-300 overflow-hidden ${open ? "max-h-96" : "max-h-0"}`}>
+        <div className="flex flex-col px-6 py-3">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={`py-3 text-lg font-semibold transition-colors ${
+                pathname === item.href
+                  ? "text-black"
+                  : "text-neutral-700 hover:text-black"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <Link href="/login" onClick={() => setOpen(false)} className="pt-2 pb-3">
+            <Button className="w-full bg-black text-white hover:bg-neutral-800 text-lg py-2">
+              Login
+            </Button>
+          </Link>
+        </div>
       </div>
     </header>
   );

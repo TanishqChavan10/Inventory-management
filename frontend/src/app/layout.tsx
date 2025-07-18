@@ -12,7 +12,8 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'MyWebsite - Modern Inventory Management',
-  description: 'Our modern inventory platform helps you understand your audience and drive meaningful interactions.',
+  description:
+    'Our modern inventory platform helps you understand your audience and drive meaningful interactions.',
 };
 
 export default function RootLayout({
@@ -21,14 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${poppins.className} text-gray-800`}>
+    <html lang="en" suppressHydrationWarning={true}>
+      <body className={`${poppins.className} text-gray-800 min-h-screen flex flex-col`}>
+        {/* Sticky footer layout: page wrapper defines full-height column */}
         <PageWrapper>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-          <Footer />
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </PageWrapper>
       </body>
     </html>
