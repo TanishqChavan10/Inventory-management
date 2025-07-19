@@ -2,8 +2,8 @@
 
 import {
   Card,
-  CardHeader,
   CardContent,
+  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-// Optional: Mock Data for Modals
+// Mock stat card data and details
 const statDetails = {
   "Total Products": {
     title: "All Products",
@@ -55,7 +55,7 @@ const statDetails = {
       ["Sunflower Oil", "OIL001", 20, "₹120", "₹2400"],
       ["Toothpaste", "TP456", 6, "₹80", "₹480"],
     ],
-  }
+  },
 };
 
 const stats = [
@@ -105,42 +105,41 @@ const activity = [
 ];
 
 export default function DashboardPage() {
-  const [modal, setModal] = useState<null|{title:string,columns:string[],data:any[][]}>(null);
+  const [modal, setModal] = useState<null | { title: string; columns: string[]; data: any[][] }>(null);
 
   return (
-    <div className="w-full px-0 py-10 sm:px-6 lg:px-8">
-      {/* Heading and Add Product button */}
+    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
+      {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-10">
-        <h1 className="text-3xl font-bold text-black">Dashboard</h1>
-      
+        <h1 className="text-3xl font-bold">Dashboard</h1>
       </div>
 
-      {/* Stat Cards: clickable for details */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         {stats.map((stat) => (
           <button
             key={stat.label}
             className="text-left"
-            onClick={() =>
-              setModal(statDetails[stat.label] || null)
-            }
+            onClick={() => setModal(statDetails[stat.label] || null)}
           >
-            <Card className="border border-gray-200 bg-white hover:shadow-sm transition w-full h-full">
+            <Card className="border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 hover:shadow-sm transition w-full h-full">
               <CardHeader className="flex items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-base font-semibold text-gray-500">
+                <CardTitle className="text-base font-semibold text-gray-500 dark:text-gray-300">
                   {stat.label}
                 </CardTitle>
-                <stat.icon className="w-5 h-5 text-black" />
+                <stat.icon className="w-5 h-5 text-black dark:text-white" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-black">{stat.value}</div>
+                <div className="text-2xl font-bold text-black dark:text-white">
+                  {stat.value}
+                </div>
               </CardContent>
             </Card>
           </button>
         ))}
       </div>
 
-      {/* Modal for stat card details */}
+      {/* Modal */}
       {modal && (
         <DashboardModal modal={modal} onClose={() => setModal(null)} />
       )}
@@ -148,16 +147,16 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="mb-10">
         <h2 className="text-xl font-semibold mb-6">Recent Activity</h2>
-        <div className="border border-gray-200 rounded-lg bg-white shadow-sm max-h-[300px] overflow-auto divide-y divide-gray-100">
+        <div className="border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 shadow-sm max-h-[300px] overflow-auto divide-y divide-gray-100 dark:divide-neutral-700">
           {activity.map((event) => (
             <div
               key={event.id}
-              className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition"
+              className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
             >
-              <ActivitySquare className="w-4 h-4 mt-1 text-gray-400" />
+              <ActivitySquare className="w-4 h-4 mt-1 text-gray-400 dark:text-white" />
               <div className="flex flex-col">
-                <p className="text-sm text-gray-700">{event.text}</p>
-                <span className="text-xs text-gray-400">{event.time}</span>
+                <p className="text-sm text-gray-700 dark:text-gray-200">{event.text}</p>
+                <span className="text-xs text-gray-400 dark:text-gray-400">{event.time}</span>
               </div>
             </div>
           ))}
@@ -167,7 +166,7 @@ export default function DashboardPage() {
   );
 }
 
-// Modal for stat card details
+// Modal Component
 function DashboardModal({
   modal,
   onClose,
@@ -181,24 +180,24 @@ function DashboardModal({
       onClick={onClose}
     >
       <div
-        className="bg-white p-8 rounded-lg shadow-lg max-w-xl w-[90%] relative"
+        className="bg-white dark:bg-neutral-900 text-black dark:text-white p-8 rounded-lg shadow-lg max-w-xl w-[90%] relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-gray-500 text-2xl"
+          className="absolute top-3 right-4 text-gray-500 dark:text-gray-300 text-2xl"
         >
           ×
         </button>
         <h2 className="text-2xl font-bold mb-4">{modal.title}</h2>
         <div className="overflow-x-auto">
-          <table className="w-full border border-gray-100 rounded text-sm">
+          <table className="w-full border border-gray-100 dark:border-neutral-700 rounded text-sm">
             <thead>
               <tr>
                 {modal.columns.map((h) => (
                   <th
                     key={h}
-                    className="px-3 py-2 border-b border-gray-200 text-left font-semibold bg-gray-50"
+                    className="px-3 py-2 border-b border-gray-200 dark:border-neutral-600 text-left font-semibold bg-gray-50 dark:bg-neutral-800 text-black dark:text-white"
                   >
                     {h}
                   </th>
@@ -211,7 +210,7 @@ function DashboardModal({
                   {row.map((cell, j) => (
                     <td
                       key={j}
-                      className="px-3 py-2 border-b border-gray-100"
+                      className="px-3 py-2 border-b border-gray-100 dark:border-neutral-700 text-black dark:text-white"
                     >
                       {cell}
                     </td>

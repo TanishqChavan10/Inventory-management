@@ -17,19 +17,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center px-4">
+    <div className="min-h-screen flex justify-center items-center px-4 bg-white dark:bg-black transition-colors">
       <form
         onSubmit={handleLogin}
-        className="w-full max-w-sm bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+        className="w-full max-w-sm bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-neutral-700"
       >
-        <h1 className="text-xl font-bold mb-6 text-center text-black">
+        <h1 className="text-xl font-bold mb-6 text-center text-black dark:text-white">
           Login
         </h1>
+
         <Input
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="mb-4"
+          className="mb-4 bg-white dark:bg-neutral-800 text-black dark:text-white"
           required
         />
         <Input
@@ -37,10 +38,14 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-6"
+          className="mb-6 bg-white dark:bg-neutral-800 text-black dark:text-white"
           required
         />
-        <Button type="submit" className="w-full bg-black text-white">
+
+        <Button
+          type="submit"
+          className="w-full bg-black text-white border border-white dark:bg-white dark:text-black dark:border-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+        >
           Login
         </Button>
       </form>
