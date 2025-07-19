@@ -1,19 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Warehouse } from 'lucide-react';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
   const navItems = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Inventory", href: "/inventory" },
-    { label: "Suppliers", href: "/suppliers" },
-    { label: "Reports", href: "/reports" },
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Inventory', href: '/inventory' },
+    { label: 'Suppliers', href: '/suppliers' },
+    { label: 'Reports', href: '/reports' },
   ];
 
   return (
@@ -22,7 +23,7 @@ export default function Navbar() {
         {/* Logo and Brand */}
         <Link href="/" className="flex items-center gap-2 group">
           {/* Black minimalist icon or placeholder */}
-          <span className="inline-block w-7 h-7 bg-black rounded-sm"></span>
+          <Warehouse className="h-7 w-7" />
           <span className="text-2xl font-extrabold tracking-tight text-black">InventoryMS</span>
         </Link>
 
@@ -34,8 +35,8 @@ export default function Navbar() {
               href={item.href}
               className={`text-lg font-medium transition-colors px-1 ${
                 pathname === item.href
-                  ? "text-black font-semibold underline underline-offset-4"
-                  : "text-neutral-700 hover:text-black"
+                  ? 'text-black font-semibold underline underline-offset-4'
+                  : 'text-neutral-700 hover:text-black'
               }`}
             >
               {item.label}
@@ -58,9 +59,15 @@ export default function Navbar() {
           onClick={() => setOpen(!open)}
           aria-label="Toggle Mobile Menu"
         >
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg
+            className="w-7 h-7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
             <path
-              d={open ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16"}
+              d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16'}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -69,7 +76,9 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile menu */}
-      <div className={`md:hidden bg-white border-t border-neutral-200 transition-all duration-300 overflow-hidden ${open ? "max-h-96" : "max-h-0"}`}>
+      <div
+        className={`md:hidden bg-white border-t border-neutral-200 transition-all duration-300 overflow-hidden ${open ? 'max-h-96' : 'max-h-0'}`}
+      >
         <div className="flex flex-col px-6 py-3">
           {navItems.map((item) => (
             <Link
@@ -77,9 +86,7 @@ export default function Navbar() {
               href={item.href}
               onClick={() => setOpen(false)}
               className={`py-3 text-lg font-semibold transition-colors ${
-                pathname === item.href
-                  ? "text-black"
-                  : "text-neutral-700 hover:text-black"
+                pathname === item.href ? 'text-black' : 'text-neutral-700 hover:text-black'
               }`}
             >
               {item.label}

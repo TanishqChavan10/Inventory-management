@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Chart as ChartJS,
@@ -10,15 +10,10 @@ import {
   PointElement,
   Tooltip,
   Legend,
-} from "chart.js";
+} from 'chart.js';
 
-import { Bar, Line } from "react-chartjs-2";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Bar, Line } from 'react-chartjs-2';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 ChartJS.register(
   CategoryScale,
@@ -28,64 +23,64 @@ ChartJS.register(
   PointElement,
   ArcElement,
   Tooltip,
-  Legend
+  Legend,
 );
 
 // 📅 Months
-const months = ["Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+const months = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 
 // 📦 Inventory + Sales + Returns (Main bar + line)
 const inventoryData = {
   labels: months,
   datasets: [
     {
-      label: "Stock Level",
+      label: 'Stock Level',
       data: [500, 475, 450, 430, 420, 400],
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
       barPercentage: 0.5,
     },
     {
-      label: "Sales",
+      label: 'Sales',
       data: [300, 320, 280, 250, 270, 300],
-      backgroundColor: "rgba(100, 100, 100, 0.6)",
+      backgroundColor: 'rgba(100, 100, 100, 0.6)',
       barPercentage: 0.5,
     },
     {
-      label: "Returns",
-      type: "line",
+      label: 'Returns',
+      type: 'line',
       data: [10, 12, 9, 11, 8, 7],
-      borderColor: "#ff3d00",
-      pointBackgroundColor: "#ff3d00",
-      backgroundColor: "#ff3d00",
+      borderColor: '#ff3d00',
+      pointBackgroundColor: '#ff3d00',
+      backgroundColor: '#ff3d00',
       tension: 0.3,
       borderWidth: 3,
       pointRadius: 5,
       pointHoverRadius: 6,
-      yAxisID: "y1",
+      yAxisID: 'y1',
     },
   ],
 };
 
 const inventoryOptions = {
   responsive: true,
-  interaction: { mode: "index", intersect: false },
+  interaction: { mode: 'index', intersect: false },
   plugins: {
     legend: {
-      position: "top" as const,
-      labels: { color: "#333" },
+      position: 'top' as const,
+      labels: { color: '#333' },
     },
   },
   scales: {
     x: {
-      ticks: { color: "#666" },
+      ticks: { color: '#666' },
     },
     y: {
-      ticks: { color: "#666" },
+      ticks: { color: '#666' },
     },
     y1: {
-      position: "right" as const,
+      position: 'right' as const,
       grid: { drawOnChartArea: false },
-      ticks: { color: "#ff3d00" },
+      ticks: { color: '#ff3d00' },
     },
   },
 };
@@ -95,10 +90,10 @@ const valueGrowthData = {
   labels: months,
   datasets: [
     {
-      label: "Inventory Value (₹)",
+      label: 'Inventory Value (₹)',
       data: [100000, 98000, 96000, 94000, 93000, 92000],
-      borderColor: "#444",
-      backgroundColor: "rgba(0,0,0,0.15)",
+      borderColor: '#444',
+      backgroundColor: 'rgba(0,0,0,0.15)',
       pointRadius: 5,
       pointHoverRadius: 6,
       tension: 0.4,
@@ -110,13 +105,13 @@ const valueGrowthOptions = {
   responsive: true,
   plugins: {
     legend: {
-      position: "top" as const,
+      position: 'top' as const,
     },
   },
   scales: {
-    x: { ticks: { color: "#444" } },
+    x: { ticks: { color: '#444' } },
     y: {
-      ticks: { color: "#444" },
+      ticks: { color: '#444' },
       beginAtZero: false,
     },
   },
@@ -127,17 +122,17 @@ const salesData = {
   labels: months,
   datasets: [
     {
-      label: "Sales",
+      label: 'Sales',
       data: [300, 320, 280, 250, 270, 300],
-      borderColor: "#000",
-      backgroundColor: "rgba(0,0,0,0.1)",
+      borderColor: '#000',
+      backgroundColor: 'rgba(0,0,0,0.1)',
       tension: 0.3,
     },
     {
-      label: "Returns",
+      label: 'Returns',
       data: [10, 12, 9, 11, 8, 7],
-      borderColor: "#888",
-      backgroundColor: "rgba(136,136,136,0.2)",
+      borderColor: '#888',
+      backgroundColor: 'rgba(136,136,136,0.2)',
       tension: 0.3,
     },
   ],
@@ -146,29 +141,22 @@ const salesData = {
 const salesOptions = {
   responsive: true,
   plugins: {
-    legend: { position: "top" as const },
+    legend: { position: 'top' as const },
   },
   scales: {
-    x: { ticks: { color: "#444" } },
-    y: { ticks: { color: "#444" } },
+    x: { ticks: { color: '#444' } },
+    y: { ticks: { color: '#444' } },
   },
 };
 
 // 🏷️ Top Suppliers
 const supplierData = {
-  labels: [
-    "FreshFarms",
-    "DairyCo",
-    "GlowCare",
-    "CleanPro",
-    "BakeSmart",
-    "HydroPure",
-  ],
+  labels: ['FreshFarms', 'DairyCo', 'GlowCare', 'CleanPro', 'BakeSmart', 'HydroPure'],
   datasets: [
     {
-      label: "Inventory Value (₹)",
+      label: 'Inventory Value (₹)',
       data: [40000, 21000, 14500, 9800, 6700, 5200],
-      backgroundColor: "rgba(0,0,0,0.7)",
+      backgroundColor: 'rgba(0,0,0,0.7)',
     },
   ],
 };
@@ -179,8 +167,8 @@ const supplierOptions = {
     legend: { display: false },
   },
   scales: {
-    x: { ticks: { color: "#444" } },
-    y: { ticks: { color: "#444" }, beginAtZero: true },
+    x: { ticks: { color: '#444' } },
+    y: { ticks: { color: '#444' }, beginAtZero: true },
   },
 };
 
