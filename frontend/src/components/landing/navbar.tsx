@@ -1,18 +1,11 @@
 'use client';
 
-<<<<<<< HEAD
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { useTheme } from "@/context/theme-context";
-=======
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Warehouse } from 'lucide-react';
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
+import { useTheme } from '@/context/theme-context';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -31,16 +24,10 @@ export default function Navbar() {
       <nav className="container mx-auto flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-<<<<<<< HEAD
-          <span className="inline-block w-7 h-7 bg-black dark:bg-white rounded-sm"></span>
+          <Warehouse className="h-7 w-7 text-black dark:text-white" />
           <span className="text-2xl font-extrabold tracking-tight text-black dark:text-white">
             InventoryMS
           </span>
-=======
-          {/* Black minimalist icon or placeholder */}
-          <Warehouse className="h-7 w-7" />
-          <span className="text-2xl font-extrabold tracking-tight text-black">InventoryMS</span>
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
         </Link>
 
         {/* Nav links */}
@@ -51,13 +38,8 @@ export default function Navbar() {
               href={item.href}
               className={`text-lg font-medium transition-colors px-1 ${
                 pathname === item.href
-<<<<<<< HEAD
-                  ? "text-black dark:text-white underline underline-offset-4 font-semibold"
-                  : "text-neutral-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-=======
-                  ? 'text-black font-semibold underline underline-offset-4'
-                  : 'text-neutral-700 hover:text-black'
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
+                  ? 'text-black dark:text-white font-semibold underline underline-offset-4'
+                  : 'text-neutral-700 dark:text-gray-300 hover:text-black dark:hover:text-white'
               }`}
             >
               {item.label}
@@ -72,9 +54,9 @@ export default function Navbar() {
             {darkMode ? "☀️" : "🌙"}
           </Button>
 
-          {/* ✅ Fixed Login Button (desktop) */}
+          {/* Login Button (desktop) */}
           <Link href="/login">
-            <Button className="bg-black text-white dark:bg-white dark:text-black px-6 py-2 text-base font-semibold rounded hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-none transition-colorsbg-black text-white border border-white dark:bg-white dark:text-black dark:border-white px-6 py-2 text-base font-semibold rounded hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-none transition-colors">
+            <Button className="bg-black text-white border border-white dark:bg-white dark:text-black dark:border-white px-6 py-2 text-base font-semibold rounded hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-none transition-colors">
               Login
             </Button>
           </Link>
@@ -94,13 +76,7 @@ export default function Navbar() {
             viewBox="0 0 24 24"
           >
             <path
-<<<<<<< HEAD
-              d={
-                open ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16"
-              }
-=======
               d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16'}
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -108,17 +84,9 @@ export default function Navbar() {
         </button>
       </nav>
 
-<<<<<<< HEAD
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 transition-all duration-300 overflow-hidden ${
-          open ? "max-h-96" : "max-h-0"
-        }`}
-=======
       {/* Mobile menu */}
       <div
-        className={`md:hidden bg-white border-t border-neutral-200 transition-all duration-300 overflow-hidden ${open ? 'max-h-96' : 'max-h-0'}`}
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
+        className={`md:hidden bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 transition-all duration-300 overflow-hidden ${open ? 'max-h-96' : 'max-h-0'}`}
       >
         <div className="flex flex-col px-6 py-3">
           {navItems.map((item) => (
@@ -127,13 +95,9 @@ export default function Navbar() {
               href={item.href}
               onClick={() => setOpen(false)}
               className={`py-3 text-lg font-semibold transition-colors ${
-<<<<<<< HEAD
                 pathname === item.href
-                  ? "text-black dark:text-white"
-                  : "text-neutral-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-=======
-                pathname === item.href ? 'text-black' : 'text-neutral-700 hover:text-black'
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
+                  ? 'text-black dark:text-white'
+                  : 'text-neutral-700 dark:text-gray-300 hover:text-black dark:hover:text-white'
               }`}
             >
               {item.label}
@@ -149,9 +113,9 @@ export default function Navbar() {
             {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
           </Button>
 
-          {/* ✅ Fixed Login Button (mobile) */}
+          {/* Login Button (mobile) */}
           <Link href="/login" onClick={() => setOpen(false)} className="pt-2 pb-3">
-            <Button className="w-full bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 text-lg py-2 transition-colors">
+            <Button className="w-full bg-black text-white border border-white dark:bg-white dark:text-black dark:border-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-lg py-2 transition-colors">
               Login
             </Button>
           </Link>

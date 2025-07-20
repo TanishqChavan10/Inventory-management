@@ -12,19 +12,25 @@ import {
   Legend,
 } from 'chart.js';
 
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import { Bar, Line } from "react-chartjs-2";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-=======
+import { useEffect, useState } from 'react';
+
+
 import { Bar, Line } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
+
+function getChartTextColor() {
+  if (typeof window !== "undefined" && document.documentElement.classList.contains("dark")) {
+    return "#f4f4f5";
+  }
+  return "#222";
+}
+
+function getGridColor() {
+  if (typeof window !== "undefined" && document.documentElement.classList.contains("dark")) {
+    return "rgba(255,255,255,0.07)";
+  }
+  return "rgba(0,0,0,0.07)";
+}
 
 ChartJS.register(
   CategoryScale,
@@ -37,26 +43,8 @@ ChartJS.register(
   Legend,
 );
 
-<<<<<<< HEAD
-// Get dark mode status dynamically
-const getChartTextColor = () =>
-  typeof window !== "undefined" &&
-  document.documentElement.classList.contains("dark")
-    ? "#f4f4f5"
-    : "#222";
-
-const getGridColor = () =>
-  typeof window !== "undefined" &&
-  document.documentElement.classList.contains("dark")
-    ? "rgba(255,255,255,0.07)"
-    : "rgba(0,0,0,0.07)";
-
-// Labels
-const months = ["Feb", "Mar", "Apr", "May", "Jun", "Jul"];
-=======
 // 📅 Months
 const months = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
 
 // Inventory Bar + Returns Line
 const inventoryData = {
@@ -65,33 +53,12 @@ const inventoryData = {
     {
       label: 'Stock Level',
       data: [500, 475, 450, 430, 420, 400],
-<<<<<<< HEAD
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
-      barPercentage: 0.4,
-=======
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
       barPercentage: 0.5,
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
     },
     {
       label: 'Sales',
       data: [300, 320, 280, 250, 270, 300],
-<<<<<<< HEAD
-      backgroundColor: "rgba(120, 120, 120, 0.6)",
-      barPercentage: 0.4,
-    },
-    {
-      label: "Returns",
-      type: "line" as const,
-      data: [10, 12, 9, 11, 8, 7],
-      borderColor: "#ff5722",
-      pointBackgroundColor: "#ff5722",
-      backgroundColor: "#ff5722",
-      tension: 0.3,
-      borderWidth: 3,
-      pointRadius: 5,
-      yAxisID: "y1",
-=======
       backgroundColor: 'rgba(100, 100, 100, 0.6)',
       barPercentage: 0.5,
     },
@@ -107,13 +74,10 @@ const inventoryData = {
       pointRadius: 5,
       pointHoverRadius: 6,
       yAxisID: 'y1',
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
     },
   ],
 };
 
-<<<<<<< HEAD
-=======
 const inventoryOptions = {
   responsive: true,
   interaction: { mode: 'index', intersect: false },
@@ -139,20 +103,14 @@ const inventoryOptions = {
 };
 
 // 📈 New Chart: Inventory Value Over Time (Line chart)
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
 const valueGrowthData = {
   labels: months,
   datasets: [
     {
       label: 'Inventory Value (₹)',
       data: [100000, 98000, 96000, 94000, 93000, 92000],
-<<<<<<< HEAD
-      borderColor: "#3b82f6",
-      backgroundColor: "rgba(59, 130, 246, 0.15)",
-=======
       borderColor: '#444',
       backgroundColor: 'rgba(0,0,0,0.15)',
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
       pointRadius: 5,
       pointHoverRadius: 6,
       tension: 0.4,
@@ -160,8 +118,6 @@ const valueGrowthData = {
   ],
 };
 
-<<<<<<< HEAD
-=======
 const valueGrowthOptions = {
   responsive: true,
   plugins: {
@@ -179,39 +135,26 @@ const valueGrowthOptions = {
 };
 
 // 📈 Sales vs Returns
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
 const salesData = {
   labels: months,
   datasets: [
     {
       label: 'Sales',
       data: [300, 320, 280, 250, 270, 300],
-<<<<<<< HEAD
-      borderColor: "#0f172a",
-      backgroundColor: "rgba(15, 23, 42, 0.1)",
-=======
       borderColor: '#000',
       backgroundColor: 'rgba(0,0,0,0.1)',
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
       tension: 0.3,
     },
     {
       label: 'Returns',
       data: [10, 12, 9, 11, 8, 7],
-<<<<<<< HEAD
-      borderColor: "#f97316",
-      backgroundColor: "rgba(249, 115, 22, 0.2)",
-=======
       borderColor: '#888',
       backgroundColor: 'rgba(136,136,136,0.2)',
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
       tension: 0.3,
     },
   ],
 };
 
-<<<<<<< HEAD
-=======
 const salesOptions = {
   responsive: true,
   plugins: {
@@ -224,24 +167,17 @@ const salesOptions = {
 };
 
 // 🏷️ Top Suppliers
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
 const supplierData = {
   labels: ['FreshFarms', 'DairyCo', 'GlowCare', 'CleanPro', 'BakeSmart', 'HydroPure'],
   datasets: [
     {
       label: 'Inventory Value (₹)',
       data: [40000, 21000, 14500, 9800, 6700, 5200],
-<<<<<<< HEAD
-      backgroundColor: "rgba(0,0,0,0.8)",
-=======
       backgroundColor: 'rgba(0,0,0,0.7)',
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
     },
   ],
 };
 
-<<<<<<< HEAD
-=======
 const supplierOptions = {
   responsive: true,
   plugins: {
@@ -253,7 +189,6 @@ const supplierOptions = {
   },
 };
 
->>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
 export default function ReportsPage() {
   const [textColor, setTextColor] = useState("#222");
   const [gridColor, setGridColor] = useState("rgba(0,0,0,0.07)");
