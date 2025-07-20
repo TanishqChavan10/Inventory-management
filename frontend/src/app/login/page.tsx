@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) return;
-    router.push("/");
+    router.push('/');
   };
 
   return (
@@ -22,10 +22,14 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         className="w-full max-w-sm bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-neutral-700"
       >
+<<<<<<< HEAD
         <h1 className="text-xl font-bold mb-6 text-center text-black dark:text-white">
           Login
         </h1>
 
+=======
+        <h1 className="text-xl font-bold mb-6 text-center text-black">Login</h1>
+>>>>>>> 600a76657cc0fa7f6e8e82b45e477d00a169d147
         <Input
           placeholder="Username"
           value={username}
