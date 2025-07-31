@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Warehouse } from 'lucide-react';
 import { useTheme } from '@/context/theme-context';
+import { Switch } from '../ui/switch';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -50,13 +51,15 @@ export default function Navbar() {
         {/* Right side: Theme toggle + Login */}
         <div className="flex items-center gap-2">
           {/* 🌗 Dark Mode Toggle */}
-          <Button variant="outline" size="sm" onClick={toggleTheme}>
-            {darkMode ? "☀️" : "🌙"}
-          </Button>
+          {/* <Switch checked={darkMode} onCheckedChange={toggleTheme}/> */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{darkMode ? '🌙' : '☀️'}</span>
+            <Switch checked={darkMode} onCheckedChange={toggleTheme} />
+          </div>
 
           {/* Login Button (desktop) */}
           <Link href="/login">
-            <Button className="bg-black text-white border border-white dark:bg-white dark:text-black dark:border-white px-6 py-2 text-base font-semibold rounded hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-none transition-colors">
+            <Button className="bg-black text-white border border-white dark:bg-white dark:text-black dark:border-white px-6 py-2 text-base font-semibold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-none transition-colors">
               Login
             </Button>
           </Link>
@@ -105,12 +108,8 @@ export default function Navbar() {
           ))}
 
           {/* 🌗 Toggle in Mobile Menu */}
-          <Button
-            variant="outline"
-            className="w-full my-2"
-            onClick={toggleTheme}
-          >
-            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          <Button variant="outline" className="w-full my-2" onClick={toggleTheme}>
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </Button>
 
           {/* Login Button (mobile) */}
