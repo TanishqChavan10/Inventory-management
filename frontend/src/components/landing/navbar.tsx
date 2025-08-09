@@ -4,9 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Warehouse } from 'lucide-react';
+import { Warehouse, Moon, Sun } from 'lucide-react'; // Import Moon and Sun icons
 import { useTheme } from '@/context/theme-context';
-import { Switch } from '../ui/switch';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -51,11 +50,11 @@ export default function Navbar() {
         {/* Right side: Theme toggle + Login */}
         <div className="flex items-center gap-2">
           {/* 🌗 Dark Mode Toggle */}
-          {/* <Switch checked={darkMode} onCheckedChange={toggleTheme}/> */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm">{darkMode ? '🌙' : '☀️'}</span>
-            <Switch checked={darkMode} onCheckedChange={toggleTheme} />
-          </div>
+          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
 
           {/* Login Button (desktop) */}
           <Link href="/login">
@@ -109,7 +108,17 @@ export default function Navbar() {
 
           {/* 🌗 Toggle in Mobile Menu */}
           <Button variant="outline" className="w-full my-2" onClick={toggleTheme}>
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+            {darkMode ? (
+              <>
+                <Sun className="mr-2 h-4 w-4" />
+                Light Mode
+              </>
+            ) : (
+              <>
+                <Moon className="mr-2 h-4 w-4" />
+                Dark Mode
+              </>
+            )}
           </Button>
 
           {/* Login Button (mobile) */}

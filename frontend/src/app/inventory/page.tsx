@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PlusCircle } from "lucide-react";
 
+// Initial product data
 const initialData = [
   {
     name: "Sunflower Oil",
@@ -90,7 +97,7 @@ const initialData = [
 
 export default function InventoryPage() {
   const [products, setProducts] = useState(initialData);
-  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -114,15 +121,15 @@ export default function InventoryPage() {
       price: 0,
     });
 
-  const filtered = products.filter((item) =>
-    [item.name, item.sku, item.category, item.supplier]
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
-
   const handleSave = () => {
-    if (!form.name || !form.sku || !form.category || !form.supplier || !form.qty || !form.price)
+    if (
+      !form.name ||
+      !form.sku ||
+      !form.category ||
+      !form.supplier ||
+      !form.qty ||
+      !form.price
+    )
       return;
 
     const newProduct = {
@@ -144,117 +151,153 @@ export default function InventoryPage() {
     resetForm();
   };
 
+  // Unique categories for dropdown
+  const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
+
+  // Filter products by category
+  const filtered =
+    categoryFilter === "All"
+      ? products
+      : products.filter((p) => p.category === categoryFilter);
+
   return (
-    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-white dark:bg-black text-black dark:text-white transition-colors">
+    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white transition-colors min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-        <h1 className="text-3xl font-bold">Inventory</h1>
-        <div className="flex gap-3 w-full md:w-auto">
-          <Input
-            className="w-full md:w-64 bg-white dark:bg-neutral-900 text-black dark:text-white border dark:border-neutral-700"
-            placeholder="Search by name, SKU, supplier..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <h1 className="text-4xl font-extrabold tracking-tight">Inventory</h1>
+
+        <div className="flex gap-3 w-full md:w-auto items-center">
+          {/* Category Filter -- use shadcn Select */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-56 bg-white dark:bg-neutral-900 border dark:border-neutral-700 text-black dark:text-white shadow-sm rounded-lg">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button
             onClick={() => {
               resetForm();
               setAdding(true);
             }}
-            className="bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200"
+            className="flex items-center gap-2 bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200"
           >
-            <PlusCircle className="mr-2 w-4 h-4" />
+            <PlusCircle className="w-4 h-4" />
             Add Product
           </Button>
         </div>
       </div>
 
-      {/* Sticky, Scrollable Table */}
-      <div className="rounded-xl border border-gray-200 dark:border-neutral-700 overflow-x-auto bg-white dark:bg-neutral-900 shadow-md">
-        <div className="max-h-[500px] overflow-y-auto">
-          <table className="min-w-[900px] w-full border-separate border-spacing-0">
-            <thead>
-              <tr>
-                {["Product", "SKU", "Category", "Supplier", "Qty", "Price", "Value", "Actions"].map((h) => (
-                  <th
-                    key={h}
-                    className="sticky top-0 z-10 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 px-4 py-3 text-left font-semibold text-black dark:text-white"
-                  >
-                    {h}
+      {/* Table Container */}
+      <div className="max-w-4xl mx-auto">
+        <div className="border border-gray-200 dark:border-neutral-700 rounded-xl overflow-x-auto bg-white dark:bg-neutral-900 shadow-lg">
+          <div className="max-h-[500px] overflow-y-auto rounded-xl">
+            <table className="min-w-[600px] w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-neutral-800">
+                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    SKU
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center text-gray-400 py-6">
-                    No matching products.
-                  </td>
+                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    Product
+                  </th>
+                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    Category
+                  </th>
                 </tr>
-              ) : (
-                filtered.map((item) => (
-                  <tr key={item.sku} className="border-b border-gray-100 dark:border-neutral-700">
-                    <td className="px-4 py-2">{item.name}</td>
-                    <td className="px-4 py-2">{item.sku}</td>
-                    <td className="px-4 py-2">{item.category}</td>
-                    <td className="px-4 py-2">{item.supplier}</td>
-                    <td className="px-4 py-2 text-right">{item.qty}</td>
-                    <td className="px-4 py-2 text-right">₹{item.price}</td>
-                    <td className="px-4 py-2 text-right font-semibold">
-                      ₹{item.qty * item.price}
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex justify-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setViewing(item)}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditing(item);
-                            setForm({ ...item });
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </div>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-center text-gray-400 py-6 dark:text-gray-500">
+                      No products found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filtered.map((item) => (
+                    <tr
+                      key={item.sku}
+                      className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
+                      onClick={() => setViewing(item)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") setViewing(item);
+                      }}
+                    >
+                      <td className="px-6 py-3 font-medium">{item.sku}</td>
+                      <td className="px-6 py-3">{item.name}</td>
+                      <td className="px-6 py-3">{item.category}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* View Modal */}
       {viewing && (
-        <Modal title="Product Details" onClose={() => setViewing(null)}>
-          <ul className="space-y-2 text-gray-700 dark:text-gray-200 text-sm">
-            <li><strong>Name:</strong> {viewing.name}</li>
-            <li><strong>SKU:</strong> {viewing.sku}</li>
-            <li><strong>Category:</strong> {viewing.category}</li>
-            <li><strong>Supplier:</strong> {viewing.supplier}</li>
-            <li><strong>Qty:</strong> {viewing.qty}</li>
-            <li><strong>Price:</strong> ₹{viewing.price}</li>
-            <li><strong>Total:</strong> ₹{viewing.qty * viewing.price}</li>
-          </ul>
+        <Modal title={viewing.name + " (" + viewing.sku + ")"} onClose={() => setViewing(null)}>
+          <div className="space-y-5">
+            <div>
+              <h3 className="text-lg font-bold border-b border-gray-200 dark:border-neutral-700 pb-2">
+                Details
+              </h3>
+              <ul className="space-y-1 text-gray-700 dark:text-gray-200 text-sm mt-2">
+                <li>
+                  <strong>Supplier:</strong> {viewing.supplier}
+                </li>
+                <li>
+                  <strong>Category:</strong> {viewing.category}
+                </li>
+                <li>
+                  <strong>Quantity:</strong> {viewing.qty}
+                </li>
+                <li>
+                  <strong>Price:</strong> ₹{viewing.price}
+                </li>
+                <li>
+                  <strong>Total Value:</strong> ₹{viewing.qty * viewing.price}
+                </li>
+              </ul>
+            </div>
+            <div className="pt-4 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(viewing);
+                  setForm({ ...viewing });
+                  setViewing(null);
+                }}
+              >
+                Edit
+              </Button>
+              <Button variant="outline" onClick={() => setViewing(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
 
       {/* Add/Edit Modal */}
       {(adding || editing) && (
-        <Modal title={editing ? "Edit Product" : "Add Product"} onClose={() => {
-          setEditing(null);
-          setAdding(false);
-          resetForm();
-        }}>
+        <Modal
+          title={editing ? "Edit Product" : "Add Product"}
+          onClose={() => {
+            setEditing(null);
+            setAdding(false);
+            resetForm();
+          }}
+        >
           <form
             className="space-y-4"
             onSubmit={(e) => {
@@ -264,45 +307,64 @@ export default function InventoryPage() {
           >
             {["name", "sku", "category", "supplier"].map((field) => (
               <div key={field}>
-                <label className="block font-medium mb-1 capitalize dark:text-gray-200">{field}</label>
-                <Input
+                <label className="block font-medium mb-1 capitalize dark:text-gray-200">
+                  {field}
+                </label>
+                <input
                   value={(form as any)[field]}
-                  onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, [field]: e.target.value })
+                  }
                   required
                   disabled={editing && field === "sku"}
-                  className="bg-white dark:bg-neutral-800 text-black dark:text-white"
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
                 />
               </div>
             ))}
             <div>
-              <label className="block font-medium mb-1 dark:text-gray-200">Quantity</label>
-              <Input
+              <label className="block font-medium mb-1 dark:text-gray-200">
+                Quantity
+              </label>
+              <input
                 type="number"
                 value={form.qty}
-                onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, qty: Number(e.target.value) })
+                }
                 required
-                className="bg-white dark:bg-neutral-800 text-black dark:text-white"
+                className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-medium mb-1 dark:text-gray-200">Price</label>
-              <Input
+              <label className="block font-medium mb-1 dark:text-gray-200">
+                Price
+              </label>
+              <input
                 type="number"
                 value={form.price}
-                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, price: Number(e.target.value) })
+                }
                 required
-                className="bg-white dark:bg-neutral-800 text-black dark:text-white"
+                className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => {
-                setEditing(null);
-                setAdding(false);
-                resetForm();
-              }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditing(null);
+                  setAdding(false);
+                  resetForm();
+                }}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-black text-white hover:bg-neutral-800">
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-neutral-800"
+              >
                 {editing ? "Save" : "Add"}
               </Button>
             </div>
@@ -313,7 +375,7 @@ export default function InventoryPage() {
   );
 }
 
-// Modal component
+// Modal component (copy the new style)
 function Modal({
   title,
   children,
@@ -324,18 +386,21 @@ function Modal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4"
+      onClick={onClose}
+    >
       <div
-        className="bg-white dark:bg-neutral-900 text-black dark:text-white p-6 rounded-lg shadow-lg max-w-md w-[90%] relative"
+        className="bg-white dark:bg-neutral-900 text-black dark:text-white p-6 rounded-2xl shadow-2xl max-w-lg w-full relative animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-gray-500 dark:text-gray-300 text-2xl"
+          className="absolute top-3 right-4 text-gray-500 dark:text-gray-300 text-2xl hover:text-black dark:hover:text-white transition"
         >
           ×
         </button>
-        <h2 className="text-2xl font-bold mb-4">{title}</h2>
+        <h2 className="text-2xl font-extrabold mb-4">{title}</h2>
         {children}
       </div>
     </div>
