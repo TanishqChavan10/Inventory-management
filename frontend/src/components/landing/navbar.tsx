@@ -16,6 +16,7 @@ export default function Navbar() {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Inventory', href: '/inventory' },
     { label: 'Suppliers', href: '/suppliers' },
+    { label: 'Transactions', href: '/transactions' },
     { label: 'Reports', href: '/reports' },
   ];
 
