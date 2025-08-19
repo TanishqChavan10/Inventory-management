@@ -198,8 +198,7 @@ export default function TransactionsListPage() {
                     <TableCell className="text-center">
                       <Link href={`/transactions/${transaction.transaction_id}`}>
                         <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
+                          <Eye className="h-4 w-4 mr-1" />
                         </Button>
                       </Link>
                     </TableCell>

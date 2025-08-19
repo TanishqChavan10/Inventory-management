@@ -25,7 +25,7 @@ const mockTransactionData = {
     cashier_id: 'EMP-002',
     customer_id: 'CUST-001',
     subtotal: 0,
-    tax_rate: 0.18,
+    discount_rate: 0.1,
     total_amt: 0,
   },
   customer: {
@@ -36,6 +36,7 @@ const mockTransactionData = {
   employee: {
     employee_id: 'EMP-002',
     name: 'Priya Singh',
+    phone_no: '+91 98765 43210',
   },
   order_items: [
     {
@@ -110,8 +111,8 @@ const subtotal = mockTransactionData.order_items.reduce(
   (acc, item) => acc + item.quantity * item.unit_price,
   0,
 );
-const taxes = subtotal * mockTransactionData.transaction.tax_rate;
-const total_amt = subtotal + taxes;
+const taxes = subtotal * mockTransactionData.transaction.discount_rate;
+const total_amt = subtotal - taxes;
 mockTransactionData.transaction.subtotal = subtotal;
 mockTransactionData.transaction.total_amt = total_amt;
 
@@ -163,7 +164,7 @@ export default function TransactionDetailsPage() {
                 <strong>Subtotal:</strong> ₹{mockTransactionData.transaction.subtotal.toFixed(2)}
               </p>
               <p>
-                <strong>Taxes (18%):</strong> ₹{taxes.toFixed(2)}
+                <strong>Discount (10%):</strong> ₹{taxes.toFixed(2)}
               </p>
               <p className="font-bold text-lg">
                 Grand Total: ₹{mockTransactionData.transaction.total_amt.toFixed(2)}
@@ -203,6 +204,9 @@ export default function TransactionDetailsPage() {
               <p>
                 <strong>Name:</strong> {mockTransactionData.employee.name}
               </p>
+              <p>
+                <strong>Phone:</strong> +91 {mockTransactionData.employee.phone_no}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -219,7 +223,7 @@ export default function TransactionDetailsPage() {
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden">
-              <div className="relative max-h-[320px] overflow-y-auto no-scrollbar">
+              <div className="relative max-h-[320px] overflow-y-auto scrollbar-hidden">
                 <Table className="min-w-full border-collapse">
                   <TableHeader className="sticky top-0 bg-gray-100 dark:bg-neutral-900 z-20 shadow-sm">
                     <TableRow>
