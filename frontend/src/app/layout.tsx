@@ -6,6 +6,7 @@ import './globals.css';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import PageWrapper from '@/components/landing/PageWrapper';
+import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from '@/context/theme-context';
 
 // ✅ Google Font
@@ -21,26 +22,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      {/* ✅ The `dark` class will be added by ThemeProvider via JS */}
-      <body
-        className={`${poppins.className} bg-white text-gray-800 dark:bg-black dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col`}
-      >
-        <ThemeProvider>
-          <PageWrapper>
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-          </PageWrapper>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+ return (
+  <html lang="en" suppressHydrationWarning>
+   <body
+    className={`${poppins.className} bg-white text-gray-800 dark:bg-black dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col`}
+   >
+    <ThemeProvider>
+     <PageWrapper>
+      <div className="min-h-screen flex flex-col">
+       <Navbar />
+       <main className="flex-1">{children}</main>
+       <Footer />
+      </div>
+      <Toaster richColors position="top-center" /> {/* ✅ Add this line */}
+     </PageWrapper>
+    </ThemeProvider>
+   </body>
+  </html>
+ );
 }

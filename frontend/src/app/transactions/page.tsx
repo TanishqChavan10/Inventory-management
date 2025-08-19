@@ -119,7 +119,7 @@ export default function TransactionsListPage() {
   return (
     <div className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black text-black dark:text-white min-h-screen">
       <header className="mb-8 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-extrabold tracking-tight">All Transactions</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight">Transactions</h1>
         <p className="text-lg text-gray-500 dark:text-gray-400 mt-2">
           Browse and manage all sales records.
         </p>
