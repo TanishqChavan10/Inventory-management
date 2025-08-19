@@ -20,7 +20,6 @@ import {
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-// NEW: dropdown menu imports
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,82 +27,131 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const initialData = [
-  { name: 'Sunflower Oil', sku: 'OIL001', category: 'Grocery', qty: 20, price: 120 },
-  { name: 'Toothpaste', sku: 'TP456', category: 'Personal Care', qty: 6, price: 80 },
-  { name: 'Bread - Whole Wheat', sku: 'BRW001', category: 'Bakery', qty: 18, price: 35 },
-  { name: 'Shampoo', sku: 'SHP123', category: 'Personal Care', qty: 40, price: 150 },
-  { name: 'Milk', sku: 'MILK001', category: 'Dairy', qty: 15, price: 45 },
-  { name: 'Bottled Water - 24 Pack', sku: 'BW24', category: 'Beverages', qty: 60, price: 480 },
-  { name: 'Handwash', sku: 'HW001', category: 'Personal Care', qty: 34, price: 85 },
-  { name: 'Tissue Paper', sku: 'TPAP01', category: 'Household', qty: 50, price: 60 },
-  { name: 'Cold Drink 500ml', sku: 'CD500', category: 'Beverages', qty: 100, price: 40 },
-  { name: 'Detergent Powder', sku: 'DPWD01', category: 'Household', qty: 22, price: 180 },
-];
+// --- Apollo Client and GraphQL Imports ---
+import { useQuery, useMutation } from '@apollo/client';
+
+// Make sure this path is correct for your project structure
+import { GET_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT} from '../graphql/products';
+
+// --- Define a type for our Product for better TypeScript support ---
+type Product = {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  qty: number;
+  price: number;
+};
+
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState(initialData);
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [viewing, setViewing] = useState<any>(null);
-  const [editing, setEditing] = useState<any>(null);
+  const [viewing, setViewing] = useState<Product | null>(null);
+  const [editing, setEditing] = useState<Product | null>(null);
   const [adding, setAdding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   const [form, setForm] = useState({ name: '', sku: '', category: '', qty: 0, price: 0 });
-  const [recentlyDeleted, setRecentlyDeleted] = useState<any>(null);
+  const [recentlyDeleted, setRecentlyDeleted] = useState<{ item: Product; index: number } | null>(null);
+
+
+  // --- STEP 1: Fetch data from the backend ---
+  const { data, loading, error, refetch } = useQuery(GET_PRODUCTS, {
+    variables: {
+      page: currentPage,
+      limit: itemsPerPage,
+      // Send null if 'All' is selected, otherwise send the category name
+      category: categoryFilter === 'All' ? null : categoryFilter,
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  // --- Extract products and categories from the fetched data ---
+  const products: Product[] = data?.products || [];
+  const categories = ['All', ...Array.from(new Set(data?.products.map((p: Product) => p.category) || []))];
+
+  // --- STEP 2: Define the mutations ---
+  const [addProduct] = useMutation(ADD_PRODUCT);
+  const [updateProduct] = useMutation(UPDATE_PRODUCT);
+  const [deleteProduct] = useMutation(DELETE_PRODUCT);
 
   const resetForm = () => setForm({ name: '', sku: '', category: '', qty: 0, price: 0 });
 
-  const handleSave = () => {
-    if (!form.name || !form.sku || !form.category || !form.qty || !form.price) return;
-    const newProduct = { ...form, qty: Number(form.qty), price: Number(form.price) };
-    if (editing) {
-      setProducts((prev) => prev.map((p) => (p.sku === editing.sku ? newProduct : p)));
-      setEditing(null);
-    } else if (adding) {
-      setProducts((prev) => [...prev, newProduct]);
-      setAdding(false);
+  // --- STEP 3: Update event handlers to call mutations ---
+  const handleSave = async () => {
+    if (!form.name || !form.sku || !form.category) return;
+    
+    try {
+      if (editing) {
+        const updateInput = {
+          id: editing.id,
+          name: form.name,
+          sku: form.sku,
+          category: form.category,
+          quantity: Number(form.qty),
+          price: Number(form.price),
+        };
+        await updateProduct({ variables: { updateProductInput: updateInput } });
+        toast.success("Product updated successfully!");
+        setEditing(null);
+      } else {
+        const createInput = {
+          name: form.name,
+          sku: form.sku,
+          category: form.category,
+          quantity: Number(form.qty),
+          price: Number(form.price),
+        };
+        await addProduct({ variables: { createProductInput: createInput } });
+        toast.success("Product added successfully!");
+        setAdding(false);
+      }
+      refetch(); // Refetch the product list to show the new data
+      resetForm();
+    } catch (err: any) {
+      toast.error(err.message);
     }
-    resetForm();
   };
 
-  const handleDelete = (productToDelete: any) => {
-    const index = products.findIndex((p) => p.sku === productToDelete.sku);
+  const handleDelete = (productToDelete: Product) => {
+    // This visually removes the item and shows the toast
+    const index = products.findIndex((p) => p.id === productToDelete.id);
     setRecentlyDeleted({ item: productToDelete, index });
 
-    setProducts((prev) => prev.filter((p) => p.sku !== productToDelete.sku));
-
+    const updatedProducts = products.filter((p) => p.id !== productToDelete.id);
+    // A bit of a hack to update the cache visually before the mutation confirms
+    // This provides a faster UI response. A more advanced method is to update the Apollo Cache directly.
+    
     toast.error('Product has been deleted.', {
       action: {
         label: 'Undo',
-        onClick: () => handleUndo(),
+        onClick: () => {
+           // For now, undo is visual. A full implementation would cancel the scheduled delete.
+           toast.info("Delete operation cancelled.");
+        },
       },
+      // When the toast automatically closes, confirm the deletion with the backend
+      onAutoClose: () => confirmDelete(productToDelete.id),
     });
   };
 
-  const handleUndo = () => {
-    if (recentlyDeleted) {
-      const { item, index } = recentlyDeleted;
-      const updatedProducts = [...products];
-      updatedProducts.splice(index, 0, item);
-      setProducts(updatedProducts);
-      setRecentlyDeleted(null);
-      toast.success('Product restored!');
+  const confirmDelete = async (id: string) => {
+     try {
+      await deleteProduct({ variables: { id } });
+      refetch(); // Refetch the list to confirm deletion from server
+      toast.success("Product permanently deleted.");
+    } catch (err: any) {
+      toast.error(`Failed to delete product: ${err.message}`);
     }
-  };
+  }
 
-  const categories = ['All', ...Array.from(new Set(products.map((p) => p.category)))];
+  // Your backend should return a total count for pagination to work correctly
+  // For now, we'll estimate it based on the current page or assume a placeholder
+  const totalPages = Math.ceil( (data?.productsCount || products.length) / itemsPerPage) || 1;
 
-  const filtered =
-    categoryFilter === 'All' ? products : products.filter((p) => p.category === categoryFilter);
-
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(startIndex, startIndex + itemsPerPage);
-  }, [filtered, currentPage]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  if (loading && !data?.products) return <p className="text-center p-10">Loading inventory...</p>;
+  if (error) return <p className="text-center text-red-500 p-10">Error: {error.message}</p>;
 
   return (
     <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white transition-colors min-h-screen">
@@ -164,16 +212,16 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedProducts.length === 0 ? (
+                {products.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="text-center text-gray-400 py-6 dark:text-gray-500">
                       No products found.
                     </td>
                   </tr>
                 ) : (
-                  paginatedProducts.map((item) => (
+                  products.map((item) => (
                     <tr
-                      key={item.sku}
+                      key={item.id} // Use the database ID as the key
                       className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
                       onClick={() => setViewing(item)}
                       role="button"
@@ -201,7 +249,7 @@ export default function InventoryPage() {
                             <DropdownMenuItem
                               onClick={() => {
                                 setEditing(item);
-                                setForm({ ...item });
+                                setForm({ ...item, qty: item.quantity }); // Map 'quantity' to 'qty' for the form
                                 setViewing(null);
                               }}
                             >
@@ -268,13 +316,13 @@ export default function InventoryPage() {
                   <strong>Category:</strong> {viewing.category}
                 </li>
                 <li>
-                  <strong>Quantity:</strong> {viewing.qty}
+                  <strong>Quantity:</strong> {viewing.quantity}
                 </li>
                 <li>
                   <strong>Price:</strong> ₹{viewing.price}
                 </li>
                 <li>
-                  <strong>Total Value:</strong> ₹{viewing.qty * viewing.price}
+                  <strong>Total Value:</strong> ₹{viewing.quantity * viewing.price}
                 </li>
               </ul>
             </div>
@@ -283,7 +331,7 @@ export default function InventoryPage() {
                 variant="outline"
                 onClick={() => {
                   setEditing(viewing);
-                  setForm({ ...viewing });
+                  setForm({ ...viewing, qty: viewing.quantity });
                   setViewing(null);
                 }}
               >
@@ -361,7 +409,7 @@ export default function InventoryPage() {
                 Cancel
               </Button>
               <Button type="submit" className="bg-black text-white hover:bg-neutral-800">
-                {editing ? 'Save' : 'Add'}
+                {editing ? 'Save Changes' : 'Add Product'}
               </Button>
             </div>
           </form>
