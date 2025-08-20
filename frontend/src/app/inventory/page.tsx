@@ -39,7 +39,7 @@ type Product = {
   name: string;
   sku: string;
   category: string;
-  qty: number;
+  quantity: number;
   price: number;
 };
 
@@ -171,8 +171,8 @@ export default function InventoryPage() {
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
+                <SelectItem key={'cat'} value={'cat'}>
+                  {'cat'}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -371,7 +371,7 @@ export default function InventoryPage() {
                   value={(form as any)[field]}
                   onChange={(e) => setForm({ ...form, [field]: e.target.value })}
                   required
-                  disabled={editing && field === 'sku'}
+                  disabled={!!editing && field === 'sku'}
                   className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
                 />
               </div>

@@ -3,8 +3,8 @@
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
+import Navbar from '@/components/landing/navbar/Navbar';
+import Footer from '@/components/landing/footer';
 import PageWrapper from '@/components/landing/PageWrapper';
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from '@/context/theme-context';

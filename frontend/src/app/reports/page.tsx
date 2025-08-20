@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -19,7 +13,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { Button } from "@/components/ui/button";
+// Removed unused Button import
 
 const salesData = {
   daily: [
