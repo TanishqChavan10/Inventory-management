@@ -26,7 +26,7 @@ import { InventoryModule } from './inventory/inventory.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'root',
+      password: 'Neeraj/043011',
       database: 'inventory',
       autoLoadEntities: true,
       synchronize: true,
