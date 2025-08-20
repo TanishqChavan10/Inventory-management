@@ -5,14 +5,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductsModule } from './products/products.module';
-import { InventoryModule } from './inventory/inventory.module';
-import { SalesModule } from './sales/sales.module';
-import { StaffsModule } from './staffs/staffs.module';
-import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { ConfigService } from '@nestjs/config';
-
+import { ConfigModule } from '@nestjs/config';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -24,22 +19,22 @@ import { ConfigService } from '@nestjs/config';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: true,
+      path: '/api/graphql',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT ?? '5432', 10), 
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-     autoLoadEntities:true,
-      synchronize: false,
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'root',
+      database: 'inventory',
+      autoLoadEntities: true,
+      synchronize: true,
     }),
-    ProductsModule,
-    InventoryModule,
-    SalesModule,
-    StaffsModule,
+   
     AuthModule,
+    InventoryModule
+    
   ],
   controllers: [AppController],
   providers: [AppService],
