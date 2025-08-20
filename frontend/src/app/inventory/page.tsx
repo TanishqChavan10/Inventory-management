@@ -31,7 +31,7 @@ import {
 import { useQuery, useMutation } from '@apollo/client';
 
 // Make sure this path is correct for your project structure
-import { GET_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT} from '../graphql/products';
+import { GET_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT } from '../graphql/products';
 
 // --- Define a type for our Product for better TypeScript support ---
 type Product = {
@@ -43,7 +43,6 @@ type Product = {
   price: number;
 };
 
-
 export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [viewing, setViewing] = useState<Product | null>(null);
@@ -53,8 +52,9 @@ export default function InventoryPage() {
   const itemsPerPage = 5;
 
   const [form, setForm] = useState({ name: '', sku: '', category: '', qty: 0, price: 0 });
-  const [recentlyDeleted, setRecentlyDeleted] = useState<{ item: Product; index: number } | null>(null);
-
+  const [recentlyDeleted, setRecentlyDeleted] = useState<{ item: Product; index: number } | null>(
+    null,
+  );
 
   // --- STEP 1: Fetch data from the backend ---
   const { data, loading, error, refetch } = useQuery(GET_PRODUCTS, {
@@ -69,7 +69,10 @@ export default function InventoryPage() {
 
   // --- Extract products and categories from the fetched data ---
   const products: Product[] = data?.products || [];
-  const categories = ['All', ...Array.from(new Set(data?.products.map((p: Product) => p.category) || []))];
+  const categories = [
+    'All',
+    ...Array.from(new Set(data?.products.map((p: Product) => p.category) || [])),
+  ];
 
   // --- STEP 2: Define the mutations ---
   const [addProduct] = useMutation(ADD_PRODUCT);
@@ -81,7 +84,7 @@ export default function InventoryPage() {
   // --- STEP 3: Update event handlers to call mutations ---
   const handleSave = async () => {
     if (!form.name || !form.sku || !form.category) return;
-    
+
     try {
       if (editing) {
         const updateInput = {
@@ -93,7 +96,7 @@ export default function InventoryPage() {
           price: Number(form.price),
         };
         await updateProduct({ variables: { updateProductInput: updateInput } });
-        toast.success("Product updated successfully!");
+        toast.success('Product updated successfully!');
         setEditing(null);
       } else {
         const createInput = {
@@ -104,7 +107,7 @@ export default function InventoryPage() {
           price: Number(form.price),
         };
         await addProduct({ variables: { createProductInput: createInput } });
-        toast.success("Product added successfully!");
+        toast.success('Product added successfully!');
         setAdding(false);
       }
       refetch(); // Refetch the product list to show the new data
@@ -122,13 +125,13 @@ export default function InventoryPage() {
     const updatedProducts = products.filter((p) => p.id !== productToDelete.id);
     // A bit of a hack to update the cache visually before the mutation confirms
     // This provides a faster UI response. A more advanced method is to update the Apollo Cache directly.
-    
+
     toast.error('Product has been deleted.', {
       action: {
         label: 'Undo',
         onClick: () => {
-           // For now, undo is visual. A full implementation would cancel the scheduled delete.
-           toast.info("Delete operation cancelled.");
+          // For now, undo is visual. A full implementation would cancel the scheduled delete.
+          toast.info('Delete operation cancelled.');
         },
       },
       // When the toast automatically closes, confirm the deletion with the backend
@@ -137,18 +140,18 @@ export default function InventoryPage() {
   };
 
   const confirmDelete = async (id: string) => {
-     try {
+    try {
       await deleteProduct({ variables: { id } });
       refetch(); // Refetch the list to confirm deletion from server
-      toast.success("Product permanently deleted.");
+      toast.success('Product permanently deleted.');
     } catch (err: any) {
       toast.error(`Failed to delete product: ${err.message}`);
     }
-  }
+  };
 
   // Your backend should return a total count for pagination to work correctly
   // For now, we'll estimate it based on the current page or assume a placeholder
-  const totalPages = Math.ceil( (data?.productsCount || products.length) / itemsPerPage) || 1;
+  const totalPages = Math.ceil((data?.productsCount || products.length) / itemsPerPage) || 1;
 
   if (loading && !data?.products) return <p className="text-center p-10">Loading inventory...</p>;
   if (error) return <p className="text-center text-red-500 p-10">Error: {error.message}</p>;
@@ -171,8 +174,8 @@ export default function InventoryPage() {
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={'cat'} value={'cat'}>
-                  {'cat'}
+                <SelectItem key={String(cat)} value={String(cat)}>
+                  {String(cat)}
                 </SelectItem>
               ))}
             </SelectContent>

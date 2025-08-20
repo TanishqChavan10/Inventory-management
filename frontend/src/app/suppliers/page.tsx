@@ -18,8 +18,15 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { PlusCircle, Trash2, Eye } from 'lucide-react';
+import { PlusCircle, Trash2, Eye, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 const initialSuppliers = [
   // Example suppliers
@@ -58,6 +65,13 @@ export default function SuppliersPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [recentlyDeleted, setRecentlyDeleted] = useState<RecentlyDeleted>(null);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [editForm, setEditForm] = useState({
+    company: '',
+    email: '',
+    phone: '',
+    category: '',
+  });
   const itemsPerPage = 5;
 
   const categories = ['All', ...Array.from(new Set(suppliers.map((s) => s.category)))];
@@ -89,6 +103,26 @@ export default function SuppliersPage() {
     setSuppliers(updated);
     setRecentlyDeleted(null);
     toast.success('Supplier restored!');
+  }
+
+  function openEditDialog(supplier: Supplier) {
+    setEditingSupplier(supplier);
+    setEditForm({
+      company: supplier.company,
+      email: supplier.email,
+      phone: supplier.phone,
+      category: supplier.category,
+    });
+  }
+
+  function saveEdit() {
+    if (!editingSupplier) return;
+    const updatedSuppliers = suppliers.map((s) =>
+      s.id === editingSupplier.id ? { ...s, ...editForm } : s,
+    );
+    setSuppliers(updatedSuppliers);
+    setEditingSupplier(null);
+    toast.success('Supplier updated successfully!');
   }
 
   return (
@@ -159,29 +193,34 @@ export default function SuppliersPage() {
                       <td className="px-6 py-3">{s.category}</td>
                       <td className="px-6 py-3">
                         <div className="flex justify-end gap-2">
-                          {/* View (Eye) */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="text-blue-600 hover:text-blue-800"
-                            aria-label={`View ${s.company}`}
-                          >
-                            <Link href={`/suppliers/${s.id}`}>
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                          </Button>
-
-                          {/* Delete */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDelete(s)}
-                            aria-label={`Delete ${s.company}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {/* Dropdown three dots menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Open supplier actions"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditDialog(s)}>
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/suppliers/${s.id}`} className="w-full block">
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(s)}
+                                className="text-red-600"
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>
@@ -217,6 +256,76 @@ export default function SuppliersPage() {
             </PaginationContent>
           </Pagination>
         )}
+      </div>
+
+      {/* Edit Modal */}
+      {editingSupplier && (
+        <Modal
+          title={`Edit Supplier ${editingSupplier.id}`}
+          onClose={() => setEditingSupplier(null)}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveEdit();
+            }}
+            className="space-y-4"
+          >
+            {['company', 'email', 'phone', 'category'].map((field) => (
+              <div key={field}>
+                <label className="block font-medium mb-1 capitalize">{field}</label>
+                <input
+                  type={field === 'email' ? 'email' : 'text'}
+                  value={editForm[field as keyof typeof editForm]}
+                  onChange={(e) => setEditForm({ ...editForm, [field]: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
+                />
+              </div>
+            ))}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditingSupplier(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-black text-white">
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// Modal component reused from previous example (adjust styling if necessary)
+function Modal({
+  title,
+  children,
+  onClose,
+}: {
+  title: string;
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-neutral-900 text-black dark:text-white p-6 rounded-2xl shadow-2xl max-w-lg w-full relative animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-gray-500 dark:text-gray-300 text-2xl hover:text-black dark:hover:text-white transition"
+          aria-label="Close modal"
+        >
+          ×
+        </button>
+        <h2 className="text-2xl font-extrabold mb-4">{title}</h2>
+        {children}
       </div>
     </div>
   );
