@@ -1,14 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
@@ -16,98 +17,88 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { toast } from "sonner"; // --- NEW --- Import toast
+} from '@/components/ui/pagination';
+import { PlusCircle, Trash2, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
-// Initial supplier data
 const initialSuppliers = [
-  { id: "S001", company: "FreshFarms Pvt Ltd", contact: "Aarav Singh", phone: "+91 99876 12345", email: "aarav@freshfarms.com", category: "Groceries" },
-  { id: "S002", company: "DairyCo", contact: "Meera Raj", phone: "+91 88990 56744", email: "meera@dairyco.in", category: "Dairy" },
-  { id: "S003", company: "CleanPro Suppliers", contact: "Sonal Jain", phone: "+91 90221 44567", email: "sonal@cleanpro.com", category: "Cleaning Supplies" },
-  { id: "S004", company: "GlowCare Essentials", contact: "Kabir Mahajan", phone: "+91 90007 88811", email: "contact@glowcare.com", category: "Cosmetics" },
-  { id: "S005", company: "BakeSmart Foods", contact: "Sunita Patel", phone: "+91 88766 11223", email: "sunita@bakesmart.com", category: "Bakery" },
-  { id: "S006", company: "VeggieVerse", contact: "Rohan Verma", phone: "+91 91234 56789", email: "rohan@veggieverse.com", category: "Groceries" },
-  { id: "S007", company: "Pure Grains", contact: "Priya Sharma", phone: "+91 98765 43210", email: "priya@puregrains.in", category: "Groceries" },
+  // Example suppliers
+  {
+    id: 'S001',
+    company: 'FreshFarms Pvt Ltd',
+    contact: 'Aarav Singh',
+    phone: '+91 99876 12345',
+    email: 'aarav@freshfarms.com',
+    category: 'Groceries',
+  },
+  {
+    id: 'S002',
+    company: 'DairyCo',
+    contact: 'Meera Raj',
+    phone: '+91 88990 56744',
+    email: 'meera@dairyco.in',
+    category: 'Dairy',
+  },
+  {
+    id: 'S003',
+    company: 'CleanPro Suppliers',
+    contact: 'Sonal Jain',
+    phone: '+91 90221 44567',
+    email: 'sonal@cleanpro.com',
+    category: 'Cleaning Supplies',
+  },
+  // Add more suppliers as needed
 ];
 
-// Sample recent transactions for each supplier
-const supplierTransactions: Record<string, { date: string; item: string; amount: string }[]> = {
-  S001: [ { date: "2025-08-01", item: "Fresh Vegetables", amount: "₹2,000" }, { date: "2025-07-25", item: "Organic Fruits", amount: "₹1,500" } ],
-  S002: [ { date: "2025-07-30", item: "Milk Supply", amount: "₹3,200" }, { date: "2025-07-20", item: "Cheese Blocks", amount: "₹2,000" } ],
-  S003: [{ date: "2025-07-29", item: "Cleaning Supplies", amount: "₹1,800" }],
-  S004: [{ date: "2025-08-02", item: "Skincare Products", amount: "₹5,000" }],
-  S005: [{ date: "2025-07-28", item: "Bakery Ingredients", amount: "₹2,500" }],
-  S006: [{ date: "2025-08-03", item: "Exotic Vegetables", amount: "₹3,500" }],
-  S007: [{ date: "2025-08-04", item: "Whole Grains", amount: "₹2,200" }],
-};
+type Supplier = (typeof initialSuppliers)[number];
+type RecentlyDeleted = { item: Supplier; index: number } | null;
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState(initialSuppliers);
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
-  const [viewing, setViewing] = useState<null | typeof suppliers[0]>(null);
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ company: "", contact: "", phone: "", email: "", category: "" });
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [recentlyDeleted, setRecentlyDeleted] = useState<RecentlyDeleted>(null);
   const itemsPerPage = 5;
 
-  const [recentlyDeleted, setRecentlyDeleted] = useState(null); // --- NEW --- State for undo feature
+  const categories = ['All', ...Array.from(new Set(suppliers.map((s) => s.category)))];
 
-  const allCategories = [...new Set([...suppliers.map((s) => s.category), "Groceries", "Dairy", "Bakery", "Cosmetics", "Cleaning Supplies"])];
-
-  const filtered = categoryFilter === "All" ? suppliers : suppliers.filter((s) => s.category === categoryFilter);
-
-  const categories = ["All", ...new Set(suppliers.map((s) => s.category))];
-
-  function handleAddSupplier(e?: React.FormEvent) {
-    if (e) e.preventDefault();
-    if (!form.company || !form.contact || !form.phone || !form.email || !form.category) return;
-    setSuppliers((prev) => [ ...prev, { id: "S" + String(Date.now()).slice(-5), ...form } ]);
-    setForm({ company: "", contact: "", phone: "", email: "", category: "" });
-    setAdding(false);
-  }
-
-  // --- MODIFIED --- This function now triggers the undo toast
-  const handleDelete = (supplierToDelete) => {
-    const index = suppliers.findIndex((s) => s.id === supplierToDelete.id);
-    setRecentlyDeleted({ item: supplierToDelete, index });
-
-    setSuppliers((prev) => prev.filter((s) => s.id !== supplierToDelete.id));
-
-    toast.error("Supplier has been deleted.", {
-      action: {
-        label: "Undo",
-        onClick: () => handleUndo(),
-      },
-    });
-  };
-
-  // --- NEW --- This function restores the deleted supplier
-  const handleUndo = () => {
-    if (recentlyDeleted) {
-      const { item, index } = recentlyDeleted;
-      const updatedSuppliers = [...suppliers];
-      updatedSuppliers.splice(index, 0, item);
-      setSuppliers(updatedSuppliers);
-      setRecentlyDeleted(null);
-      toast.success("Supplier restored!");
-    }
-  };
-
+  const filtered =
+    categoryFilter === 'All' ? suppliers : suppliers.filter((s) => s.category === categoryFilter);
 
   const paginatedSuppliers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(startIndex, startIndex + itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
+  function handleDelete(supplierToDelete: Supplier) {
+    const index = suppliers.findIndex((s) => s.id === supplierToDelete.id);
+    setRecentlyDeleted({ item: supplierToDelete, index });
+    setSuppliers((prev) => prev.filter((s) => s.id !== supplierToDelete.id));
+    toast.error('Supplier has been deleted.', {
+      action: { label: 'Undo', onClick: () => handleUndo() },
+    });
+  }
+
+  function handleUndo() {
+    if (!recentlyDeleted) return;
+    const { item, index } = recentlyDeleted;
+    const updated = [...suppliers];
+    updated.splice(index, 0, item);
+    setSuppliers(updated);
+    setRecentlyDeleted(null);
+    toast.success('Supplier restored!');
+  }
+
   return (
-    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white transition-colors min-h-screen">
-      {/* Header section remains the same */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-        <h1 className="text-4xl font-extrabold tracking-tight">Suppliers</h1>
-        <div className="flex gap-3 w-full md:w-auto items-center">
+    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white min-h-screen">
+      {/* Header */}
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-extrabold tracking-tight mb-4">Suppliers</h1>
+
+        {/* Controls */}
+        <div className="flex items-center gap-3 justify-end mb-6">
           <Select
             value={categoryFilter}
             onValueChange={(value) => {
@@ -119,46 +110,79 @@ export default function SuppliersPage() {
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((cat) => ( <SelectItem key={cat} value={cat}> {cat} </SelectItem> ))}
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => setAdding(true)} className="flex items-center gap-2 bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200">
-            <PlusCircle className="w-4 h-4" /> Add Supplier
-          </Button>
         </div>
       </div>
 
-      {/* Table Container */}
+      {/* Table */}
       <div className="max-w-4xl mx-auto">
         <div className="border border-gray-200 dark:border-neutral-700 rounded-xl overflow-x-auto bg-white dark:bg-neutral-900 shadow-lg">
-          <div className="max-h-[500px] overflow-y-a+uto rounded-xl">
-            <table className="min-w-[600px] w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
-              <thead>
+          <div className="max-h-[500px] overflow-y-auto rounded-xl relative">
+            <table className="min-w-[720px] w-full border-separate border-spacing-0 rounded-lg">
+              <thead className="z-10 sticky top-0">
                 <tr className="bg-gray-100 dark:bg-neutral-800">
-                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">Supplier ID</th>
-                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">Company</th>
-                  <th className="sticky top-0 border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">Category</th>
-                  <th className="sticky top-0 border-b px-6 py-4 text-right font-semibold text-sm uppercase tracking-wide">Actions</th>
+                  <th className="border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    Supplier ID
+                  </th>
+                  <th className="border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    Company
+                  </th>
+                  <th className="border-b px-6 py-4 text-left font-semibold text-sm uppercase tracking-wide">
+                    Category
+                  </th>
+                  <th className="border-b px-6 py-4 text-right font-semibold text-sm uppercase tracking-wide">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedSuppliers.length === 0 ? (
-                  <tr> <td colSpan={4} className="text-center text-gray-400 py-6 dark:text-gray-500"> No suppliers found. </td> </tr>
+                  <tr>
+                    <td colSpan={4} className="text-center text-gray-400 py-6 dark:text-gray-500">
+                      No suppliers found.
+                    </td>
+                  </tr>
                 ) : (
                   paginatedSuppliers.map((s) => (
-                    <tr key={s.id} className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors" onClick={() => setViewing(s)}>
+                    <tr
+                      key={s.id}
+                      className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                    >
                       <td className="px-6 py-3 font-medium">{s.id}</td>
                       <td className="px-6 py-3">{s.company}</td>
                       <td className="px-6 py-3">{s.category}</td>
-                      <td className="px-6 py-3 text-right">
-                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(s); // --- MODIFIED --- Pass the entire supplier object
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <td className="px-6 py-3">
+                        <div className="flex justify-end gap-2">
+                          {/* View (Eye) */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            className="text-blue-600 hover:text-blue-800"
+                            aria-label={`View ${s.company}`}
+                          >
+                            <Link href={`/suppliers/${s.id}`}>
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </Button>
+
+                          {/* Delete */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => handleDelete(s)}
+                            aria-label={`Delete ${s.company}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -167,65 +191,32 @@ export default function SuppliersPage() {
             </table>
           </div>
         </div>
-        
-        {/* Pagination Component remains the same */}
+
+        {/* Pagination */}
         {totalPages > 1 && (
           <Pagination className="mt-6">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious href="#" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} />
+                <PaginationPrevious onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} />
               </PaginationItem>
-              {[...Array(totalPages)].map((_, i) => (
+              {Array.from({ length: totalPages }).map((_, i) => (
                 <PaginationItem key={i}>
-                  <PaginationLink href="#" isActive={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
+                  <PaginationLink
+                    isActive={currentPage === i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
                     {i + 1}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext href="#" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} />
+                <PaginationNext
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         )}
-      </div>
-
-      {/* Add Supplier and View Modals remain the same */}
-      {adding && (
-        <Modal title="Add Supplier" onClose={() => setAdding(false)}>
-          <form className="space-y-4" onSubmit={handleAddSupplier}>
-            <div> <label className="block font-medium mb-1">Company</label> <input value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} required className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white" /> </div>
-            <div> <label className="block font-medium mb-1">Contact Person</label> <input value={form.contact} onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))} required className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white" /> </div>
-            <div> <label className="block font-medium mb-1">Phone</label> <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} required className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white" /> </div>
-            <div> <label className="block font-medium mb-1">Email</label> <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white" /> </div>
-            <div> <label className="block font-medium mb-1">Category</label> <Select value={form.category} onValueChange={(cat) => setForm((f) => ({ ...f, category: cat }))} required> <SelectTrigger className="w-full bg-white dark:bg-neutral-900 border dark:border-neutral-700 text-black dark:text-white rounded px-3 py-2"> <SelectValue placeholder="Select category" /> </SelectTrigger> <SelectContent> {allCategories.filter((cat) => cat !== "All").map((cat) => ( <SelectItem key={cat} value={cat}> {cat} </SelectItem> ))} </SelectContent> </Select> </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setAdding(false)}>Cancel</Button>
-              <Button type="submit" className="bg-black text-white hover:bg-neutral-800">Add Supplier</Button>
-            </div>
-          </form>
-        </Modal>
-      )}
-      {viewing && (
-        <Modal title={`Supplier: ${viewing.company}`} onClose={() => setViewing(null)}>
-          <div className="space-y-6">
-            <div> <h3 className="text-lg font-bold border-b border-gray-200 dark:border-neutral-700 pb-2">Details</h3> <ul className="space-y-1 text-gray-700 dark:text-gray-200 text-sm mt-2"> <li><strong>Contact:</strong> {viewing.contact}</li> <li><strong>Phone:</strong> {viewing.phone}</li> <li><strong>Email:</strong> {viewing.email}</li> <li><strong>Category:</strong> {viewing.category}</li> </ul> </div>
-            <div> <h3 className="text-lg font-bold border-b border-gray-200 dark:border-neutral-700 pb-2">Recent Transactions</h3> <table className="w-full text-sm border border-gray-200 dark:border-neutral-700 rounded-lg overflow-hidden mt-2"> <thead className="bg-gray-100 dark:bg-neutral-800"> <tr> <th className="px-4 py-2 text-left">Date</th> <th className="px-4 py-2 text-left">Item</th> <th className="px-4 py-2 text-left">Amount</th> </tr> </thead> <tbody> {supplierTransactions[viewing.id]?.length ? ( supplierTransactions[viewing.id].map((t, i) => ( <tr key={i} className={`border-t border-gray-200 dark:border-neutral-700 ${i % 2 === 0 ? "bg-gray-50 dark:bg-neutral-900" : "bg-white dark:bg-neutral-800"}`} > <td className="px-4 py-2">{t.date}</td> <td className="px-4 py-2">{t.item}</td> <td className="px-4 py-2">{t.amount}</td> </tr> )) ) : ( <tr> <td colSpan={3} className="px-4 py-3 text-center text-gray-500">No transactions found.</td> </tr> )} </tbody> </table> </div>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// Modal Component
-function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void; }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4" onClick={onClose}>
-      <div className="bg-white dark:bg-neutral-900 text-black dark:text-white p-6 rounded-2xl shadow-2xl max-w-lg w-full relative animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-3 right-4 text-gray-500 dark:text-gray-300 text-2xl hover:text-black dark:hover:text-white transition">×</button>
-        <h2 className="text-2xl font-extrabold mb-4">{title}</h2>
-        {children}
       </div>
     </div>
   );
