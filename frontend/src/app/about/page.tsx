@@ -7,7 +7,7 @@ import {
   HowItWorks,
   TestimonialsSection,
   FinalCTA,
-} from "@/components/home";
+} from "@/components/about";
 
 export default function HomePage() {
   return (
