@@ -2,7 +2,7 @@ export default function DashboardModal({
   modal,
   onClose,
 }: {
-  modal: { title: string; columns: string[]; data: any[][] };
+  modal: { title: string; columns: string[]; data: (string | number)[][] };
   onClose: () => void;
 }) {
   return (

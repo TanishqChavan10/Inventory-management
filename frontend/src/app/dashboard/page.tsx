@@ -1,41 +1,52 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
-import SupplierChat from "@/components/dashboard/SupplierChat";
+import NewRecentActivity from "@/components/dashboard/RecentActivity";
+import LowStockAlert from "@/components/dashboard/LowStockAlert";
 import DashboardModal from "@/components/dashboard/DashboardModal";
-import RecentActivity from "@/components/dashboard/RecentActivity";
-import { stats, statDetails, suppliers, activity } from "@/data/dashboardData";
+import { statsData, recentActivity, lowStockItems } from "@/data/dashboardData";
 
 export default function DashboardPage() {
-  const [modal, setModal] = useState<null | { title: string; columns: string[]; data: any[][] }>(null);
+  const [modal, setModal] = useState<null | { title: string; columns: string[]; data: (string | number)[][] }>(null);
 
   return (
-    <div className="px-6 py-10 min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-black dark:via-neutral-950 dark:to-neutral-900">
-      <header className="flex flex-col lg:flex-row justify-between mb-10">
-        <h1 className="text-4xl font-extrabold">Dashboard</h1>
-        <p className="text-gray-500">Inventory overview & recent activity</p>
-      </header>
+    <div className="px-32 py-8 min-h-screen bg-gray-50 dark:bg-neutral-950">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Overview</h1>
+          <p className="text-gray-600 dark:text-gray-400">Welcome back! Here&apos;s what&apos;s happening with your inventory today.</p>
+        </div>
+        <Link href="/inventory">
+          <Button className="bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 mt-4 sm:mt-0">
+            <Settings className="w-4 h-4 mr-2" />
+            Manage Inventory
+          </Button>
+        </Link>
+      </div>
 
-      {/* Stat Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {stats.map((stat) => (
-          <StatCard
-            key={stat.label}
-            label={stat.label}
-            value={stat.value}
-            Icon={stat.icon}
-            onClick={() => setModal(statDetails[stat.label] || null)}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {statsData.map((stat, index) => (
+          <StatCard 
+            key={index} 
+            stat={stat} 
+            onClick={() => setModal(stat.details)}
           />
         ))}
-      </section>
+      </div>
 
-      {/* Chat + Activity */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <SupplierChat suppliers={suppliers} />
-        <RecentActivity activity={activity} />
-      </section>
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <NewRecentActivity activities={recentActivity} />
+        <LowStockAlert items={lowStockItems} />
+      </div>
 
+      {/* Modal */}
       {modal && <DashboardModal modal={modal} onClose={() => setModal(null)} />}
     </div>
   );

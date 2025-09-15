@@ -1,121 +1,185 @@
+'use client';
+
 import { notFound } from 'next/navigation';
+import { toast } from 'sonner';
 
-type Supplier = {
-  id: string;
-  company: string;
-  email: string;
-  phone: string;
-  category: string;
-};
+// --- Component Imports ---
+import {
+  SupplierDetailHeader,
+  SupplierStats,
+  SupplierShipments,
+  SupplierProducts,
+} from '@/components/suppliers';
 
-type ShipmentItem = {
-  shipment_id: string;
-  product_id: string;
-  product_name: string;
-  quantity_received: number;
-  unit_price: number;
-  mfg_date?: string;
-  expiry_date?: string;
-};
+// --- Types ---
+import type { SupplierDetail, Shipment, ShipmentItem } from '@/types';
 
-type Shipment = {
-  shipment_id: string;
-  supplier_id: string;
-  ref_no: string;
-  payment_status: 'Pending' | 'Paid' | 'Failed';
-  payment_method: string;
-  invoice_amt: number;
-  received_date: string;
-};
-
-const suppliers: Supplier[] = [
-  {
-    id: 'S001',
-    company: 'FreshFarms Pvt Ltd',
-    email: 'aarav@freshfarms.com',
-    phone: '+91 99876 12345',
-    category: 'Groceries',
+// Enhanced sample data based on ER diagram
+const supplierDetails: Record<string, SupplierDetail> = {
+  '1': {
+    supplier_id: '1',
+    name: 'TechCorp Solutions',
+    email: 'contact@techcorp.com',
+    phone_no: '+1-555-0101',
+    address: '123 Tech Street, Silicon Valley, CA 94301',
+    contact_person: 'John Smith',
+    registration_number: 'REG-TC-2020-001',
+    tax_id: 'TAX-TC-789123',
+    created_date: '2020-01-15',
+    status: 'Active',
   },
-  {
-    id: 'S002',
-    company: 'DairyCo',
-    email: 'meera@dairyco.in',
-    phone: '+91 88990 56744',
-    category: 'Dairy',
+  '2': {
+    supplier_id: '2',
+    name: 'Fashion Forward Ltd',
+    email: 'orders@fashionforward.com',
+    phone_no: '+1-555-0102',
+    address: '456 Fashion Ave, New York, NY 10001',
+    contact_person: 'Sarah Johnson',
+    registration_number: 'REG-FF-2019-002',
+    tax_id: 'TAX-FF-456789',
+    created_date: '2019-06-10',
+    status: 'Active',
   },
-  {
-    id: 'S003',
-    company: 'CleanPro Suppliers',
-    email: 'sonal@cleanpro.com',
-    phone: '+91 90221 44567',
-    category: 'Cleaning Supplies',
+  '3': {
+    supplier_id: '3',
+    name: 'Fresh Foods Inc',
+    email: 'supply@freshfoods.com',
+    phone_no: '+1-555-0103',
+    address: '789 Fresh Market St, Portland, OR 97201',
+    contact_person: 'Mike Wilson',
+    registration_number: 'REG-FF-2021-003',
+    tax_id: 'TAX-FF-123456',
+    created_date: '2021-03-22',
+    status: 'Active',
   },
-];
-
-const shipmentItemsBySupplier: Record<string, ShipmentItem[]> = {
-  S001: [
-    {
-      shipment_id: 'SH1001',
-      product_id: 'P101',
-      product_name: 'Organic Tomatoes',
-      quantity_received: 120,
-      unit_price: 18,
-      mfg_date: '2025-07-10',
-      expiry_date: '2025-09-10',
-    },
-    {
-      shipment_id: 'SH1002',
-      product_id: 'P102',
-      product_name: 'Alphonso Mangoes',
-      quantity_received: 80,
-      unit_price: 25,
-      mfg_date: '2025-07-15',
-      expiry_date: '2025-09-20',
-    },
-  ],
-  S002: [
-    {
-      shipment_id: 'SH2001',
-      product_id: 'P201',
-      product_name: 'Whole Milk 1L',
-      quantity_received: 60,
-      unit_price: 42,
-      mfg_date: '2025-07-05',
-      expiry_date: '2025-08-15',
-    },
-  ],
+  '4': {
+    supplier_id: '4',
+    name: 'Office Pro Supply',
+    email: 'sales@officepro.com',
+    phone_no: '+1-555-0104',
+    address: '321 Office Plaza, Dallas, TX 75201',
+    contact_person: 'Lisa Brown',
+    registration_number: 'REG-OP-2018-004',
+    tax_id: 'TAX-OP-987654',
+    created_date: '2018-11-05',
+    status: 'Inactive',
+  },
 };
 
 const shipmentsBySupplier: Record<string, Shipment[]> = {
-  S001: [
+  '1': [
     {
-      shipment_id: 'SH1001',
-      supplier_id: 'S001',
-      ref_no: 'RF-8765',
+      shipment_id: 'SH-2024-001',
+      supplier_id: '1',
+      ref_no: 'REF-TC-001',
+      received_date: '2024-01-10',
       payment_status: 'Paid',
-      payment_method: 'UPI',
-      invoice_amt: 2160,
-      received_date: '2025-07-18',
+      payment_mthd: 'Bank Transfer',
+      invoice_amt: 45500,
+      total_items: 25,
     },
     {
-      shipment_id: 'SH1002',
-      supplier_id: 'S001',
-      ref_no: 'RF-8821',
+      shipment_id: 'SH-2024-002',
+      supplier_id: '1',
+      ref_no: 'REF-TC-002',
+      received_date: '2024-01-25',
+      payment_status: 'Paid',
+      payment_mthd: 'Credit Card',
+      invoice_amt: 32500,
+      total_items: 18,
+    },
+    {
+      shipment_id: 'SH-2024-003',
+      supplier_id: '1',
+      ref_no: 'REF-TC-003',
+      received_date: '2024-02-08',
       payment_status: 'Pending',
-      payment_method: 'Bank Transfer',
-      invoice_amt: 2000,
-      received_date: '2025-07-25',
+      payment_mthd: 'Bank Transfer',
+      invoice_amt: 47500,
+      total_items: 22,
     },
   ],
-  S002: [
+  '2': [
     {
-      shipment_id: 'SH2001',
-      supplier_id: 'S002',
-      ref_no: 'RF-9051',
+      shipment_id: 'SH-2024-004',
+      supplier_id: '2',
+      ref_no: 'REF-FF-001',
+      received_date: '2024-01-12',
       payment_status: 'Paid',
-      payment_method: 'Card',
-      invoice_amt: 2520,
-      received_date: '2025-07-20',
+      payment_mthd: 'Credit Card',
+      invoice_amt: 25200,
+      total_items: 15,
+    },
+    {
+      shipment_id: 'SH-2024-005',
+      supplier_id: '2',
+      ref_no: 'REF-FF-002',
+      received_date: '2024-01-28',
+      payment_status: 'Paid',
+      payment_mthd: 'PayPal',
+      invoice_amt: 34800,
+      total_items: 20,
+    },
+  ],
+};
+
+const shipmentItemsBySupplier: Record<string, ShipmentItem[]> = {
+  '1': [
+    {
+      shipment_id: 'SH-2024-001',
+      product_id: 'LAP-001',
+      product_name: 'Dell XPS 13 Laptop',
+      quantity_received: 10,
+      unit_price: 1200,
+      batch_number: 'BATCH-LAP-001',
+      mfg_date: '2024-01-01',
+    },
+    {
+      shipment_id: 'SH-2024-001',
+      product_id: 'MOU-001',
+      product_name: 'Wireless Mouse',
+      quantity_received: 15,
+      unit_price: 25,
+      batch_number: 'BATCH-MOU-001',
+      mfg_date: '2024-01-05',
+    },
+    {
+      shipment_id: 'SH-2024-002',
+      product_id: 'LAP-002',
+      product_name: 'HP Pavilion Laptop',
+      quantity_received: 8,
+      unit_price: 950,
+      batch_number: 'BATCH-LAP-002',
+      mfg_date: '2024-01-20',
+    },
+    {
+      shipment_id: 'SH-2024-002',
+      product_id: 'MOU-002',
+      product_name: 'Gaming Mouse',
+      quantity_received: 10,
+      unit_price: 45,
+      batch_number: 'BATCH-MOU-002',
+      mfg_date: '2024-01-22',
+    },
+  ],
+  '2': [
+    {
+      shipment_id: 'SH-2024-004',
+      product_id: 'CLO-001',
+      product_name: 'Cotton T-Shirt',
+      quantity_received: 50,
+      unit_price: 25,
+      batch_number: 'BATCH-CLO-001',
+      mfg_date: '2024-01-10',
+    },
+    {
+      shipment_id: 'SH-2024-004',
+      product_id: 'ACC-001',
+      product_name: 'Leather Belt',
+      quantity_received: 20,
+      unit_price: 35,
+      batch_number: 'BATCH-ACC-001',
+      mfg_date: '2024-01-08',
     },
   ],
 };
@@ -127,144 +191,45 @@ type Params = {
 export default function SupplierDetailsPage({ params }: Params) {
   const { id } = params;
 
-  const supplier = suppliers.find((s) => s.id === id);
+  const supplier = supplierDetails[id];
   if (!supplier) return notFound();
 
-  const items = shipmentItemsBySupplier[id] ?? [];
-  const shipments = shipmentsBySupplier[id] ?? [];
+  const shipments = shipmentsBySupplier[id] || [];
+  const shipmentItems = shipmentItemsBySupplier[id] || [];
+
+  // Calculate statistics
+  const totalValue = shipments.reduce((sum, shipment) => sum + shipment.invoice_amt, 0);
+  const totalProducts = Array.from(new Set(shipmentItems.map(item => item.product_id))).length;
+  const avgOrderValue = shipments.length > 0 ? totalValue / shipments.length : 0;
+  const lastOrderDate = shipments.length > 0 ? 
+    shipments.sort((a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime())[0].received_date :
+    supplier.created_date;
+
+  const handleViewShipment = (shipment: Shipment) => {
+    toast.info(`Viewing details for shipment: ${shipment.shipment_id}`);
+    // In a real app, this would navigate to a shipment detail page
+  };
 
   return (
-    <div className="w-full px-0 py-10 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white min-h-screen">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold tracking-tight">Supplier Details</h1>
-        </div>
+    <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
+      <div className="space-y-6">
+        <SupplierDetailHeader supplier={supplier} />
+        
+        <SupplierStats
+          totalShipments={shipments.length}
+          totalValue={totalValue}
+          totalProducts={totalProducts}
+          avgOrderValue={avgOrderValue}
+          lastOrderDate={lastOrderDate}
+        />
 
-        {/* Supplier core info */}
-        <section className="rounded-2xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 shadow">
-          <h2 className="text-xl font-semibold mb-4">Supplier</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-            <Info label="Supplier ID" value={supplier.id} />
-            <Info label="Company/Name" value={supplier.company} />
-            <Info label="Email" value={supplier.email} />
-            <Info label="Phone" value={supplier.phone} />
-            <Info label="Category" value={supplier.category} />
-          </div>
-        </section>
+        <SupplierShipments
+          shipments={shipments}
+          onViewShipment={handleViewShipment}
+        />
 
-        {/* Shipment Items */}
-        <section className="rounded-2xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 shadow">
-          <h2 className="text-xl font-semibold mb-4">Shipment Items</h2>
-          {items.length === 0 ? (
-            <Empty text="No shipment items found." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-[1000px] w-full text-sm border border-gray-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                <thead className="bg-gray-100 dark:bg-neutral-800">
-                  <tr>
-                    <Th>Shipment ID</Th>
-                    <Th>Product ID</Th>
-                    <Th>Product Name</Th>
-                    <Th>Quantity</Th>
-                    <Th>Unit Price</Th>
-                    <Th>Mfg Date</Th>
-                    <Th>Expiry Date</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((it) => (
-                    <tr
-                      key={`${it.shipment_id}-${it.product_id}`}
-                      className="border-t border-gray-200 dark:border-neutral-700"
-                    >
-                      <Td>{it.shipment_id}</Td>
-                      <Td>{it.product_id}</Td>
-                      <Td>{it.product_name}</Td>
-                      <Td>{it.quantity_received}</Td>
-                      <Td>₹{it.unit_price.toLocaleString()}</Td>
-                      <Td>{it.mfg_date ?? '-'}</Td>
-                      <Td>{it.expiry_date ?? '-'}</Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {/* Shipments */}
-        <section className="rounded-2xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 shadow">
-          <h2 className="text-xl font-semibold mb-4">Shipments</h2>
-          {shipments.length === 0 ? (
-            <Empty text="No shipments found." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-[1000px] w-full text-sm border border-gray-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                <thead className="bg-gray-100 dark:bg-neutral-800">
-                  <tr>
-                    <Th>Shipment ID</Th>
-                    <Th>Supplier ID</Th>
-                    <Th>Ref No</Th>
-                    <Th>Payment Status</Th>
-                    <Th>Payment Method</Th>
-                    <Th>Invoice Amt</Th>
-                    <Th>Received Date</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shipments.map((sh) => (
-                    <tr
-                      key={sh.shipment_id}
-                      className="border-t border-gray-200 dark:border-neutral-700"
-                    >
-                      <Td>{sh.shipment_id}</Td>
-                      <Td>{sh.supplier_id}</Td>
-                      <Td>{sh.ref_no}</Td>
-                      <Td>
-                        <span
-                          className={
-                            sh.payment_status === 'Paid'
-                              ? 'text-green-600'
-                              : sh.payment_status === 'Pending'
-                                ? 'text-amber-600'
-                                : 'text-red-600'
-                          }
-                        >
-                          {sh.payment_status}
-                        </span>
-                      </Td>
-                      <Td>{sh.payment_method}</Td>
-                      <Td>₹{sh.invoice_amt.toLocaleString()}</Td>
-                      <Td>{sh.received_date}</Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        <SupplierProducts shipmentItems={shipmentItems} />
       </div>
     </div>
   );
-}
-
-function Info({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
-      <div className="text-xs uppercase text-gray-500 dark:text-gray-400">{label}</div>
-      <div className="mt-1 font-medium">{value}</div>
-    </div>
-  );
-}
-
-function Empty({ text }: { text: string }) {
-  return <div className="text-gray-500 dark:text-gray-400 text-sm">{text}</div>;
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-4 py-2 text-left font-semibold">{children}</th>;
-}
-
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-4 py-2">{children}</td>;
 }

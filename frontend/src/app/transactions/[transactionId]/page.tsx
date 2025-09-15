@@ -1,275 +1,148 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableFooter,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Receipt, User, Package, UserCheck } from 'lucide-react';
+import { TransactionDetailHeader } from '@/components/transactions/TransactionDetailHeader';
+import { TransactionStats } from '@/components/transactions/TransactionStats';
+import { TransactionItems } from '@/components/transactions/TransactionItems';
+import { TransactionPayment } from '@/components/transactions/TransactionPayment';
+import type { TransactionDetail, Customer, Employee, OrderItem } from '@/types';
 
-// --- Mock Data ---
+// Enhanced mock data based on ER diagram
 const mockTransactionData = {
   transaction: {
-    transaction_id: 'T001',
-    cart_id: 'CART-123',
-    transaction_date: '2025-08-15',
-    payment_method: 'Credit Card',
-    payment_refno: 'REF-CC-12345',
-    cashier_id: 'EMP-002',
+    transaction_id: 'TXN-001',
     customer_id: 'CUST-001',
-    subtotal: 0,
-    discount_rate: 0.1,
-    total_amt: 0,
-  },
+    cashier_id: 'EMP-002',
+    transaction_date: '2024-01-15T14:30:00Z',
+    payment_method: 'Credit Card' as const,
+    total_amt: 1416.90,
+    payment_refno: 'REF-CC-12345',
+    status: 'Completed' as const,
+    tax_amount: 127.53,
+    discount_amount: 75.50,
+    subtotal: 1364.87,
+    notes: 'Customer requested separate bags for frozen items.',
+  } as TransactionDetail,
   customer: {
     customer_id: 'CUST-001',
-    name: 'Rohan Sharma',
-    phone_no: '+91 98765 43210',
-  },
-  employee: {
+    name: 'Alice Brown',
+    phone_no: '+1-555-0123',
+    email: 'alice.brown@email.com',
+    address: '123 Main St, Anytown, AT 12345',
+    loyalty_points: 1250,
+    total_purchases: 15,
+    created_date: '2023-06-15T10:00:00Z',
+  } as Customer,
+  cashier: {
     employee_id: 'EMP-002',
-    name: 'Priya Singh',
-    phone_no: '+91 98765 43210',
-  },
+    name: 'John Smith',
+    role: 'Cashier',
+    contact: '+1-555-0198',
+    department: 'Sales',
+    hire_date: '2023-01-15T09:00:00Z',
+  } as Employee,
   order_items: [
     {
-      order_item_id: 'OI-004',
-      product_id: 'CHPS01',
-      product_name: 'Classic Salted Chips',
-      product_category: 'Snacks',
-      quantity: 5,
-      unit_price: 20,
-    },
-    {
-      order_item_id: 'OI-005',
-      product_id: 'SODA01',
-      product_name: 'Cola 500ml',
-      product_category: 'Beverages',
-      quantity: 3,
-      unit_price: 40,
-    },
-    {
-      order_item_id: 'OI-001',
-      product_id: 'OIL001',
-      product_name: 'Sunflower Oil',
-      product_category: 'Grocery',
+      transaction_id: 'TXN-001',
+      product_id: 'LAP-001',
+      product_name: 'Dell XPS 13 Laptop',
       quantity: 1,
-      unit_price: 120,
+      unit_price: 1200.00,
+      total_price: 1200.00,
+      discount_applied: 50.00,
+      category_name: 'Electronics',
     },
     {
-      order_item_id: 'OI-008',
-      product_id: 'RICE01',
-      product_name: 'Basmati Rice 1kg',
-      product_category: 'Grocery',
+      transaction_id: 'TXN-001',
+      product_id: 'MOU-001',
+      product_name: 'Wireless Mouse',
       quantity: 2,
-      unit_price: 150,
+      unit_price: 25.00,
+      total_price: 50.00,
+      discount_applied: 5.00,
+      category_name: 'Electronics',
     },
     {
-      order_item_id: 'OI-002',
-      product_id: 'MILK001',
-      product_name: 'Milk',
-      product_category: 'Dairy',
-      quantity: 2,
-      unit_price: 45,
-    },
-    {
-      order_item_id: 'OI-003',
-      product_id: 'BRW001',
-      product_name: 'Bread - Whole Wheat',
-      product_category: 'Bakery',
+      transaction_id: 'TXN-001',
+      product_id: 'LAP-002',
+      product_name: 'HP Pavilion Laptop',
       quantity: 1,
-      unit_price: 35.5,
+      unit_price: 950.00,
+      total_price: 950.00,
+      discount_applied: 20.50,
+      category_name: 'Electronics',
     },
     {
-      order_item_id: 'OI-006',
-      product_id: 'ICEC01',
-      product_name: 'Vanilla Ice Cream',
-      product_category: 'Frozen',
+      transaction_id: 'TXN-001',
+      product_id: 'MOU-002',
+      product_name: 'Gaming Mouse',
       quantity: 1,
-      unit_price: 250,
+      unit_price: 45.00,
+      total_price: 45.00,
+      discount_applied: 0,
+      category_name: 'Electronics',
     },
     {
-      order_item_id: 'OI-007',
-      product_id: 'SOAP01',
-      product_name: 'Luxury Bath Soap',
-      product_category: 'Personal Care',
-      quantity: 4,
-      unit_price: 55,
+      transaction_id: 'TXN-001',
+      product_id: 'KEY-001',
+      product_name: 'Mechanical Keyboard',
+      quantity: 1,
+      unit_price: 120.00,
+      total_price: 120.00,
+      discount_applied: 0,
+      category_name: 'Electronics',
+    },
+  ] as OrderItem[],
+  refundHistory: [
+    {
+      refund_id: 'REF-001',
+      amount: 70.93,
+      date: '2024-01-16T10:00:00Z',
+      reason: 'Product defect - Gaming Mouse',
+      processed_by: 'Lisa Wilson',
     },
   ],
 };
 
-// --- Derived values ---
-const subtotal = mockTransactionData.order_items.reduce(
-  (acc, item) => acc + item.quantity * item.unit_price,
-  0,
-);
-const taxes = subtotal * mockTransactionData.transaction.discount_rate;
-const total_amt = subtotal - taxes;
-mockTransactionData.transaction.subtotal = subtotal;
-mockTransactionData.transaction.total_amt = total_amt;
-
 export default function TransactionDetailsPage() {
-  const sortedOrderItems = useMemo(() => {
-    return [...mockTransactionData.order_items].sort((a, b) =>
-      a.product_category.localeCompare(b.product_category),
-    );
-  }, []);
+  const { transaction, customer, cashier, order_items, refundHistory } = mockTransactionData;
+
+  const stats = useMemo(() => {
+    const totalItems = order_items.reduce((sum, item) => sum + item.quantity, 0);
+    const uniqueProducts = order_items.length;
+    
+    return {
+      totalItems,
+      uniqueProducts,
+    };
+  }, [order_items]);
 
   return (
-    <div className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-white dark:bg-black text-black dark:text-white min-h-screen">
-      <header className="mb-10 max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">Transaction Details</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-          Detailed record for transaction{' '}
-          <span className="font-semibold">{mockTransactionData.transaction.transaction_id}</span>
-        </p>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Header */}
+        <TransactionDetailHeader 
+          transaction={transaction}
+          customer={customer}
+          cashier={cashier}
+        />
 
-      <main className="max-w-7xl mx-auto space-y-8">
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="shadow-md rounded-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="w-5 h-5" /> Transaction
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <p>
-                <strong>ID:</strong> {mockTransactionData.transaction.transaction_id}
-              </p>
-              <p>
-                <strong>Cart ID:</strong> {mockTransactionData.transaction.cart_id}
-              </p>
-              <p>
-                <strong>Date:</strong> {mockTransactionData.transaction.transaction_date}
-              </p>
-              <p>
-                <strong>Payment Method:</strong> {mockTransactionData.transaction.payment_method}
-              </p>
-              <p>
-                <strong>Reference No:</strong>{' '}
-                {mockTransactionData.transaction.payment_refno || 'N/A'}
-              </p>
-              <hr className="my-2 border-dashed" />
-              <p>
-                <strong>Subtotal:</strong> ₹{mockTransactionData.transaction.subtotal.toFixed(2)}
-              </p>
-              <p>
-                <strong>Discount (10%):</strong> ₹{taxes.toFixed(2)}
-              </p>
-              <p className="font-bold text-lg">
-                Grand Total: ₹{mockTransactionData.transaction.total_amt.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
+        {/* Stats */}
+        <TransactionStats 
+          transaction={transaction}
+          totalItems={stats.totalItems}
+          uniqueProducts={stats.uniqueProducts}
+        />
 
-          <Card className="shadow-md rounded-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" /> Customer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <p>
-                <strong>ID:</strong> {mockTransactionData.customer.customer_id}
-              </p>
-              <p>
-                <strong>Name:</strong> {mockTransactionData.customer.name}
-              </p>
-              <p>
-                <strong>Phone:</strong> {mockTransactionData.customer.phone_no}
-              </p>
-            </CardContent>
-          </Card>
+        {/* Order Items */}
+        <TransactionItems orderItems={order_items} />
 
-          <Card className="shadow-md rounded-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5" /> Employee (Cashier)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <p>
-                <strong>ID:</strong> {mockTransactionData.employee.employee_id}
-              </p>
-              <p>
-                <strong>Name:</strong> {mockTransactionData.employee.name}
-              </p>
-              <p>
-                <strong>Phone:</strong> +91 {mockTransactionData.employee.phone_no}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Purchased Products Table */}
-        <Card className="shadow-md rounded-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" /> Purchased Products
-            </CardTitle>
-            <CardDescription className="text-gray-500 dark:text-gray-400">
-              A detailed list of all items included in this transaction.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-lg overflow-hidden">
-              <div className="relative max-h-[320px] overflow-y-auto scrollbar-hidden">
-                <Table className="min-w-full border-collapse">
-                  <TableHeader className="sticky top-0 bg-gray-100 dark:bg-neutral-900 z-20 shadow-sm">
-                    <TableRow>
-                      <TableHead className="font-semibold">Product ID</TableHead>
-                      <TableHead className="font-semibold">Product Name</TableHead>
-                      <TableHead className="font-semibold">Category</TableHead>
-                      <TableHead className="text-center font-semibold">Quantity</TableHead>
-                      <TableHead className="text-right font-semibold">Unit Price</TableHead>
-                      <TableHead className="text-right font-semibold">Line Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedOrderItems.map((item) => (
-                      <TableRow
-                        key={item.order_item_id}
-                        className="hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
-                      >
-                        <TableCell className="font-medium">{item.product_id}</TableCell>
-                        <TableCell>{item.product_name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{item.product_category}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">{item.quantity}</TableCell>
-                        <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-medium">
-                          ₹{(item.quantity * item.unit_price).toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow className="bg-gray-50 dark:bg-neutral-800">
-                      <TableCell colSpan={5} className="text-right font-bold">
-                        Subtotal
-                      </TableCell>
-                      <TableCell className="text-right font-bold">
-                        ₹{mockTransactionData.transaction.subtotal.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+        {/* Payment & Refund Information */}
+        <TransactionPayment 
+          transaction={transaction}
+          refundHistory={refundHistory}
+        />
+      </div>
     </div>
   );
 }
