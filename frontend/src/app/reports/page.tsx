@@ -1,295 +1,171 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
-// Removed unused Button import
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Calendar, 
+  Download, 
+  FileText
+} from 'lucide-react';
+import { toast } from 'sonner';
 
-const salesData = {
-  daily: [
-    { date: "Mon", sales: 4000 },
-    { date: "Tue", sales: 3000 },
-    { date: "Wed", sales: 5000 },
-    { date: "Thu", sales: 4000 },
-    { date: "Fri", sales: 6000 },
-    { date: "Sat", sales: 7000 },
-    { date: "Sun", sales: 5000 },
-  ],
-  weekly: [
-    { week: "W1", sales: 25000 },
-    { week: "W2", sales: 22000 },
-    { week: "W3", sales: 27000 },
-    { week: "W4", sales: 30000 },
-  ],
-  monthly: [
-    { month: "Jan", sales: 100000 },
-    { month: "Feb", sales: 90000 },
-    { month: "Mar", sales: 110000 },
-    { month: "Apr", sales: 120000 },
-  ],
-};
-
-const stockData = [
-  { category: "Grocery", stock: 1200 },
-  { category: "Personal Care", stock: 800 },
-  { category: "Bakery", stock: 400 },
-  { category: "Dairy", stock: 600 },
-  { category: "Beverages", stock: 1000 },
-  { category: "Household", stock: 700 },
-];
-
-const revenueData = {
-  monthly: [
-    { month: "Jan", revenue: 90000 },
-    { month: "Feb", revenue: 85000 },
-    { month: "Mar", revenue: 92000 },
-    { month: "Apr", revenue: 98000 },
-  ],
-  quarterly: [
-    { quarter: "Q1", revenue: 270000 },
-    { quarter: "Q2", revenue: 300000 },
-    { quarter: "Q3", revenue: 320000 },
-    { quarter: "Q4", revenue: 350000 },
-  ],
-};
-
-const topProductsData = {
-  weekly: [
-    { product: "Sunflower Oil", sales: 400 },
-    { product: "Milk", sales: 350 },
-    { product: "Toothpaste", sales: 300 },
-    { product: "Bread", sales: 250 },
-  ],
-  monthly: [
-    { product: "Milk", sales: 1600 },
-    { product: "Sunflower Oil", sales: 1400 },
-    { product: "Cold Drink", sales: 1300 },
-    { product: "Shampoo", sales: 1100 },
-  ],
-};
+// Import our report components
+import { SalesAnalytics } from '@/components/reports/SalesAnalytics';
+import { InventoryInsights } from '@/components/reports/InventoryInsights';
+import { SupplierPerformance } from '@/components/reports/SupplierPerformance';
+import { FinancialOverview } from '@/components/reports/FinancialOverview';
+import { EmployeePerformance } from '@/components/reports/EmployeePerformance';
+import { ReportsCharts } from '@/components/reports/ReportsCharts';
 
 export default function ReportsPage() {
-  const [salesTimeline, setSalesTimeline] = useState("weekly");
-  const [stockCategory, setStockCategory] = useState("All");
-  const [revenueTimeline, setRevenueTimeline] = useState("monthly");
-  const [topProductsTimeline, setTopProductsTimeline] = useState("weekly");
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const categories = ["All", ...stockData.map((d) => d.category)];
-  const filteredStockData =
-    stockCategory === "All"
-      ? stockData
-      : stockData.filter((d) => d.category === stockCategory);
+  const handleExportReport = (reportType: string) => {
+    toast.success(`Exporting ${reportType} report...`);
+  };
+
+  const handleScheduleReport = () => {
+    toast.info('Report scheduling feature coming soon');
+  };
 
   return (
-    <div className="w-full min-h-screen px-6 py-10 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-neutral-900 text-black dark:text-white transition-colors">
-      <h1 className="text-4xl font-extrabold mb-8">Reports</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-32 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Business Intelligence Reports
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Comprehensive analytics and insights for data-driven decisions
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleScheduleReport}>
+              <Calendar className="w-4 h-4 mr-2" />
+              Schedule
+            </Button>
+            <Button onClick={() => handleExportReport('overview')}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Sales Over Time */}
-        <Card title="Sales Over Time" filter={
-          <FilterSelect
-            value={salesTimeline}
-            onChange={setSalesTimeline}
-            options={["daily", "weekly", "monthly"]}
-            labelMap={{ daily: "Daily", weekly: "Weekly", monthly: "Monthly" }}
-          />
-        }>
-          {(animate) => (
-            <ResponsiveContainer width="100%" height={250} className={animate ? "fade-slide" : ""}>
-              <LineChart
-                data={salesData[salesTimeline]}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <XAxis
-                  dataKey={
-                    salesTimeline === "daily"
-                      ? "date"
-                      : salesTimeline === "weekly"
-                      ? "week"
-                      : "month"
-                  }
-                  stroke="#8884d8"
-                />
-                <YAxis />
-                <Tooltip />
-                <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#8884d8"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+        {/* Report Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="sales">Sales</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger value="employees">Employees</TabsTrigger>
+          </TabsList>
 
-        {/* Stock Levels by Category */}
-        <Card title="Stock Levels by Category" filter={
-          <FilterSelect
-            value={stockCategory}
-            onChange={setStockCategory}
-            options={categories}
-          />
-        }>
-          {(animate) => (
-            <ResponsiveContainer width="100%" height={250} className={animate ? "fade-slide" : ""}>
-              <BarChart
-                data={filteredStockData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <XAxis dataKey="category" stroke="#82ca9d" />
-                <YAxis />
-                <Tooltip />
-                <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                <Bar dataKey="stock" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+          <TabsContent value="overview" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Executive Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                  This comprehensive dashboard provides real-time insights into your business performance across all key areas.
+                  Use the tabs above to explore detailed analytics for sales, inventory, suppliers, and financial metrics.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Key Highlights</h3>
+                    <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• Revenue up 12.5% this quarter</li>
+                      <li>• 96.8% supplier on-time delivery rate</li>
+                      <li>• Profit margin above industry average</li>
+                      <li>• Inventory turnover improved by 8%</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Action Items</h3>
+                    <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• Address 23 low stock alerts</li>
+                      <li>• Review 3 expired products</li>
+                      <li>• Follow up on overdue payments</li>
+                      <li>• Optimize underperforming categories</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Revenue Over Time */}
-        <Card title="Revenue Over Time" filter={
-          <FilterSelect
-            value={revenueTimeline}
-            onChange={setRevenueTimeline}
-            options={["monthly", "quarterly"]}
-            labelMap={{ monthly: "Monthly", quarterly: "Quarterly" }}
-          />
-        }>
-          {(animate) => (
-            <ResponsiveContainer width="100%" height={250} className={animate ? "fade-slide" : ""}>
-              <BarChart
-                data={revenueData[revenueTimeline]}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <XAxis
-                  dataKey={revenueTimeline === "monthly" ? "month" : "quarter"}
-                  stroke="#ffc658"
-                />
-                <YAxis />
-                <Tooltip />
-                <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                <Bar dataKey="revenue" fill="#ffc658" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+            {/* Interactive Charts */}
+            <ReportsCharts 
+              title="Interactive Business Analytics" 
+              defaultType="bar" 
+              showControls={true} 
+            />
+          </TabsContent>
 
-        {/* Top Selling Products */}
-        <Card title="Top Selling Products" filter={
-          <FilterSelect
-            value={topProductsTimeline}
-            onChange={setTopProductsTimeline}
-            options={["weekly", "monthly"]}
-            labelMap={{ weekly: "Weekly", monthly: "Monthly" }}
-          />
-        }>
-          {(animate) => (
-            <ResponsiveContainer width="100%" height={250} className={animate ? "fade-slide" : ""}>
-              <BarChart
-                data={topProductsData[topProductsTimeline]}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                layout="vertical"
-              >
-                <XAxis type="number" />
-                <YAxis
-                  dataKey="product"
-                  type="category"
-                  stroke="#8884d8"
-                  width={100}
-                />
-                <Tooltip />
-                <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                <Bar dataKey="sales" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+          <TabsContent value="sales" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sales Analytics</h2>
+              <Button onClick={() => handleExportReport('sales')} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Sales Report
+              </Button>
+            </div>
+            <SalesAnalytics />
+          </TabsContent>
+
+          <TabsContent value="inventory" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Inventory Insights</h2>
+              <Button onClick={() => handleExportReport('inventory')} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Inventory Report
+              </Button>
+            </div>
+            <InventoryInsights alerts={[]} />
+          </TabsContent>
+
+          <TabsContent value="suppliers" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Supplier Performance</h2>
+              <Button onClick={() => handleExportReport('suppliers')} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Supplier Report
+              </Button>
+            </div>
+            <SupplierPerformance suppliers={[]} />
+          </TabsContent>
+
+          <TabsContent value="financial" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Overview</h2>
+              <Button onClick={() => handleExportReport('financial')} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Financial Report
+              </Button>
+            </div>
+            <FinancialOverview metrics={[]} period="monthly" />
+          </TabsContent>
+
+          <TabsContent value="employees" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Employee Performance</h2>
+              <Button onClick={() => handleExportReport('employees')} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Employee Report
+              </Button>
+            </div>
+            <EmployeePerformance employees={[]} period="monthly" departmentFilter="All" />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Animation styles */}
-      <style jsx>{`
-        .fade-slide {
-          animation: fadeSlideIn 0.5s ease forwards;
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        @keyframes fadeSlideIn {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
-  );
-}
-
-function Card({
-  title,
-  children,
-  filter,
-}: {
-  title: string;
-  children: (animate: boolean) => React.ReactNode;
-  filter: React.ReactNode;
-}) {
-  // Animate chart when filter changes
-  const [animate, setAnimate] = useState(false);
-
-  // Trigger animation on mount and filter change
-  useEffect(() => {
-    setAnimate(true);
-    const timeout = setTimeout(() => setAnimate(false), 500);
-    return () => clearTimeout(timeout);
-  }, [filter]);
-
-  return (
-    <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-6 w-full min-h-[350px] flex flex-col">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-extrabold">{title}</h2>
-        <div>{filter}</div>
-      </div>
-      {children(animate)}
-    </div>
-  );
-}
-
-function FilterSelect({
-  value,
-  onChange,
-  options,
-  labelMap,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  options: string[];
-  labelMap?: Record<string, string>;
-}) {
-  return (
-    <Select value={value} onValueChange={onChange} className="w-48">
-      <SelectTrigger className="bg-white dark:bg-neutral-900 border dark:border-neutral-700 text-black dark:text-white shadow-sm rounded-lg">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((opt) => (
-          <SelectItem key={opt} value={opt}>
-            {labelMap ? labelMap[opt] ?? opt : opt}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   );
 }
