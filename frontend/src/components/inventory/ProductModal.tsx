@@ -49,7 +49,8 @@ export function ProductModal({
         </h2>
         <div className="mb-4">
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Enter the details for the {isEditing ? 'product' : 'new product you want to add to inventory'}.
+            Enter the details for the{' '}
+            {isEditing ? 'product' : 'new product you want to add to inventory'}.
           </p>
         </div>
         <form
@@ -60,9 +61,7 @@ export function ProductModal({
           }}
         >
           <div>
-            <label className="block font-medium mb-1 dark:text-gray-200">
-              Product Name
-            </label>
+            <label className="block font-medium mb-1 dark:text-gray-200">Product Name</label>
             <input
               value={form.name || ''}
               onChange={(e) => onFormChange({ ...form, name: e.target.value })}
@@ -72,9 +71,7 @@ export function ProductModal({
             />
           </div>
           <div>
-            <label className="block font-medium mb-1 dark:text-gray-200">
-              Category
-            </label>
+            <label className="block font-medium mb-1 dark:text-gray-200">Category</label>
             <select
               value={form.category || ''}
               onChange={(e) => onFormChange({ ...form, category: e.target.value })}
@@ -82,9 +79,13 @@ export function ProductModal({
               className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
             >
               <option value="">Select category</option>
-              {categories.filter(cat => cat !== 'All').map((cat) => (
-                <option key={String(cat)} value={String(cat)}>{String(cat)}</option>
-              ))}
+              {categories
+                .filter((cat) => cat !== 'All')
+                .map((cat) => (
+                  <option key={String(cat)} value={String(cat)}>
+                    {String(cat)}
+                  </option>
+                ))}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -124,11 +125,7 @@ export function ProductModal({
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit" className="bg-black text-white hover:bg-neutral-800">

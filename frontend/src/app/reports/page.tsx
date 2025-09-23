@@ -4,11 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Calendar, 
-  Download, 
-  FileText
-} from 'lucide-react';
+import { Calendar, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import our report components
@@ -76,12 +72,15 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-400 mb-8">
-                  This comprehensive dashboard provides real-time insights into your business performance across all key areas.
-                  Use the tabs above to explore detailed analytics for sales, inventory, suppliers, and financial metrics.
+                  This comprehensive dashboard provides real-time insights into your business
+                  performance across all key areas. Use the tabs above to explore detailed analytics
+                  for sales, inventory, suppliers, and financial metrics.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Key Highlights</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      Key Highlights
+                    </h3>
                     <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                       <li>• Revenue up 12.5% this quarter</li>
                       <li>• 96.8% supplier on-time delivery rate</li>
@@ -90,7 +89,9 @@ export default function ReportsPage() {
                     </ul>
                   </div>
                   <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Action Items</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      Action Items
+                    </h3>
                     <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                       <li>• Address 23 low stock alerts</li>
                       <li>• Review 3 expired products</li>
@@ -103,10 +104,10 @@ export default function ReportsPage() {
             </Card>
 
             {/* Interactive Charts */}
-            <ReportsCharts 
-              title="Interactive Business Analytics" 
-              defaultType="bar" 
-              showControls={true} 
+            <ReportsCharts
+              title="Interactive Business Analytics"
+              defaultType="bar"
+              showControls={true}
             />
           </TabsContent>
 
@@ -123,7 +124,9 @@ export default function ReportsPage() {
 
           <TabsContent value="inventory" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Inventory Insights</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Inventory Insights
+              </h2>
               <Button onClick={() => handleExportReport('inventory')} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export Inventory Report
@@ -134,7 +137,9 @@ export default function ReportsPage() {
 
           <TabsContent value="suppliers" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Supplier Performance</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Supplier Performance
+              </h2>
               <Button onClick={() => handleExportReport('suppliers')} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export Supplier Report
@@ -145,7 +150,9 @@ export default function ReportsPage() {
 
           <TabsContent value="financial" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Overview</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Financial Overview
+              </h2>
               <Button onClick={() => handleExportReport('financial')} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export Financial Report
@@ -156,7 +163,9 @@ export default function ReportsPage() {
 
           <TabsContent value="employees" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Employee Performance</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Employee Performance
+              </h2>
               <Button onClick={() => handleExportReport('employees')} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export Employee Report

@@ -13,7 +13,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, ChevronDownIcon, Plus, DollarSign, TrendingUp, Receipt, RefreshCw } from 'lucide-react';
+import {
+  Eye,
+  Search,
+  ChevronDownIcon,
+  Plus,
+  DollarSign,
+  TrendingUp,
+  Receipt,
+  RefreshCw,
+} from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -72,7 +81,7 @@ const mockTransactionsList = [
     transaction_id: 'TXN-005',
     transaction_date: '2024-01-14',
     time: '10:30',
-    total_amt: 185.50,
+    total_amt: 185.5,
     payment_method: 'Mobile Payment',
     customer: { name: 'Emma Davis' },
     employee: { name: 'John Smith' },
@@ -82,7 +91,7 @@ const mockTransactionsList = [
     transaction_id: 'TXN-006',
     transaction_date: '2024-01-13',
     time: '15:45',
-    total_amt: 325.00,
+    total_amt: 325.0,
     payment_method: 'Credit Card',
     customer: { name: 'Frank Johnson' },
     employee: { name: 'Sarah Johnson' },
@@ -92,18 +101,16 @@ const mockTransactionsList = [
 
 // Calculate summary stats
 const totalRevenue = mockTransactionsList
-  .filter(t => t.status === 'Completed')
+  .filter((t) => t.status === 'Completed')
   .reduce((sum, t) => sum + t.total_amt, 0);
 
-const todaysSales = mockTransactionsList
-  .filter(t => t.transaction_date === '2024-01-15' && t.status === 'Completed')
-  .length;
+const todaysSales = mockTransactionsList.filter(
+  (t) => t.transaction_date === '2024-01-15' && t.status === 'Completed',
+).length;
 
 const totalTransactions = mockTransactionsList.length;
 
-const refunds = mockTransactionsList
-  .filter(t => t.status === 'Refunded')
-  .length;
+const refunds = mockTransactionsList.filter((t) => t.status === 'Refunded').length;
 
 export default function TransactionsListPage() {
   const router = useRouter();
@@ -226,12 +233,8 @@ export default function TransactionsListPage() {
               <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {todaysSales}
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Transactions today
-              </p>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{todaysSales}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Transactions today</p>
             </CardContent>
           </Card>
 
@@ -246,9 +249,7 @@ export default function TransactionsListPage() {
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {totalTransactions}
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                All time
-              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">All time</p>
             </CardContent>
           </Card>
 
@@ -260,12 +261,8 @@ export default function TransactionsListPage() {
               <RefreshCw className="h-4 w-4 text-red-600 dark:text-red-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {refunds}
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Refunded transactions
-              </p>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{refunds}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Refunded transactions</p>
             </CardContent>
           </Card>
         </div>
@@ -358,7 +355,7 @@ export default function TransactionsListPage() {
               <TableBody>
                 {paginatedTransactions.length > 0 ? (
                   paginatedTransactions.map((transaction) => (
-                    <TableRow 
+                    <TableRow
                       key={transaction.transaction_id}
                       className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
                       onClick={() => handleRowClick(transaction.transaction_id)}
@@ -408,7 +405,10 @@ export default function TransactionsListPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center h-24 text-gray-500 dark:text-gray-400">
+                    <TableCell
+                      colSpan={8}
+                      className="text-center h-24 text-gray-500 dark:text-gray-400"
+                    >
                       No transactions found for the selected criteria.
                     </TableCell>
                   </TableRow>

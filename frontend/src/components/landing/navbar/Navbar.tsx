@@ -32,7 +32,13 @@ export default function Navbar() {
           onClick={() => setOpen(!open)}
           aria-label="Toggle Mobile Menu"
         >
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg
+            className="w-7 h-7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
             <path
               d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16'}
               strokeLinecap="round"

@@ -4,11 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 // --- Component Imports ---
-import {
-  SuppliersHeader,
-  SuppliersSearchBar,
-  SuppliersTable,
-} from '@/components/suppliers';
+import { SuppliersHeader, SuppliersSearchBar, SuppliersTable } from '@/components/suppliers';
 
 // --- Types ---
 import type { Supplier } from '@/types';
@@ -70,12 +66,12 @@ export default function SuppliersPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter suppliers based on search
-  const filteredSuppliers = suppliers.filter(supplier => {
+  const filteredSuppliers = suppliers.filter((supplier) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       supplier.name.toLowerCase().includes(searchLower) ||
       supplier.email.toLowerCase().includes(searchLower) ||
-      supplier.products.some(product => product.toLowerCase().includes(searchLower)) ||
+      supplier.products.some((product) => product.toLowerCase().includes(searchLower)) ||
       supplier.contact.toLowerCase().includes(searchLower)
     );
   });
@@ -86,12 +82,12 @@ export default function SuppliersPage() {
   };
 
   const handleDeleteSupplier = (supplier: Supplier) => {
-    setSuppliers(prev => prev.filter(s => s.id !== supplier.id));
+    setSuppliers((prev) => prev.filter((s) => s.id !== supplier.id));
     toast.error(`Supplier ${supplier.name} has been deleted.`, {
       action: {
         label: 'Undo',
         onClick: () => {
-          setSuppliers(prev => [...prev, supplier]);
+          setSuppliers((prev) => [...prev, supplier]);
           toast.success('Supplier restored!');
         },
       },
@@ -101,11 +97,8 @@ export default function SuppliersPage() {
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <SuppliersHeader />
-      
-      <SuppliersSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+
+      <SuppliersSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <SuppliersTable
         suppliers={filteredSuppliers}

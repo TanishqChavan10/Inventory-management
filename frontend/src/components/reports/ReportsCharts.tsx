@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  BarChart3, 
-  LineChart as LineChartIcon, 
-  PieChart as PieChartIcon, 
-  TrendingUp, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  BarChart3,
+  LineChart as LineChartIcon,
+  PieChart as PieChartIcon,
+  TrendingUp,
   Download,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import {
   BarChart,
@@ -26,7 +32,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from 'recharts';
 
 interface InteractiveChartsProps {
@@ -70,12 +76,14 @@ const supplierData = [
 ];
 
 export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
-  title = "Interactive Charts",
+  title = 'Interactive Charts',
   defaultType = 'bar',
-  showControls = true
+  showControls = true,
 }) => {
   const [chartType, setChartType] = useState<'line' | 'bar' | 'pie' | 'area'>(defaultType);
-  const [dataSet, setDataSet] = useState<'sales' | 'inventory' | 'suppliers' | 'categories'>('sales');
+  const [dataSet, setDataSet] = useState<'sales' | 'inventory' | 'suppliers' | 'categories'>(
+    'sales',
+  );
   const [timeRange, setTimeRange] = useState<'6months' | '1year' | 'ytd'>('6months');
 
   const getCurrentData = () => {
@@ -119,7 +127,7 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
   const renderChart = () => {
     const data = getCurrentData();
     const keys = getDataKeys();
-    
+
     const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'];
 
     switch (chartType) {
@@ -185,13 +193,15 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
         );
 
       case 'pie':
-        const pieData = dataSet === 'categories' ? categoryData : 
-          data.map((item, index) => ({
-            name: item[keys.x as keyof typeof item] as string,
-            value: item[keys.y[0] as keyof typeof item] as number,
-            color: colors[index % colors.length]
-          }));
-        
+        const pieData =
+          dataSet === 'categories'
+            ? categoryData
+            : data.map((item, index) => ({
+                name: item[keys.x as keyof typeof item] as string,
+                value: item[keys.y[0] as keyof typeof item] as number,
+                color: colors[index % colors.length],
+              }));
+
         return (
           <ResponsiveContainer width="100%" height={400}>
             <PieChart>
@@ -246,7 +256,10 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
             {/* Chart Type Selector */}
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Chart Type:</label>
-              <Select value={chartType} onValueChange={(value: 'line' | 'bar' | 'pie' | 'area') => setChartType(value)}>
+              <Select
+                value={chartType}
+                onValueChange={(value: 'line' | 'bar' | 'pie' | 'area') => setChartType(value)}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -282,7 +295,12 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
             {/* Data Set Selector */}
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Data:</label>
-              <Select value={dataSet} onValueChange={(value: 'sales' | 'inventory' | 'suppliers' | 'categories') => setDataSet(value)}>
+              <Select
+                value={dataSet}
+                onValueChange={(value: 'sales' | 'inventory' | 'suppliers' | 'categories') =>
+                  setDataSet(value)
+                }
+              >
                 <SelectTrigger className="w-36">
                   <SelectValue />
                 </SelectTrigger>
@@ -298,7 +316,10 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
             {/* Time Range Selector */}
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Period:</label>
-              <Select value={timeRange} onValueChange={(value: '6months' | '1year' | 'ytd') => setTimeRange(value)}>
+              <Select
+                value={timeRange}
+                onValueChange={(value: '6months' | '1year' | 'ytd') => setTimeRange(value)}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -339,17 +360,17 @@ export const ReportsCharts: React.FC<InteractiveChartsProps> = ({
         </div>
 
         {/* Chart */}
-        <div className="w-full">
-          {renderChart()}
-        </div>
+        <div className="w-full">{renderChart()}</div>
 
         {/* Legend/Data Summary */}
         <div className="mt-6 flex flex-wrap gap-2">
           {getDataKeys().y.map((key, index) => (
             <Badge key={key} variant="secondary" className="flex items-center gap-1">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'][index] }}
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'][index],
+                }}
               />
               {key.charAt(0).toUpperCase() + key.slice(1)}
             </Badge>

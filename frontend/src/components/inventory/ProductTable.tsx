@@ -22,13 +22,27 @@ export function ProductTable({ products, onEditProduct, onDeleteProduct }: Produ
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-neutral-700">
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Product Name</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Category</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Price</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Stock</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Min Stock</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Actions</th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Product Name
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Category
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Price
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Stock
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Min Stock
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Status
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>

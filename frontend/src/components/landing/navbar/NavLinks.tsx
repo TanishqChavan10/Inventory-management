@@ -9,7 +9,13 @@ const navItems = [
   { label: 'Reports', href: '/reports' },
 ];
 
-export default function NavLinks({ onClick, className }: { onClick?: () => void; className?: string }) {
+export default function NavLinks({
+  onClick,
+  className,
+}: {
+  onClick?: () => void;
+  className?: string;
+}) {
   const pathname = usePathname();
   return (
     <div className={className}>

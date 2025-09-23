@@ -1,7 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Package, Calendar, TrendingDown, Truck, Clock, ExternalLink } from 'lucide-react';
+import {
+  AlertTriangle,
+  Package,
+  Calendar,
+  TrendingDown,
+  Truck,
+  Clock,
+  ExternalLink,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { InventoryInsightsProps } from '@/types';
 
@@ -64,28 +72,28 @@ const mockInventoryData = {
       total_products: 456,
       low_stock: 12,
       avg_turnover: 8.5,
-      value: 145670.80,
+      value: 145670.8,
     },
     {
       category: 'Food & Beverage',
       total_products: 234,
       low_stock: 6,
       avg_turnover: 15.2,
-      value: 34567.90,
+      value: 34567.9,
     },
     {
       category: 'Clothing',
       total_products: 189,
       low_stock: 3,
       avg_turnover: 12.8,
-      value: 78934.50,
+      value: 78934.5,
     },
     {
       category: 'Home & Garden',
       total_products: 198,
       low_stock: 2,
       avg_turnover: 6.7,
-      value: 56789.20,
+      value: 56789.2,
     },
   ],
   recentShipments: [
@@ -182,9 +190,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {overview.totalProducts.toLocaleString()}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              In inventory
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">In inventory</p>
           </CardContent>
         </Card>
 
@@ -199,9 +205,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
               {overview.lowStockItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Need reorder
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Need reorder</p>
           </CardContent>
         </Card>
 
@@ -216,9 +220,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
               {overview.expiringItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Within 7 days
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Within 7 days</p>
           </CardContent>
         </Card>
 
@@ -233,9 +235,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
               {overview.expiredItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Need removal
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Need removal</p>
           </CardContent>
         </Card>
 
@@ -250,9 +250,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
               {overview.overstockItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Excess inventory
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Excess inventory</p>
           </CardContent>
         </Card>
       </div>
@@ -276,37 +274,36 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
                     <div className="flex items-center gap-2">
                       {getAlertIcon(alert.type)}
                       <div>
-                        <h3 className="font-medium">
-                          {alert.product_name}
-                        </h3>
-                        <p className="text-sm opacity-75">
-                          ID: {alert.product_id}
-                        </p>
+                        <h3 className="font-medium">{alert.product_name}</h3>
+                        <p className="text-sm opacity-75">ID: {alert.product_id}</p>
                       </div>
                     </div>
                     <Badge variant="secondary" className="text-xs">
                       {alert.type.replace('_', ' ')}
                     </Badge>
                   </div>
-                  
+
                   <div className="text-sm space-y-1">
-                    <p>Current Stock: <span className="font-medium">{alert.current_stock}</span></p>
+                    <p>
+                      Current Stock: <span className="font-medium">{alert.current_stock}</span>
+                    </p>
                     {alert.threshold > 0 && (
-                      <p>Threshold: <span className="font-medium">{alert.threshold}</span></p>
+                      <p>
+                        Threshold: <span className="font-medium">{alert.threshold}</span>
+                      </p>
                     )}
                     {alert.days_until_expiry !== undefined && (
                       <p>
-                        {alert.days_until_expiry < 0 
+                        {alert.days_until_expiry < 0
                           ? `Expired ${Math.abs(alert.days_until_expiry)} days ago`
-                          : `Expires in ${alert.days_until_expiry} days`
-                        }
+                          : `Expires in ${alert.days_until_expiry} days`}
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-2 mt-3">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleViewProduct(alert.product_id)}
                       className="text-xs"
@@ -315,7 +312,7 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
                       View
                     </Button>
                     {alert.type === 'low_stock' && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => handleReorderProduct(alert.product_id)}
                         className="text-xs"
@@ -340,19 +337,22 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
           <CardContent>
             <div className="space-y-4">
               {categoryInsights.map((category) => (
-                <div key={category.category} className="p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+                <div
+                  key={category.category}
+                  className="p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-medium text-gray-900 dark:text-white">
                       {category.category}
                     </h3>
-                    <Badge 
+                    <Badge
                       variant={category.low_stock > 5 ? 'secondary' : 'outline'}
                       className="text-xs"
                     >
                       {category.low_stock} low stock
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-600 dark:text-gray-400">Products</p>
@@ -390,7 +390,10 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
         <CardContent>
           <div className="space-y-3">
             {recentShipments.map((shipment) => (
-              <div key={shipment.shipment_id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+              <div
+                key={shipment.shipment_id}
+                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <Truck className="w-8 h-8 text-gray-600 dark:text-gray-400" />
                   <div>

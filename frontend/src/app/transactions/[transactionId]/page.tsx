@@ -15,11 +15,11 @@ const mockTransactionData = {
     cashier_id: 'EMP-002',
     transaction_date: '2024-01-15T14:30:00Z',
     payment_method: 'Credit Card' as const,
-    total_amt: 1416.90,
+    total_amt: 1416.9,
     payment_refno: 'REF-CC-12345',
     status: 'Completed' as const,
     tax_amount: 127.53,
-    discount_amount: 75.50,
+    discount_amount: 75.5,
     subtotal: 1364.87,
     notes: 'Customer requested separate bags for frozen items.',
   } as TransactionDetail,
@@ -47,9 +47,9 @@ const mockTransactionData = {
       product_id: 'LAP-001',
       product_name: 'Dell XPS 13 Laptop',
       quantity: 1,
-      unit_price: 1200.00,
-      total_price: 1200.00,
-      discount_applied: 50.00,
+      unit_price: 1200.0,
+      total_price: 1200.0,
+      discount_applied: 50.0,
       category_name: 'Electronics',
     },
     {
@@ -57,9 +57,9 @@ const mockTransactionData = {
       product_id: 'MOU-001',
       product_name: 'Wireless Mouse',
       quantity: 2,
-      unit_price: 25.00,
-      total_price: 50.00,
-      discount_applied: 5.00,
+      unit_price: 25.0,
+      total_price: 50.0,
+      discount_applied: 5.0,
       category_name: 'Electronics',
     },
     {
@@ -67,9 +67,9 @@ const mockTransactionData = {
       product_id: 'LAP-002',
       product_name: 'HP Pavilion Laptop',
       quantity: 1,
-      unit_price: 950.00,
-      total_price: 950.00,
-      discount_applied: 20.50,
+      unit_price: 950.0,
+      total_price: 950.0,
+      discount_applied: 20.5,
       category_name: 'Electronics',
     },
     {
@@ -77,8 +77,8 @@ const mockTransactionData = {
       product_id: 'MOU-002',
       product_name: 'Gaming Mouse',
       quantity: 1,
-      unit_price: 45.00,
-      total_price: 45.00,
+      unit_price: 45.0,
+      total_price: 45.0,
       discount_applied: 0,
       category_name: 'Electronics',
     },
@@ -87,8 +87,8 @@ const mockTransactionData = {
       product_id: 'KEY-001',
       product_name: 'Mechanical Keyboard',
       quantity: 1,
-      unit_price: 120.00,
-      total_price: 120.00,
+      unit_price: 120.0,
+      total_price: 120.0,
       discount_applied: 0,
       category_name: 'Electronics',
     },
@@ -110,7 +110,7 @@ export default function TransactionDetailsPage() {
   const stats = useMemo(() => {
     const totalItems = order_items.reduce((sum, item) => sum + item.quantity, 0);
     const uniqueProducts = order_items.length;
-    
+
     return {
       totalItems,
       uniqueProducts,
@@ -121,14 +121,10 @@ export default function TransactionDetailsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
-        <TransactionDetailHeader 
-          transaction={transaction}
-          customer={customer}
-          cashier={cashier}
-        />
+        <TransactionDetailHeader transaction={transaction} customer={customer} cashier={cashier} />
 
         {/* Stats */}
-        <TransactionStats 
+        <TransactionStats
           transaction={transaction}
           totalItems={stats.totalItems}
           uniqueProducts={stats.uniqueProducts}
@@ -138,10 +134,7 @@ export default function TransactionDetailsPage() {
         <TransactionItems orderItems={order_items} />
 
         {/* Payment & Refund Information */}
-        <TransactionPayment 
-          transaction={transaction}
-          refundHistory={refundHistory}
-        />
+        <TransactionPayment transaction={transaction} refundHistory={refundHistory} />
       </div>
     </div>
   );

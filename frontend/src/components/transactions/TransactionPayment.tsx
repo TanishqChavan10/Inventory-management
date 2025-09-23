@@ -56,9 +56,7 @@ export function TransactionPayment({ transaction, refundHistory }: TransactionPa
               {getPaymentStatusIcon(transaction.status)}
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Payment Status</p>
-                <Badge className={getStatusColor(transaction.status)}>
-                  {transaction.status}
-                </Badge>
+                <Badge className={getStatusColor(transaction.status)}>{transaction.status}</Badge>
               </div>
             </div>
 
@@ -85,9 +83,7 @@ export function TransactionPayment({ transaction, refundHistory }: TransactionPa
 
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                Payment Summary
-              </h3>
+              <h3 className="font-medium text-gray-900 dark:text-white mb-3">Payment Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Original Amount:</span>
@@ -116,8 +112,8 @@ export function TransactionPayment({ transaction, refundHistory }: TransactionPa
 
             {transaction.status === 'Completed' && remainingAmount > 0 && (
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={handleProcessRefund}
                   className="flex items-center gap-2"
@@ -174,9 +170,7 @@ export function TransactionPayment({ transaction, refundHistory }: TransactionPa
                     <td className="py-3 px-4 text-right font-medium text-red-600 dark:text-red-400">
                       ${refund.amount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                      {refund.reason}
-                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{refund.reason}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
                       {refund.processed_by}
                     </td>

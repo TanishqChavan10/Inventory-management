@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 export default function Step({
   title,
@@ -21,9 +21,7 @@ export default function Step({
         {icon}
         {title}
       </h4>
-      <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
-        {children}
-      </p>
+      <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">{children}</p>
     </motion.div>
   );
 }

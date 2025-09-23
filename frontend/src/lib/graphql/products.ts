@@ -52,10 +52,7 @@ export const UPDATE_PRODUCT: TypedDocumentNode<
   }
 `;
 
-export const DELETE_PRODUCT: TypedDocumentNode<
-  { deleteProduct: boolean },
-  { id: string }
-> = gql`
+export const DELETE_PRODUCT: TypedDocumentNode<{ deleteProduct: boolean }, { id: string }> = gql`
   mutation DeleteProduct($id: String!) {
     deleteProduct(id: $id)
   }

@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { Sparkle } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Sparkle } from 'lucide-react';
 
 const testimonials = [
   {
     quote:
-      "InventoryFlow changed how we operate. Real-time insights and automated restocks let us focus on growing sales, not managing shelves.",
-    author: "Aarav S., Store Manager – SuperMart"
+      'InventoryFlow changed how we operate. Real-time insights and automated restocks let us focus on growing sales, not managing shelves.',
+    author: 'Aarav S., Store Manager – SuperMart',
   },
   {
     quote:
-      "Switching was painless, and our stock accuracy has never been higher. The onboarding team was fantastic.",
-    author: "Priya R., Inventory Director – DailyMart"
+      'Switching was painless, and our stock accuracy has never been higher. The onboarding team was fantastic.',
+    author: 'Priya R., Inventory Director – DailyMart',
   },
   {
     quote:
-      "We cut waste by 45% in three months. The dashboard is clean, useful, and incredibly intuitive for our staff.",
-    author: "Karan J., Operations – LocalBasket"
-  }
+      'We cut waste by 45% in three months. The dashboard is clean, useful, and incredibly intuitive for our staff.',
+    author: 'Karan J., Operations – LocalBasket',
+  },
 ];
 
 export default function TestimonialsSection() {

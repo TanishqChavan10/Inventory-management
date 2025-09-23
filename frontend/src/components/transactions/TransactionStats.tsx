@@ -1,9 +1,14 @@
 import { TrendingUp, Package, ShoppingCart, Receipt, DollarSign, Percent } from 'lucide-react';
 import type { TransactionStatsProps } from '@/types';
 
-export function TransactionStats({ transaction, totalItems, uniqueProducts }: TransactionStatsProps) {
+export function TransactionStats({
+  transaction,
+  totalItems,
+  uniqueProducts,
+}: TransactionStatsProps) {
   const totalSavings = transaction.discount_amount || 0;
-  const savingsPercentage = transaction.total_amt > 0 ? (totalSavings / (transaction.total_amt + totalSavings)) * 100 : 0;
+  const savingsPercentage =
+    transaction.total_amt > 0 ? (totalSavings / (transaction.total_amt + totalSavings)) * 100 : 0;
   const averageItemPrice = totalItems > 0 ? transaction.subtotal / totalItems : 0;
 
   const stats = [
@@ -56,21 +61,19 @@ export function TransactionStats({ transaction, totalItems, uniqueProducts }: Tr
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         Transaction Analytics
       </h2>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div key={index} className="text-center">
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${stat.bgColor} mb-3`}>
+              <div
+                className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${stat.bgColor} mb-3`}
+              >
                 <Icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {stat.value}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {stat.label}
-              </p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
             </div>
           );
         })}
@@ -88,7 +91,7 @@ export function TransactionStats({ transaction, totalItems, uniqueProducts }: Tr
               ${transaction.subtotal.toFixed(2)}
             </span>
           </div>
-          
+
           {transaction.discount_amount && transaction.discount_amount > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">
@@ -99,7 +102,7 @@ export function TransactionStats({ transaction, totalItems, uniqueProducts }: Tr
               </span>
             </div>
           )}
-          
+
           {transaction.tax_amount && transaction.tax_amount > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">Tax:</span>
@@ -108,7 +111,7 @@ export function TransactionStats({ transaction, totalItems, uniqueProducts }: Tr
               </span>
             </div>
           )}
-          
+
           <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-neutral-700">
             <span className="font-semibold text-gray-900 dark:text-white">Total:</span>
             <span className="font-bold text-lg text-gray-900 dark:text-white">
