@@ -2,15 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  User, 
-  Target, 
-  Clock, 
-  Star, 
-  Award, 
-  BarChart3,
-  ChevronRight
-} from 'lucide-react';
+import { User, Target, Clock, Star, Award, BarChart3, ChevronRight } from 'lucide-react';
 import { Employee, EmployeeMetrics } from '@/types';
 
 interface EmployeePerformanceProps {
@@ -34,8 +26,8 @@ const mockEmployeeMetrics: EmployeeMetrics[] = [
     employee_id: 'EMP002',
     employee_name: 'Michael Chen',
     transactions_handled: 89,
-    total_sales: 18200.30,
-    avg_transaction_value: 204.50,
+    total_sales: 18200.3,
+    avg_transaction_value: 204.5,
     customer_rating: 4.6,
     efficiency_score: 88,
   },
@@ -52,11 +44,11 @@ const mockEmployeeMetrics: EmployeeMetrics[] = [
     employee_id: 'EMP004',
     employee_name: 'David Kim',
     transactions_handled: 201,
-    total_sales: 31200.80,
+    total_sales: 31200.8,
     avg_transaction_value: 155.22,
     customer_rating: 4.7,
     efficiency_score: 90,
-  }
+  },
 ];
 
 // Extended employee data for UI purposes
@@ -71,21 +63,21 @@ const extendedEmployeeData = [
     recentActivities: [
       { date: '2024-01-15', action: 'Completed high-value transaction', amount: 1200 },
       { date: '2024-01-14', action: 'Resolved customer complaint', rating: 5 },
-      { date: '2024-01-13', action: 'Processed bulk order', amount: 850 }
-    ]
+      { date: '2024-01-13', action: 'Processed bulk order', amount: 850 },
+    ],
   },
   {
     ...mockEmployeeMetrics[1],
     department: 'Inventory',
     position: 'Inventory Manager',
     attendanceRate: 95.2,
-    goals: { salesTarget: 20000, completed: 18200.30, percentage: 91.0 },
+    goals: { salesTarget: 20000, completed: 18200.3, percentage: 91.0 },
     achievements: ['Efficiency Expert'],
     recentActivities: [
       { date: '2024-01-15', action: 'Optimized stock levels', category: 'Dairy' },
       { date: '2024-01-14', action: 'Prevented stockout', items: 5 },
-      { date: '2024-01-13', action: 'Quality inspection', passed: 98 }
-    ]
+      { date: '2024-01-13', action: 'Quality inspection', passed: 98 },
+    ],
   },
   {
     ...mockEmployeeMetrics[2],
@@ -97,56 +89,76 @@ const extendedEmployeeData = [
     recentActivities: [
       { date: '2024-01-15', action: 'Handled customer inquiry', satisfaction: 5 },
       { date: '2024-01-14', action: 'Processed return', efficiency: 'High' },
-      { date: '2024-01-13', action: 'Upsold product', amount: 45 }
-    ]
+      { date: '2024-01-13', action: 'Upsold product', amount: 45 },
+    ],
   },
   {
     ...mockEmployeeMetrics[3],
     department: 'Sales',
     position: 'Senior Sales Executive',
     attendanceRate: 94.8,
-    goals: { salesTarget: 35000, completed: 31200.80, percentage: 89.1 },
+    goals: { salesTarget: 35000, completed: 31200.8, percentage: 89.1 },
     achievements: ['Team Leader'],
     recentActivities: [
       { date: '2024-01-15', action: 'Closed major deal', amount: 2500 },
       { date: '2024-01-14', action: 'Mentored new employee', hours: 2 },
-      { date: '2024-01-13', action: 'Customer presentation', outcome: 'Successful' }
-    ]
-  }
+      { date: '2024-01-13', action: 'Customer presentation', outcome: 'Successful' },
+    ],
+  },
 ];
 
 const departmentSummary = {
-  'Sales': { employees: 8, avgPerformance: 91.2, totalRevenue: 124500 },
-  'Inventory': { employees: 5, avgPerformance: 87.8, totalRevenue: 89200 },
+  Sales: { employees: 8, avgPerformance: 91.2, totalRevenue: 124500 },
+  Inventory: { employees: 5, avgPerformance: 87.8, totalRevenue: 89200 },
   'Customer Service': { employees: 6, avgPerformance: 93.5, totalRevenue: 67800 },
-  'Management': { employees: 3, avgPerformance: 89.7, totalRevenue: 45600 }
+  Management: { employees: 3, avgPerformance: 89.7, totalRevenue: 45600 },
 };
 
 export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
   period = 'monthly',
-  departmentFilter = 'All'
+  departmentFilter = 'All',
 }) => {
   const extendedData = extendedEmployeeData;
-  const filteredMetrics = departmentFilter === 'All' 
-    ? extendedData 
-    : extendedData.filter(emp => emp.department === departmentFilter);
+  const filteredMetrics =
+    departmentFilter === 'All'
+      ? extendedData
+      : extendedData.filter((emp) => emp.department === departmentFilter);
 
-  const topPerformer = filteredMetrics.reduce((top, emp) => 
-    emp.efficiency_score > top.efficiency_score ? emp : top
+  const topPerformer = filteredMetrics.reduce((top, emp) =>
+    emp.efficiency_score > top.efficiency_score ? emp : top,
   );
 
   const getPerformanceBadge = (score: number) => {
-    if (score >= 90) return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Excellent</Badge>;
-    if (score >= 80) return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Good</Badge>;
-    if (score >= 70) return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Average</Badge>;
-    return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Needs Improvement</Badge>;
+    if (score >= 90)
+      return (
+        <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Excellent
+        </Badge>
+      );
+    if (score >= 80)
+      return (
+        <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Good
+        </Badge>
+      );
+    if (score >= 70)
+      return (
+        <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Average
+        </Badge>
+      );
+    return (
+      <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Needs Improvement
+      </Badge>
+    );
   };
 
   const getSatisfactionStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star 
-        key={i} 
-        className={`w-4 h-4 ${i < rating ? 'fill-gray-600 text-gray-600' : 'text-gray-300'}`} 
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < rating ? 'fill-gray-600 text-gray-600' : 'text-gray-300'}`}
       />
     ));
   };
@@ -209,7 +221,10 @@ export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
               </div>
               <div className="flex flex-wrap gap-2">
                 {topPerformer.achievements.map((achievement) => (
-                  <Badge key={achievement} className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  <Badge
+                    key={achievement}
+                    className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                  >
                     {achievement}
                   </Badge>
                 ))}
@@ -219,9 +234,7 @@ export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
               <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                 ${topPerformer.total_sales.toLocaleString()}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Revenue Generated
-              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Revenue Generated</div>
             </div>
           </div>
         </CardContent>
@@ -238,7 +251,7 @@ export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
         <CardContent>
           <div className="space-y-4">
             {filteredMetrics.map((employee) => (
-              <div 
+              <div
                 key={employee.employee_id}
                 className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
@@ -269,7 +282,7 @@ export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
                     </div>
                     <div className="text-xs text-gray-500">Transactions</div>
                   </div>
-                  
+
                   <div className="text-center">
                     <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
                       ${employee.total_sales.toLocaleString()}
@@ -321,7 +334,10 @@ export const EmployeePerformance: React.FC<EmployeePerformanceProps> = ({
                   </Badge>
                 </div>
                 {employee.recentActivities.slice(0, 2).map((activity, index) => (
-                  <div key={index} className="ml-6 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+                  <div
+                    key={index}
+                    className="ml-6 pl-4 border-l-2 border-gray-200 dark:border-gray-700"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-900 dark:text-white">
                         {activity.action}

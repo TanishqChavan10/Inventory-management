@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion } from 'framer-motion';
 
 export default function FeatureCard({
   Icon,
@@ -13,7 +13,7 @@ export default function FeatureCard({
   desc: string;
 }) {
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+    <motion.div whileHover={{ y: -5 }} transition={{ type: 'spring', stiffness: 300 }}>
       <Card className="p-10 rounded-2xl shadow-sm hover:shadow-lg h-full flex flex-col border border-neutral-200 dark:border-neutral-700">
         <CardHeader>
           <div className="p-5 bg-neutral-100 dark:bg-neutral-800 rounded-xl w-fit">

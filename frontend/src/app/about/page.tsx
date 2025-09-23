@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   HeroSection,
@@ -7,7 +7,7 @@ import {
   HowItWorks,
   TestimonialsSection,
   FinalCTA,
-} from "@/components/about";
+} from '@/components/about';
 
 export default function HomePage() {
   return (

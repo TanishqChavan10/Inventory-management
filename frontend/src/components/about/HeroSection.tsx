@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { MoveRight } from "lucide-react";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { Button } from '@/components/ui/button';
+import { MoveRight } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  visible: { opacity: 1, y: 0 },
 };
 
 export default function HeroSection() {
@@ -37,7 +37,8 @@ export default function HeroSection() {
         animate="visible"
         className="mt-8 text-xl md:text-2xl text-neutral-600 dark:text-neutral-300 leading-relaxed"
       >
-        Reduce waste, optimize purchasing, and supercharge your margins with real-time visibility and AI-driven insights.
+        Reduce waste, optimize purchasing, and supercharge your margins with real-time visibility
+        and AI-driven insights.
       </motion.p>
 
       <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mt-12">

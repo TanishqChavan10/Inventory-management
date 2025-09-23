@@ -60,9 +60,10 @@ export default function InventoryPage() {
   const [deleteProduct] = useMutation(DELETE_PRODUCT);
 
   // Filter products based on search and category
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -81,7 +82,7 @@ export default function InventoryPage() {
       category: product.category || '',
       qty: product.quantity || 0,
       price: product.price || 0,
-      minCount: product.minCount || 0
+      minCount: product.minCount || 0,
     });
   };
 
@@ -174,7 +175,7 @@ export default function InventoryPage() {
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <InventoryHeader onAddProduct={handleAddProduct} />
-      
+
       <SearchFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

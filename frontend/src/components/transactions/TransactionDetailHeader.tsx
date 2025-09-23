@@ -4,7 +4,11 @@ import { ArrowLeft, User, CreditCard, Calendar, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import type { TransactionDetailHeaderProps } from '@/types';
 
-export function TransactionDetailHeader({ transaction, customer, cashier }: TransactionDetailHeaderProps) {
+export function TransactionDetailHeader({
+  transaction,
+  customer,
+  cashier,
+}: TransactionDetailHeaderProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':
@@ -51,16 +55,12 @@ export function TransactionDetailHeader({ transaction, customer, cashier }: Tran
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={getStatusColor(transaction.status)}>
-            {transaction.status}
-          </Badge>
+          <Badge className={getStatusColor(transaction.status)}>{transaction.status}</Badge>
           <div className="text-right">
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               ${transaction.total_amt.toFixed(2)}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total Amount
-            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
           </div>
         </div>
       </div>
@@ -94,7 +94,9 @@ export function TransactionDetailHeader({ transaction, customer, cashier }: Tran
             <p className="text-sm font-medium text-gray-900 dark:text-white">Payment Method</p>
             <p className="text-sm text-gray-600 dark:text-gray-300">{transaction.payment_method}</p>
             {transaction.payment_refno && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">Ref: {transaction.payment_refno}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Ref: {transaction.payment_refno}
+              </p>
             )}
           </div>
         </div>

@@ -199,11 +199,14 @@ export default function SupplierDetailsPage({ params }: Params) {
 
   // Calculate statistics
   const totalValue = shipments.reduce((sum, shipment) => sum + shipment.invoice_amt, 0);
-  const totalProducts = Array.from(new Set(shipmentItems.map(item => item.product_id))).length;
+  const totalProducts = Array.from(new Set(shipmentItems.map((item) => item.product_id))).length;
   const avgOrderValue = shipments.length > 0 ? totalValue / shipments.length : 0;
-  const lastOrderDate = shipments.length > 0 ? 
-    shipments.sort((a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime())[0].received_date :
-    supplier.created_date;
+  const lastOrderDate =
+    shipments.length > 0
+      ? shipments.sort(
+          (a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime(),
+        )[0].received_date
+      : supplier.created_date;
 
   const handleViewShipment = (shipment: Shipment) => {
     toast.info(`Viewing details for shipment: ${shipment.shipment_id}`);
@@ -214,7 +217,7 @@ export default function SupplierDetailsPage({ params }: Params) {
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <div className="space-y-6">
         <SupplierDetailHeader supplier={supplier} />
-        
+
         <SupplierStats
           totalShipments={shipments.length}
           totalValue={totalValue}
@@ -223,10 +226,7 @@ export default function SupplierDetailsPage({ params }: Params) {
           lastOrderDate={lastOrderDate}
         />
 
-        <SupplierShipments
-          shipments={shipments}
-          onViewShipment={handleViewShipment}
-        />
+        <SupplierShipments shipments={shipments} onViewShipment={handleViewShipment} />
 
         <SupplierProducts shipmentItems={shipmentItems} />
       </div>

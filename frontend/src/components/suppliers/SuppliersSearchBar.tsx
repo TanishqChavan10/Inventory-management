@@ -2,10 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import type { SuppliersSearchBarProps } from '@/types';
 
-export function SuppliersSearchBar({
-  searchQuery,
-  onSearchChange,
-}: SuppliersSearchBarProps) {
+export function SuppliersSearchBar({ searchQuery, onSearchChange }: SuppliersSearchBarProps) {
   return (
     <div className="flex gap-4 mb-6">
       <div className="relative flex-1">

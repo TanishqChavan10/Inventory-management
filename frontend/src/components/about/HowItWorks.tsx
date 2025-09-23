@@ -1,22 +1,22 @@
-import { Activity, TrendingUp, ShieldCheck } from "lucide-react";
-import Step from "./Step";
+import { Activity, TrendingUp, ShieldCheck } from 'lucide-react';
+import Step from './Step';
 
 const steps = [
   {
-    title: "Monitor",
+    title: 'Monitor',
     icon: <Activity className="w-6 h-6 mr-3 text-indigo-500" />,
-    desc: "Instant insights into stock levels, expiry dates, and sales velocity."
+    desc: 'Instant insights into stock levels, expiry dates, and sales velocity.',
   },
   {
-    title: "Analyze",
+    title: 'Analyze',
     icon: <TrendingUp className="w-6 h-6 mr-3 text-emerald-500" />,
-    desc: "Turn raw data into actionable plans with AI-assisted forecasting."
+    desc: 'Turn raw data into actionable plans with AI-assisted forecasting.',
   },
   {
-    title: "Optimize",
+    title: 'Optimize',
     icon: <ShieldCheck className="w-6 h-6 mr-3 text-amber-500" />,
-    desc: "Automated reorders, vendor reminders, and shrinkage control—hands-free."
-  }
+    desc: 'Automated reorders, vendor reminders, and shrinkage control—hands-free.',
+  },
 ];
 
 export default function HowItWorks() {

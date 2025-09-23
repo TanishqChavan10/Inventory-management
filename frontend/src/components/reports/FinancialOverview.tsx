@@ -5,38 +5,38 @@ import type { FinancialOverviewProps } from '@/types';
 // Mock financial data
 const mockFinancialData = {
   currentPeriod: {
-    revenue: 156780.50,
-    costs: 98456.30,
-    profit: 58324.20,
+    revenue: 156780.5,
+    costs: 98456.3,
+    profit: 58324.2,
     profit_margin: 37.2,
     tax_collected: 15678.05,
     refunds: 3456.78,
   },
   previousPeriod: {
-    revenue: 142356.80,
-    costs: 89234.50,
-    profit: 53122.30,
+    revenue: 142356.8,
+    costs: 89234.5,
+    profit: 53122.3,
     profit_margin: 37.3,
     tax_collected: 14235.68,
     refunds: 2987.45,
   },
   cashflow: {
-    incoming: 178456.90,
-    outgoing: 125678.40,
-    net: 52778.50,
+    incoming: 178456.9,
+    outgoing: 125678.4,
+    net: 52778.5,
   },
   breakdown: [
-    { category: 'Product Sales', amount: 134567.80, percentage: 85.8 },
-    { category: 'Service Revenue', amount: 15678.90, percentage: 10.0 },
-    { category: 'Other Income', amount: 6533.80, percentage: 4.2 },
+    { category: 'Product Sales', amount: 134567.8, percentage: 85.8 },
+    { category: 'Service Revenue', amount: 15678.9, percentage: 10.0 },
+    { category: 'Other Income', amount: 6533.8, percentage: 4.2 },
   ],
 };
 
 export function FinancialOverview({ period }: FinancialOverviewProps) {
   const { currentPeriod, previousPeriod, cashflow, breakdown } = mockFinancialData;
-  
+
   const getGrowthPercentage = (current: number, previous: number) => {
-    return ((current - previous) / previous * 100).toFixed(1);
+    return (((current - previous) / previous) * 100).toFixed(1);
   };
 
   const getGrowthIcon = (growth: number) => {
@@ -51,7 +51,9 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
     return growth >= 0 ? 'text-gray-600 dark:text-gray-400' : 'text-gray-600 dark:text-gray-400';
   };
 
-  const revenueGrowth = parseFloat(getGrowthPercentage(currentPeriod.revenue, previousPeriod.revenue));
+  const revenueGrowth = parseFloat(
+    getGrowthPercentage(currentPeriod.revenue, previousPeriod.revenue),
+  );
   const profitGrowth = parseFloat(getGrowthPercentage(currentPeriod.profit, previousPeriod.profit));
 
   return (
@@ -72,7 +74,8 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
             <div className="flex items-center gap-1 mt-1">
               {getGrowthIcon(revenueGrowth)}
               <p className={`text-xs ${getGrowthColor(revenueGrowth)}`}>
-                {revenueGrowth > 0 ? '+' : ''}{revenueGrowth}% from last {period}
+                {revenueGrowth > 0 ? '+' : ''}
+                {revenueGrowth}% from last {period}
               </p>
             </div>
           </CardContent>
@@ -92,7 +95,8 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
             <div className="flex items-center gap-1 mt-1">
               {getGrowthIcon(profitGrowth)}
               <p className={`text-xs ${getGrowthColor(profitGrowth)}`}>
-                {profitGrowth > 0 ? '+' : ''}{profitGrowth}% from last {period}
+                {profitGrowth > 0 ? '+' : ''}
+                {profitGrowth}% from last {period}
               </p>
             </div>
           </CardContent>
@@ -109,9 +113,7 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {currentPeriod.profit_margin.toFixed(1)}%
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Industry avg: 25%
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Industry avg: 25%</p>
           </CardContent>
         </Card>
 
@@ -126,9 +128,7 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               ${cashflow.net.toLocaleString()}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              This {period}
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">This {period}</p>
           </CardContent>
         </Card>
       </div>
@@ -144,12 +144,16 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
           <CardContent>
             <div className="space-y-4">
               {breakdown.map((item, index) => (
-                <div key={item.category} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+                <div
+                  key={item.category}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full ${
-                      index === 0 ? 'bg-gray-500' : 
-                      index === 1 ? 'bg-gray-500' : 'bg-gray-500'
-                    }`} />
+                    <div
+                      className={`w-4 h-4 rounded-full ${
+                        index === 0 ? 'bg-gray-500' : index === 1 ? 'bg-gray-500' : 'bg-gray-500'
+                      }`}
+                    />
                     <span className="font-medium text-gray-900 dark:text-white">
                       {item.category}
                     </span>
@@ -182,7 +186,9 @@ export function FinancialOverview({ period }: FinancialOverviewProps) {
                   <TrendingUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Cash Inflow</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Revenue & Collections</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Revenue & Collections
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">

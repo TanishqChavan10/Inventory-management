@@ -14,49 +14,67 @@ interface GroupedProduct {
 
 export function SupplierProducts({ shipmentItems }: SupplierProductsProps) {
   // Group products by product_id to show aggregated data
-  const groupedProducts = shipmentItems.reduce((acc, item) => {
-    if (!acc[item.product_id]) {
-      acc[item.product_id] = {
-        product_id: item.product_id,
-        product_name: item.product_name,
-        total_quantity: 0,
-        avg_price: 0,
-        shipments: [],
-        latest_shipment: '',
-        prices: [],
-      };
-    }
-    
-    acc[item.product_id].total_quantity += item.quantity_received;
-    acc[item.product_id].prices.push(item.unit_price);
-    acc[item.product_id].shipments.push(item.shipment_id);
-    
-    // Update latest shipment date
-    if (!acc[item.product_id].latest_shipment || item.shipment_id > acc[item.product_id].latest_shipment) {
-      acc[item.product_id].latest_shipment = item.shipment_id;
-    }
-    
-    return acc;
-  }, {} as Record<string, GroupedProduct>);
+  const groupedProducts = shipmentItems.reduce(
+    (acc, item) => {
+      if (!acc[item.product_id]) {
+        acc[item.product_id] = {
+          product_id: item.product_id,
+          product_name: item.product_name,
+          total_quantity: 0,
+          avg_price: 0,
+          shipments: [],
+          latest_shipment: '',
+          prices: [],
+        };
+      }
+
+      acc[item.product_id].total_quantity += item.quantity_received;
+      acc[item.product_id].prices.push(item.unit_price);
+      acc[item.product_id].shipments.push(item.shipment_id);
+
+      // Update latest shipment date
+      if (
+        !acc[item.product_id].latest_shipment ||
+        item.shipment_id > acc[item.product_id].latest_shipment
+      ) {
+        acc[item.product_id].latest_shipment = item.shipment_id;
+      }
+
+      return acc;
+    },
+    {} as Record<string, GroupedProduct>,
+  );
 
   // Calculate average prices
   Object.values(groupedProducts).forEach((product: GroupedProduct) => {
-    product.avg_price = product.prices.reduce((sum: number, price: number) => sum + price, 0) / product.prices.length;
+    product.avg_price =
+      product.prices.reduce((sum: number, price: number) => sum + price, 0) / product.prices.length;
   });
 
   const getExpiryStatus = (item: ShipmentItem) => {
     if (!item.expiry_date) return null;
-    
+
     const expiryDate = new Date(item.expiry_date);
     const today = new Date();
-    const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
     if (daysUntilExpiry < 0) {
-      return { status: 'expired', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+      return {
+        status: 'expired',
+        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+      };
     } else if (daysUntilExpiry <= 30) {
-      return { status: 'expiring', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' };
+      return {
+        status: 'expiring',
+        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+      };
     }
-    return { status: 'fresh', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+    return {
+      status: 'fresh',
+      color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    };
   };
 
   return (
@@ -142,9 +160,7 @@ export function SupplierProducts({ shipmentItems }: SupplierProductsProps) {
                             {expiryStatus && expiryStatus.status !== 'fresh' && (
                               <div className="flex items-center gap-1">
                                 <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                                <Badge className={expiryStatus.color}>
-                                  {expiryStatus.status}
-                                </Badge>
+                                <Badge className={expiryStatus.color}>{expiryStatus.status}</Badge>
                               </div>
                             )}
                           </div>

@@ -22,7 +22,7 @@ export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
   };
 
   return (
-    <tr 
+    <tr
       className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
       onClick={handleRowClick}
     >
@@ -36,17 +36,17 @@ export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
         <div className="flex flex-wrap gap-1">
           {supplier.products.slice(0, 2).map((product, index) => (
-            <Badge 
-              key={index} 
-              variant="secondary" 
+            <Badge
+              key={index}
+              variant="secondary"
               className="text-xs bg-gray-100 text-gray-700 dark:bg-neutral-700 dark:text-gray-300"
             >
               {product}
             </Badge>
           ))}
           {supplier.products.length > 2 && (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="text-xs bg-gray-100 text-gray-700 dark:bg-neutral-700 dark:text-gray-300"
             >
               +{supplier.products.length - 2}
@@ -58,21 +58,20 @@ export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
       <td className="py-3 px-4 text-gray-900 dark:text-white">{supplier.totalValue}</td>
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{supplier.lastOrder}</td>
       <td className="py-3 px-4">
-        <Badge 
+        <Badge
           variant={supplier.status === 'Active' ? 'default' : 'secondary'}
-          className={supplier.status === 'Active' ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-gray-100 text-gray-700 dark:bg-neutral-700 dark:text-gray-300'}
+          className={
+            supplier.status === 'Active'
+              ? 'bg-black text-white dark:bg-white dark:text-black'
+              : 'bg-gray-100 text-gray-700 dark:bg-neutral-700 dark:text-gray-300'
+          }
         >
           {supplier.status}
         </Badge>
       </td>
       <td className="py-3 px-4">
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleEditClick}
-            className="p-1 h-8 w-8"
-          >
+          <Button variant="ghost" size="sm" onClick={handleEditClick} className="p-1 h-8 w-8">
             <Edit className="w-4 h-4" />
           </Button>
           <Button

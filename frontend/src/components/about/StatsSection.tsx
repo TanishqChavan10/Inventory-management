@@ -1,10 +1,10 @@
-import StatItem from "./StatItem";
+import StatItem from './StatItem';
 
 const stats = [
-  { value: "99.9%", label: "Stock Accuracy" },
-  { value: "24/7", label: "System Uptime" },
-  { value: "45%", label: "Avg Waste Reduced" },
-  { value: "1200+", label: "Active Retailers" }
+  { value: '99.9%', label: 'Stock Accuracy' },
+  { value: '24/7', label: 'System Uptime' },
+  { value: '45%', label: 'Avg Waste Reduced' },
+  { value: '1200+', label: 'Active Retailers' },
 ];
 
 export default function StatsSection() {
