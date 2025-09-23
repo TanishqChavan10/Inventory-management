@@ -1,31 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import type { SupplierRowProps } from '@/types';
+import { Eye } from 'lucide-react';
+import type { SupplierRowProps } from '@/types/suppliers';
 
-export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
-  const router = useRouter();
-
-  const handleRowClick = () => {
-    router.push(`/suppliers/${supplier.id}`);
-  };
-
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click
-    onEdit(supplier);
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click
-    onDelete(supplier);
-  };
-
+export function SupplierRow({ supplier, onView }: SupplierRowProps) {
   return (
-    <tr
-      className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
-      onClick={handleRowClick}
-    >
+    <tr className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
       <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{supplier.name}</td>
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
         <div className="space-y-1">
@@ -58,31 +38,18 @@ export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
       <td className="py-3 px-4 text-gray-900 dark:text-white">{supplier.totalValue}</td>
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{supplier.lastOrder}</td>
       <td className="py-3 px-4">
-        <Badge
-          variant={supplier.status === 'Active' ? 'default' : 'secondary'}
-          className={
-            supplier.status === 'Active'
-              ? 'bg-black text-white dark:bg-white dark:text-black'
-              : 'bg-gray-100 text-gray-700 dark:bg-neutral-700 dark:text-gray-300'
-          }
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onView(supplier);
+          }}
+          className="flex items-center gap-2 h-8 px-3"
         >
-          {supplier.status}
-        </Badge>
-      </td>
-      <td className="py-3 px-4">
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleEditClick} className="p-1 h-8 w-8">
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDeleteClick}
-            className="p-1 h-8 w-8 text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
+          <Eye className="h-4 w-4" />
+          View
+        </Button>
       </td>
     </tr>
   );

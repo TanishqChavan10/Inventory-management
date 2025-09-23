@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import type { SearchFilterBarProps } from '@/types';
+import type { SearchFilterBarProps } from '@/types/inventory';
 
 export function SearchFilterBar({
   searchQuery,

@@ -11,7 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { SupplierPerformanceProps } from '@/types';
+import type { SupplierPerformanceProps } from '@/types/reports';
 
 // Mock data based on ER diagram
 const mockSupplierData = {

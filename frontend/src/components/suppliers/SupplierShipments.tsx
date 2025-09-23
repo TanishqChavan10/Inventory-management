@@ -1,9 +1,9 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Truck, DollarSign } from 'lucide-react';
-import type { SupplierShipmentsProps } from '@/types';
+import Link from 'next/link';
+import type { SupplierShipmentsProps } from '@/types/suppliers';
 
-export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmentsProps) {
+export function SupplierShipments({ shipments, supplierId, onViewShipment }: SupplierShipmentsProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
@@ -56,9 +56,6 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
                   Payment Method
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-                  Status
-                </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
                   Actions
                 </th>
               </tr>
@@ -89,20 +86,16 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
                     {shipment.payment_mthd}
                   </td>
                   <td className="py-3 px-4">
-                    <Badge className={getStatusColor(shipment.payment_status)}>
-                      {shipment.payment_status}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onViewShipment?.(shipment)}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </Button>
+                    <Link href={`/suppliers/${supplierId}/shipments/${shipment.shipment_id}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </Button>
+                    </Link>
                   </td>
                 </tr>
               ))}

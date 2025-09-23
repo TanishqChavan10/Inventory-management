@@ -28,10 +28,7 @@ export function ProductRow({ product, onEdit, onDelete }: ProductRowProps) {
   const status = getProductStatus(product);
 
   return (
-    <tr
-      key={product.id}
-      className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
-    >
+    <tr className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
       <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{product.name}</td>
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{product.category}</td>
       <td className="py-3 px-4 text-gray-900 dark:text-white">${product.price}</td>

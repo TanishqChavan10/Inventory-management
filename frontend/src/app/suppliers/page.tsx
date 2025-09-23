@@ -76,22 +76,9 @@ export default function SuppliersPage() {
     );
   });
 
-  const handleEditSupplier = (supplier: Supplier) => {
-    // For now, just show a toast. Later this can open a modal or navigate to edit page
-    toast.info(`Edit supplier: ${supplier.name}`);
-  };
-
-  const handleDeleteSupplier = (supplier: Supplier) => {
-    setSuppliers((prev) => prev.filter((s) => s.id !== supplier.id));
-    toast.error(`Supplier ${supplier.name} has been deleted.`, {
-      action: {
-        label: 'Undo',
-        onClick: () => {
-          setSuppliers((prev) => [...prev, supplier]);
-          toast.success('Supplier restored!');
-        },
-      },
-    });
+  const handleViewSupplier = (supplier: Supplier) => {
+    // Navigate to supplier detail page
+    window.location.href = `/suppliers/${supplier.id}`;
   };
 
   return (
@@ -102,8 +89,7 @@ export default function SuppliersPage() {
 
       <SuppliersTable
         suppliers={filteredSuppliers}
-        onEditSupplier={handleEditSupplier}
-        onDeleteSupplier={handleDeleteSupplier}
+        onViewSupplier={handleViewSupplier}
       />
     </div>
   );

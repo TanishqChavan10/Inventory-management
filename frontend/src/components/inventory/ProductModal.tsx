@@ -94,8 +94,8 @@ export function ProductModal({
               <input
                 type="number"
                 step="0.01"
-                value={form.price || 0}
-                onChange={(e) => onFormChange({ ...form, price: Number(e.target.value) })}
+                value={form.price === 0 ? '' : form.price}
+                onChange={(e) => onFormChange({ ...form, price: e.target.value === '' ? 0 : Number(e.target.value) })}
                 required
                 placeholder="0.00"
                 className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
@@ -105,8 +105,8 @@ export function ProductModal({
               <label className="block font-medium mb-1 dark:text-gray-200">Initial Stock</label>
               <input
                 type="number"
-                value={form.qty || 0}
-                onChange={(e) => onFormChange({ ...form, qty: Number(e.target.value) })}
+                value={form.qty === 0 ? '' : form.qty}
+                onChange={(e) => onFormChange({ ...form, qty: e.target.value === '' ? 0 : Number(e.target.value) })}
                 required
                 placeholder="0"
                 className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"
@@ -117,8 +117,8 @@ export function ProductModal({
             <label className="block font-medium mb-1 dark:text-gray-200">Minimum Stock Level</label>
             <input
               type="number"
-              value={form.minCount || 0}
-              onChange={(e) => onFormChange({ ...form, minCount: Number(e.target.value) })}
+              value={form.minCount === 0 ? '' : form.minCount}
+              onChange={(e) => onFormChange({ ...form, minCount: e.target.value === '' ? 0 : Number(e.target.value) })}
               required
               placeholder="0"
               className="w-full px-3 py-2 border rounded bg-white dark:bg-neutral-800 text-black dark:text-white"

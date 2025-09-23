@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, CreditCard, Calendar, Receipt } from 'lucide-react';
 import Link from 'next/link';
-import type { TransactionDetailHeaderProps } from '@/types';
+import type { TransactionDetailHeaderProps } from '@/types/transactions';
 
 export function TransactionDetailHeader({
   transaction,

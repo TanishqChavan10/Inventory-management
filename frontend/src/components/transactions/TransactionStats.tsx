@@ -1,5 +1,5 @@
 import { TrendingUp, Package, ShoppingCart, Receipt, DollarSign, Percent } from 'lucide-react';
-import type { TransactionStatsProps } from '@/types';
+import type { TransactionStatsProps } from '@/types/transactions';
 
 export function TransactionStats({
   transaction,
