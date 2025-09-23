@@ -1,5 +1,5 @@
 import { Package, TrendingUp, DollarSign, Calendar, ShoppingCart } from 'lucide-react';
-import type { SupplierStatsProps } from '@/types';
+import type { SupplierStatsProps } from '@/types/suppliers';
 
 export function SupplierStats({
   totalShipments,

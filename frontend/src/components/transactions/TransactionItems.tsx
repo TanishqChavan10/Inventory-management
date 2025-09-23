@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Package, ShoppingCart } from 'lucide-react';
-import type { TransactionItemsProps } from '@/types';
+import type { TransactionItemsProps } from '@/types/transactions';
 
 export function TransactionItems({ orderItems }: TransactionItemsProps) {
   if (orderItems.length === 0) {

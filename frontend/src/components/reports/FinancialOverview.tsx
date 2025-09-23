@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, PiggyBank, CreditCard } from 'lucide-react';
-import type { FinancialOverviewProps } from '@/types';
+import type { FinancialOverviewProps } from '@/types/reports';
 
 // Mock financial data
 const mockFinancialData = {

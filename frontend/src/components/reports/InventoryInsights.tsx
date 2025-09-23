@@ -11,7 +11,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { InventoryInsightsProps } from '@/types';
+import type { InventoryInsightsProps } from '@/types/reports';
 
 // Mock data based on ER diagram
 const mockInventoryData = {

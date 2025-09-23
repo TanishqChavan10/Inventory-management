@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import type { SuppliersSearchBarProps } from '@/types';
+import type { SuppliersSearchBarProps } from '@/types/suppliers';
 
 export function SuppliersSearchBar({ searchQuery, onSearchChange }: SuppliersSearchBarProps) {
   return (

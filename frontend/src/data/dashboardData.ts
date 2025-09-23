@@ -1,41 +1,15 @@
 // Dashboard data based on ER Diagram entities
 
-// Types
-export interface StatDetails {
-  title: string;
-  columns: string[];
-  data: (string | number)[][];
-}
-
-export interface StatData {
-  title: string;
-  value: string | number;
-  icon: string;
-  description?: string;
-  details: StatDetails;
-}
-
-export interface CategoryRenvenue {
-  category: string;
-  revenue: number;
-  percentage: number;
-}
-
-export interface LowStockItem {
-  name: string;
-  category: string;
-  stock: number;
-  total: number;
-  daysLeft: number;
-}
-
-// Inventory page specific stats
-export interface InventoryStats {
-  totalProducts: number;
-  lowStockItems: number;
-  outOfStock: number;
-  totalValue: string;
-}
+// Import types from organized type files
+import type { 
+  StatData, 
+  CategoryRevenue, 
+  LowStockItem 
+} from '../types/dashboard';
+import type { 
+  InventoryStats, 
+  MockInventoryItem 
+} from '../types/inventory';
 
 export const inventoryStats: InventoryStats = {
   totalProducts: 8,
@@ -45,7 +19,7 @@ export const inventoryStats: InventoryStats = {
 };
 
 // Mock inventory data that matches the screenshot for display purposes
-export const mockInventoryData = [
+export const mockInventoryData: MockInventoryItem[] = [
   {
     id: '1',
     name: 'Laptop Computer',
@@ -191,7 +165,7 @@ export const statsData: StatData[] = [
 ];
 
 // Recent activity with proper entity references
-export const revenueByCategory: CategoryRenvenue[] = [
+export const revenueByCategory: CategoryRevenue[] = [
   { category: 'Electronics', revenue: 89450.75, percentage: 35.2 },
   { category: 'Food & Beverages', revenue: 45780.30, percentage: 18.0 },
   { category: 'Office Supplies', revenue: 34580.20, percentage: 13.6 },

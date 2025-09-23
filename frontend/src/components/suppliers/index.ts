@@ -6,3 +6,6 @@ export { SupplierDetailHeader } from './SupplierDetailHeader';
 export { SupplierStats } from './SupplierStats';
 export { SupplierShipments } from './SupplierShipments';
 export { SupplierProducts } from './SupplierProducts';
+export { SupplierModal } from './SupplierModal';
+export { ShipmentDetailHeader } from './ShipmentDetailHeader';
+export { ShipmentItemsTable } from './ShipmentItemsTable';

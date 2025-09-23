@@ -38,9 +38,6 @@ export function ProductTable({ products, onEditProduct, onDeleteProduct }: Produ
                 Min Stock
               </th>
               <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-                Status
-              </th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
                 Actions
               </th>
             </tr>

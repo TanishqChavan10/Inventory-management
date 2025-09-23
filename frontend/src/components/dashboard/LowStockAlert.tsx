@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Package } from 'lucide-react';
 import Link from 'next/link';
-import { LowStockItem } from '@/data/dashboardData';
+import { LowStockItem } from '@/types/dashboard';
 
 interface LowStockAlertProps {
   items: LowStockItem[];

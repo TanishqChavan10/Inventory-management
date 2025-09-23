@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Package, AlertTriangle } from 'lucide-react';
-import type { SupplierProductsProps, ShipmentItem } from '@/types';
+import type { SupplierProductsProps, ShipmentItem } from '@/types/suppliers';
 
 interface GroupedProduct {
   product_id: string;
@@ -108,9 +108,6 @@ export function SupplierProducts({ shipmentItems }: SupplierProductsProps) {
                     Unit Price
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-                    Batch
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
                     Mfg Date
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
@@ -146,27 +143,16 @@ export function SupplierProducts({ shipmentItems }: SupplierProductsProps) {
                         ${item.unit_price.toFixed(2)}
                       </td>
                       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                        {item.batch_number || 'N/A'}
+                        {item.mfg_date ? new Date(item.mfg_date).toLocaleDateString() : ''}
                       </td>
                       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                        {item.mfg_date ? new Date(item.mfg_date).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="py-3 px-4">
-                        {item.expiry_date ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 dark:text-gray-300">
-                              {new Date(item.expiry_date).toLocaleDateString()}
-                            </span>
+                        {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : ''}
                             {expiryStatus && expiryStatus.status !== 'fresh' && (
                               <div className="flex items-center gap-1">
                                 <AlertTriangle className="w-4 h-4 text-yellow-600" />
                                 <Badge className={expiryStatus.color}>{expiryStatus.status}</Badge>
                               </div>
                             )}
-                          </div>
-                        ) : (
-                          'N/A'
-                        )}
                       </td>
                     </tr>
                   );

@@ -1,10 +1,9 @@
 import { SupplierRow } from './SupplierRow';
-import type { SuppliersTableProps } from '@/types';
+import type { SuppliersTableProps } from '@/types/suppliers';
 
 export function SuppliersTable({
   suppliers,
-  onEditSupplier,
-  onDeleteSupplier,
+  onViewSupplier,
 }: SuppliersTableProps) {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
@@ -31,9 +30,6 @@ export function SuppliersTable({
                 Last Order
               </th>
               <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-                Status
-              </th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
                 Actions
               </th>
             </tr>
@@ -50,8 +46,7 @@ export function SuppliersTable({
                 <SupplierRow
                   key={supplier.id}
                   supplier={supplier}
-                  onEdit={onEditSupplier}
-                  onDelete={onDeleteSupplier}
+                  onView={onViewSupplier}
                 />
               ))
             )}

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatData } from '@/data/dashboardData';
+import { StatData } from '@/types/dashboard';
 import { memo, useMemo } from 'react';
 import { Box, AlertTriangle, DollarSign, Users, Activity, XCircle, Clock } from 'lucide-react';
 

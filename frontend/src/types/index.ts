@@ -1,4 +1,6 @@
-// Centralized type definitions for better TypeScript performance
+// Core data types and entities based on ER diagram
+
+// Product types
 export type Product = {
   id: string;
   name: string;
@@ -27,7 +29,6 @@ export type SupplierDetail = {
   name: string;
   email: string;
   phone_no: string;
-  address?: string;
   contact_person?: string;
   registration_number?: string;
   tax_id?: string;
@@ -40,7 +41,6 @@ export type Shipment = {
   supplier_id: string;
   ref_no: string;
   received_date: string;
-  payment_status: 'Pending' | 'Paid' | 'Failed';
   payment_mthd: string;
   invoice_amt: number;
   total_items: number;
@@ -54,7 +54,6 @@ export type ShipmentItem = {
   unit_price: number;
   mfg_date?: string;
   expiry_date?: string;
-  batch_number?: string;
 };
 
 // Enhanced Transaction types based on ER diagram
@@ -125,7 +124,7 @@ export type EmployeeMetrics = {
   efficiency_score: number;
 };
 
-// Common props types
+// Common component props
 export interface BaseComponentProps {
   className?: string;
   children?: React.ReactNode;
@@ -133,114 +132,4 @@ export interface BaseComponentProps {
 
 export interface InventoryHeaderProps {
   onAddProduct: () => void;
-}
-
-// Supplier component props
-export interface SuppliersHeaderProps {
-  onAddSupplier?: () => void;
-}
-
-export interface SuppliersSearchBarProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-}
-
-export interface SupplierRowProps {
-  supplier: Supplier;
-  onEdit: (supplier: Supplier) => void;
-  onDelete: (supplier: Supplier) => void;
-}
-
-export interface SuppliersTableProps {
-  suppliers: Supplier[];
-  onEditSupplier: (supplier: Supplier) => void;
-  onDeleteSupplier: (supplier: Supplier) => void;
-}
-
-// Supplier detail page props
-export interface SupplierDetailHeaderProps {
-  supplier: SupplierDetail;
-}
-
-export interface SupplierStatsProps {
-  totalShipments: number;
-  totalValue: number;
-  totalProducts: number;
-  avgOrderValue: number;
-  lastOrderDate: string;
-}
-
-export interface SupplierShipmentsProps {
-  shipments: Shipment[];
-  onViewShipment?: (shipment: Shipment) => void;
-}
-
-export interface SupplierProductsProps {
-  shipmentItems: ShipmentItem[];
-}
-
-// Transaction component props
-export interface TransactionDetailHeaderProps {
-  transaction: TransactionDetail;
-  customer?: Customer;
-  cashier: Employee;
-}
-
-export interface TransactionStatsProps {
-  transaction: TransactionDetail;
-  totalItems: number;
-  uniqueProducts: number;
-}
-
-export interface TransactionItemsProps {
-  orderItems: OrderItem[];
-}
-
-export interface TransactionPaymentProps {
-  transaction: TransactionDetail;
-  refundHistory?: Array<{
-    refund_id: string;
-    amount: number;
-    date: string;
-    reason: string;
-    processed_by: string;
-  }>;
-}
-
-// Reports and Analytics types
-export interface SearchFilterBarProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  categoryFilter: string;
-  onCategoryChange: (category: string) => void;
-  categories: string[];
-}
-
-export interface InventoryInsightsProps {
-  alerts: Array<{
-    type: 'low_stock' | 'expiring_soon' | 'expired' | 'overstock';
-    product_id: string;
-    product_name: string;
-    current_stock: number;
-    threshold: number;
-    days_until_expiry?: number;
-    severity: 'high' | 'medium' | 'low';
-  }>;
-}
-
-export interface SupplierPerformanceProps {
-  suppliers: SupplierMetrics[];
-}
-
-export interface FinancialOverviewProps {
-  metrics: Array<{
-    period: string;
-    revenue: number;
-    costs: number;
-    profit: number;
-    profit_margin: number;
-    tax_collected: number;
-    refunds: number;
-  }>;
-  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
 }

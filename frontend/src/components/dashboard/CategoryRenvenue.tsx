@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CategoryRenvenue } from "@/data/dashboardData";
+import type { CategoryRevenue } from "@/types/dashboard";
 
-interface CategoryRenvenueProps {
-  activities: CategoryRenvenue[];
+interface CategoryRevenueProps {
+  activities: CategoryRevenue[];
 }
 
-export default function CategoryRevenue({ activities }: CategoryRenvenueProps) {
+export default function CategoryRevenue({ activities }: CategoryRevenueProps) {
   return (
     <Card>
       <CardHeader>

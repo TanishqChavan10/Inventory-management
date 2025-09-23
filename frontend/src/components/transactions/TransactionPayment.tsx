@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreditCard, RefreshCw, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
-import type { TransactionPaymentProps } from '@/types';
+import type { TransactionPaymentProps } from '@/types/transactions';
 
 export function TransactionPayment({ transaction, refundHistory }: TransactionPaymentProps) {
   const getPaymentStatusIcon = (status: string) => {
