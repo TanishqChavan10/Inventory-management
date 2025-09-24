@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, CreditCard, Calendar, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import type { TransactionDetailHeaderProps } from '@/types/transactions';
+import { formatDateTime, formatDate, formatTime } from '@/lib/utils';
 
 export function TransactionDetailHeader({
   transaction,
@@ -50,7 +51,7 @@ export function TransactionDetailHeader({
               Transaction {transaction.transaction_id}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-              {new Date(transaction.transaction_date).toLocaleString()}
+              {formatDateTime(transaction.transaction_date)}
             </p>
           </div>
         </div>
@@ -106,10 +107,10 @@ export function TransactionDetailHeader({
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">Date</p>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              {new Date(transaction.transaction_date).toLocaleDateString()}
+              {formatDate(transaction.transaction_date)}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {new Date(transaction.transaction_date).toLocaleTimeString()}
+              {formatTime(transaction.transaction_date)}
             </p>
           </div>
         </div>

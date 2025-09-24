@@ -10,7 +10,7 @@ import type {
 } from './index';
 
 export interface SuppliersHeaderProps {
-  onAddSupplier?: () => void;
+  onAddSupplier: () => void;
 }
 
 export interface SuppliersSearchBarProps {
