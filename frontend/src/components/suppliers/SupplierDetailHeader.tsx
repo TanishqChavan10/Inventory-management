@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ type SupplierForm = {
 export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [supplierForm, setSupplierForm] = useState<SupplierForm>({
     name: supplier.name,
     email: supplier.email,
@@ -27,21 +29,18 @@ export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
   };
 
   const handleDeleteSupplier = () => {
-    // Show confirmation dialog using browser's confirm
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${supplier.name}"?\n\nThis action cannot be undone and will permanently remove all supplier data including shipment history.`
-    );
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteSupplier = () => {
+    // TODO: Replace this with actual API call to delete supplier
+    // Example: await deleteSupplier(supplier.supplier_id);
     
-    if (confirmed) {
-      // TODO: Replace this with actual API call to delete supplier
-      // Example: await deleteSupplier(supplier.supplier_id);
-      
-      // Show success message
-      toast.success(`Supplier "${supplier.name}" has been deleted successfully!`);
-      
-      // Navigate back to suppliers list
-      router.push('/suppliers');
-    }
+    // Show success message
+    toast.success(`Supplier "${supplier.name}" has been deleted successfully!`);
+    
+    // Navigate back to suppliers list
+    router.push('/suppliers');
   };
 
   const handleSaveSupplier = () => {
@@ -130,6 +129,17 @@ export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
         onFormChange={setSupplierForm}
         onSave={handleSaveSupplier}
         onClose={handleCloseModal}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteSupplier}
+        title={`Delete "${supplier.name}"?`}
+        message="This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
       />
     </>
   );

@@ -1,5 +1,6 @@
 import { Package, TrendingUp, DollarSign, Calendar, ShoppingCart } from 'lucide-react';
 import type { SupplierStatsProps } from '@/types/suppliers';
+import { formatCurrency, formatDate } from '@/lib/utils';
 
 export function SupplierStats({
   totalShipments,
@@ -18,7 +19,7 @@ export function SupplierStats({
     },
     {
       label: 'Total Value',
-      value: `$${totalValue.toLocaleString()}`,
+      value: formatCurrency(totalValue),
       icon: DollarSign,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
@@ -32,14 +33,14 @@ export function SupplierStats({
     },
     {
       label: 'Avg Order Value',
-      value: `$${avgOrderValue.toLocaleString()}`,
+      value: formatCurrency(avgOrderValue),
       icon: TrendingUp,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
     },
     {
       label: 'Last Order',
-      value: new Date(lastOrderDate).toLocaleDateString(),
+      value: formatDate(lastOrderDate),
       icon: Calendar,
       color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-900/20',

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 // --- Component Imports ---
-import { SuppliersHeader, SuppliersSearchBar, SuppliersTable } from '@/components/suppliers';
+import { SuppliersHeader, SuppliersSearchBar, SuppliersTable, SupplierModal } from '@/components/suppliers';
 
 // --- Types ---
 import type { Supplier } from '@/types';
@@ -64,6 +64,12 @@ const initialSuppliers: Supplier[] = [
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({
+    name: '',
+    email: '',
+    phone_no: '',
+  });
 
   // Filter suppliers based on search
   const filteredSuppliers = suppliers.filter((supplier) => {
@@ -81,15 +87,59 @@ export default function SuppliersPage() {
     window.location.href = `/suppliers/${supplier.id}`;
   };
 
+  const handleAddSupplier = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleSaveSupplier = () => {
+    if (!supplierForm.name || !supplierForm.email || !supplierForm.phone_no) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Create new supplier
+    const newSupplier: Supplier = {
+      id: (suppliers.length + 1).toString(),
+      name: supplierForm.name,
+      contact: supplierForm.email,
+      email: supplierForm.email,
+      phone: supplierForm.phone_no,
+      products: [],
+      orders: 0,
+      totalValue: '$0.00',
+      lastOrder: 'Never',
+      status: 'Active',
+    };
+
+    setSuppliers([...suppliers, newSupplier]);
+    setSupplierForm({ name: '', email: '', phone_no: '' });
+    setIsModalOpen(false);
+    toast.success('Supplier added successfully!');
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSupplierForm({ name: '', email: '', phone_no: '' });
+  };
+
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
-      <SuppliersHeader />
+      <SuppliersHeader onAddSupplier={handleAddSupplier} />
 
       <SuppliersSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <SuppliersTable
         suppliers={filteredSuppliers}
         onViewSupplier={handleViewSupplier}
+      />
+
+      <SupplierModal
+        isOpen={isModalOpen}
+        isEditing={false}
+        form={supplierForm}
+        onFormChange={setSupplierForm}
+        onSave={handleSaveSupplier}
+        onClose={handleCloseModal}
       />
     </div>
   );
