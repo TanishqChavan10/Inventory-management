@@ -2,115 +2,196 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useApolloClient } from '@apollo/client';
 
 // --- Component Imports ---
 import {
   SuppliersHeader,
   SuppliersSearchBar,
   SuppliersTable,
+  SupplierModal,
 } from '@/components/suppliers';
 
-// --- Types ---
-import type { Supplier } from '@/types';
+// --- Custom Hook ---
+import { useSuppliers, useSupplierForEdit } from '@/hooks/useSuppliers';
 
-// Sample data matching the layout from the image
-const initialSuppliers: Supplier[] = [
-  {
-    id: '1',
-    name: 'TechCorp Solutions',
-    contact: 'contact@techcorp.com',
-    email: 'contact@techcorp.com',
-    phone: '+1-555-0101',
-    products: ['Laptops', 'Mice'],
-    orders: 45,
-    totalValue: '$125,000.5',
-    lastOrder: '2024-01-10',
-    status: 'Active',
-  },
-  {
-    id: '2',
-    name: 'Fashion Forward Ltd',
-    contact: 'orders@fashionforward.com',
-    email: 'orders@fashionforward.com',
-    phone: '+1-555-0102',
-    products: ['Clothing', 'Accessories'],
-    orders: 32,
-    totalValue: '$78,500.25',
-    lastOrder: '2024-01-12',
-    status: 'Active',
-  },
-  {
-    id: '3',
-    name: 'Fresh Foods Inc',
-    contact: 'supply@freshfoods.com',
-    email: 'supply@freshfoods.com',
-    phone: '+1-555-0103',
-    products: ['Coffee Beans', 'Snacks'],
-    orders: 67,
-    totalValue: '$45,200.75',
-    lastOrder: '2024-01-14',
-    status: 'Active',
-  },
-  {
-    id: '4',
-    name: 'Office Pro Supply',
-    contact: 'sales@officepro.com',
-    email: 'sales@officepro.com',
-    phone: '+1-555-0104',
-    products: ['Paper', 'Pens'],
-    orders: 23,
-    totalValue: '$32,100',
-    lastOrder: '2023-12-15',
-    status: 'Inactive',
-  },
-];
+// --- Types ---
+import type { Supplier, SupplierGraphQL } from '@/types';
 
 export default function SuppliersPage() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+
+  // Apollo client for manual queries
+  const apolloClient = useApolloClient();
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<SupplierGraphQL | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [fetchingSupplierForEdit, setFetchingSupplierForEdit] = useState(false);
+
+  // Use the custom hooks
+  const { suppliers, loading, error, addSupplier, updateSupplier, deleteSupplier } = useSuppliers(
+    page,
+    10,
+    status,
+  );
+  const { fetchSupplierById } = useSupplierForEdit();
 
   // Filter suppliers based on search
-  const filteredSuppliers = suppliers.filter(supplier => {
+  const filteredSuppliers = suppliers.filter((supplier) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       supplier.name.toLowerCase().includes(searchLower) ||
       supplier.email.toLowerCase().includes(searchLower) ||
-      supplier.products.some(product => product.toLowerCase().includes(searchLower)) ||
+      supplier.products.some((product) => product.toLowerCase().includes(searchLower)) ||
       supplier.contact.toLowerCase().includes(searchLower)
     );
   });
 
-  const handleEditSupplier = (supplier: Supplier) => {
-    // For now, just show a toast. Later this can open a modal or navigate to edit page
-    toast.info(`Edit supplier: ${supplier.name}`);
+  const handleAddSupplier = () => {
+    setIsEditing(false);
+    setEditingSupplier(null);
+    setIsModalOpen(true);
   };
 
-  const handleDeleteSupplier = (supplier: Supplier) => {
-    setSuppliers(prev => prev.filter(s => s.id !== supplier.id));
-    toast.error(`Supplier ${supplier.name} has been deleted.`, {
-      action: {
-        label: 'Undo',
-        onClick: () => {
-          setSuppliers(prev => [...prev, supplier]);
-          toast.success('Supplier restored!');
-        },
-      },
-    });
+  const handleEditSupplier = async (supplier: Supplier) => {
+    setFetchingSupplierForEdit(true);
+    try {
+      // Fetch full supplier details from database
+      const fullSupplierData = await fetchSupplierById(supplier.id, apolloClient);
+
+      if (fullSupplierData) {
+        setIsEditing(true);
+        setEditingSupplier(fullSupplierData);
+        setIsModalOpen(true);
+      } else {
+        toast.error('Could not fetch supplier details');
+      }
+    } catch (error) {
+      console.error('Failed to fetch supplier for editing:', error);
+      toast.error('Failed to load supplier details');
+    } finally {
+      setFetchingSupplierForEdit(false);
+    }
   };
+
+  const handleSaveSupplier = async (supplierData: any) => {
+    console.log('🔄 Starting supplier save process...');
+    console.log('📝 Supplier data to save:', supplierData);
+    console.log('✏️ Is editing:', isEditing);
+    console.log('👤 Editing supplier:', editingSupplier);
+
+    setModalLoading(true);
+    try {
+      if (isEditing && editingSupplier) {
+        console.log('🔄 Calling updateSupplier...');
+        const updatedSupplier = await updateSupplier({
+          supplier_id: editingSupplier.supplier_id,
+          ...supplierData,
+        });
+
+        console.log('✅ Update response:', updatedSupplier);
+
+        if (updatedSupplier) {
+          toast.success('Supplier updated successfully!');
+          setIsModalOpen(false);
+          setEditingSupplier(null);
+          setIsEditing(false);
+        }
+      } else {
+        console.log('🔄 Calling addSupplier...');
+        const newSupplier = await addSupplier(supplierData);
+
+        console.log('✅ Add response:', newSupplier);
+
+        if (newSupplier) {
+          toast.success('Supplier added successfully!');
+          setIsModalOpen(false);
+        }
+      }
+    } catch (error) {
+      console.error('Save failed:', error);
+      // Error toast is already handled in the hook
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingSupplier(null);
+    setIsEditing(false);
+  };
+
+  const handleDeleteSupplier = async (supplier: Supplier) => {
+    try {
+      await deleteSupplier(supplier.id);
+    } catch (error) {
+      // Error handling is done in the hook
+      console.error('Delete failed:', error);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600 dark:text-gray-400">Loading suppliers...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-600 dark:text-red-400">
+            Error loading suppliers: {error.message}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
-      <SuppliersHeader />
-      
-      <SuppliersSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <SuppliersHeader onAddSupplier={handleAddSupplier} />
+
+      <SuppliersSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <SuppliersTable
         suppliers={filteredSuppliers}
         onEditSupplier={handleEditSupplier}
         onDeleteSupplier={handleDeleteSupplier}
+        fetchingSupplierForEdit={fetchingSupplierForEdit}
+      />
+
+      {/* Show empty state if no suppliers */}
+      {filteredSuppliers.length === 0 && !loading && (
+        <div className="text-center py-8">
+          <div className="text-gray-600 dark:text-gray-400">
+            {searchQuery
+              ? 'No suppliers found matching your search.'
+              : 'No suppliers found. Add your first supplier!'}
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Modal */}
+      <SupplierModal
+        isOpen={isModalOpen}
+        isEditing={isEditing}
+        supplier={editingSupplier}
+        onSave={handleSaveSupplier}
+        onClose={handleCloseModal}
+        loading={modalLoading}
       />
     </div>
   );

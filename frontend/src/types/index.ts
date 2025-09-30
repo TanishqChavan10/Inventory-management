@@ -1,5 +1,70 @@
 // Centralized type definitions for better TypeScript performance
+
+// Enhanced Category types
+export type Category = {
+  category_id: number;
+  name: string;
+  products?: Product[];
+};
+
+// Create Category Input
+export type CreateCategoryInput = {
+  name: string;
+};
+
+// Update Category Input
+export type UpdateCategoryInput = {
+  category_id: number;
+  name?: string;
+};
+
+// Backend Product type that matches the GraphQL schema
 export type Product = {
+  product_id: number;
+  product_name: string;
+  default_price: number;
+  stock: number;
+  min_stock: number;
+  categories?: Category[];
+};
+
+// Create Product Input
+export type CreateProductInput = {
+  product_name: string;
+  default_price: number;
+  stock: number;
+  min_stock: number;
+  categoryIds?: number[];
+};
+
+// Update Product Input
+export type UpdateProductInput = {
+  product_id: number;
+  product_name?: string;
+  default_price?: number;
+  stock?: number;
+  min_stock?: number;
+  categoryIds?: number[];
+};
+
+// Product Category types
+export type ProductCategory = {
+  product_id: number;
+  category_id: number;
+};
+
+export type CreateProductCategoryInput = {
+  product_id: number;
+  category_id: number;
+};
+
+export type RemoveProductCategoryInput = {
+  product_id: number;
+  category_id: number;
+};
+
+// Legacy product type for backward compatibility
+export type LegacyProduct = {
   id: string;
   name: string;
   category: string;
@@ -7,6 +72,22 @@ export type Product = {
   price: number;
   minCount: number;
 };
+
+// Function to convert Product to LegacyProduct for compatibility
+export function mapProductToLegacy(product: Product): LegacyProduct {
+  const primaryCategory = product.categories && product.categories.length > 0 
+    ? product.categories[0].name 
+    : 'Uncategorized';
+    
+  return {
+    id: product.product_id.toString(),
+    name: product.product_name,
+    category: primaryCategory,
+    quantity: product.stock,
+    price: product.default_price,
+    minCount: product.min_stock,
+  };
+}
 
 // Enhanced Supplier types based on ER diagram
 export type Supplier = {
@@ -155,6 +236,7 @@ export interface SuppliersTableProps {
   suppliers: Supplier[];
   onEditSupplier: (supplier: Supplier) => void;
   onDeleteSupplier: (supplier: Supplier) => void;
+  fetchingSupplierForEdit?: boolean;
 }
 
 // Supplier detail page props
@@ -243,4 +325,111 @@ export interface FinancialOverviewProps {
     refunds: number;
   }>;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+}
+
+// GraphQL API Response Types
+export type SupplierGraphQL = {
+  supplier_id: string;
+  name: string;
+  email: string;
+  phone_no: string;
+  address?: string;
+  contact_person?: string;
+  registration_number?: string;
+  tax_id?: string;
+  status: 'Active' | 'Inactive';
+  created_date: string;
+  updated_date: string;
+};
+
+export type ShipmentGraphQL = {
+  shipment_id: string;
+  supplier_id: string;
+  ref_no: string;
+  received_date: string;
+  payment_status: 'Pending' | 'Paid' | 'Failed';
+  payment_mthd: string;
+  invoice_amt: number;
+  total_items: number;
+};
+
+export type ShipmentItemGraphQL = {
+  id: string;
+  shipment_id: string;
+  product_id: string;
+  product_name: string;
+  quantity_received: number;
+  unit_price: number;
+  mfg_date?: string;
+  expiry_date?: string;
+  batch_number?: string;
+};
+
+// Transformation functions
+export function transformSupplierForTable(
+  supplier: SupplierGraphQL,
+  shipments: ShipmentGraphQL[] = [],
+  shipmentItems: ShipmentItemGraphQL[] = []
+): Supplier {
+  const totalValue = shipments.reduce((sum, shipment) => sum + shipment.invoice_amt, 0);
+  const lastOrder = shipments.length > 0 
+    ? shipments.sort((a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime())[0].received_date
+    : supplier.created_date;
+  
+  // Get unique products from shipment items
+  const products = Array.from(new Set(shipmentItems.map(item => item.product_name)));
+
+  return {
+    id: supplier.supplier_id,
+    name: supplier.name,
+    contact: supplier.contact_person || supplier.email,
+    email: supplier.email,
+    phone: supplier.phone_no,
+    products: products.slice(0, 3), // Show max 3 products in table
+    orders: shipments.length,
+    totalValue: `$${totalValue.toLocaleString()}`,
+    lastOrder: new Date(lastOrder).toLocaleDateString(),
+    status: supplier.status,
+  };
+}
+
+export function transformSupplierDetail(supplier: SupplierGraphQL): SupplierDetail {
+  return {
+    supplier_id: supplier.supplier_id,
+    name: supplier.name,
+    email: supplier.email,
+    phone_no: supplier.phone_no,
+    address: supplier.address,
+    contact_person: supplier.contact_person,
+    registration_number: supplier.registration_number,
+    tax_id: supplier.tax_id,
+    created_date: supplier.created_date,
+    status: supplier.status,
+  };
+}
+
+export function transformShipment(shipment: ShipmentGraphQL): Shipment {
+  return {
+    shipment_id: shipment.shipment_id,
+    supplier_id: shipment.supplier_id,
+    ref_no: shipment.ref_no,
+    received_date: shipment.received_date,
+    payment_status: shipment.payment_status,
+    payment_mthd: shipment.payment_mthd,
+    invoice_amt: shipment.invoice_amt,
+    total_items: shipment.total_items,
+  };
+}
+
+export function transformShipmentItem(item: ShipmentItemGraphQL): ShipmentItem {
+  return {
+    shipment_id: item.shipment_id,
+    product_id: item.product_id,
+    product_name: item.product_name,
+    quantity_received: item.quantity_received,
+    unit_price: item.unit_price,
+    mfg_date: item.mfg_date,
+    expiry_date: item.expiry_date,
+    batch_number: item.batch_number,
+  };
 }

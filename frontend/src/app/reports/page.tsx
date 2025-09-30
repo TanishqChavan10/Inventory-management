@@ -67,46 +67,13 @@ export default function ReportsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Executive Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-400 mb-8">
-                  This comprehensive dashboard provides real-time insights into your business performance across all key areas.
-                  Use the tabs above to explore detailed analytics for sales, inventory, suppliers, and financial metrics.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Key Highlights</h3>
-                    <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <li>• Revenue up 12.5% this quarter</li>
-                      <li>• 96.8% supplier on-time delivery rate</li>
-                      <li>• Profit margin above industry average</li>
-                      <li>• Inventory turnover improved by 8%</li>
-                    </ul>
-                  </div>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Action Items</h3>
-                    <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <li>• Address 23 low stock alerts</li>
-                      <li>• Review 3 expired products</li>
-                      <li>• Follow up on overdue payments</li>
-                      <li>• Optimize underperforming categories</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Interactive Charts */}
             <ReportsCharts 
-              title="Interactive Business Analytics" 
+              title="Business Analytics" 
               defaultType="bar" 
               showControls={true} 
+              
             />
           </TabsContent>
 

@@ -15,17 +15,13 @@ import {
 } from '@/components/inventory';
 
 // Make sure this path is correct for your project structure
-import { GET_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT } from '../graphql/products';
+import { GET_PRODUCTS, UPDATE_PRODUCT, DELETE_PRODUCT, CREATE_PRODUCT } from '../graphql/products';
+import { GET_CATEGORIES } from '../graphql/categories';
+import type { Product as BackendProduct, Category, LegacyProduct } from '@/types';
+import { mapProductToLegacy } from '@/types';
 
 // --- Define a type for our Product for better TypeScript support ---
-type Product = {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  price: number;
-  minCount: number;
-};
+type Product = LegacyProduct;
 
 export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -37,32 +33,33 @@ export default function InventoryPage() {
 
   const [form, setForm] = useState({ name: '', category: '', qty: 0, price: 0, minCount: 0 });
 
+  // --- Fetch categories ---
+  const { data: categoriesData } = useQuery(GET_CATEGORIES);
+  const availableCategories = categoriesData?.categories || [];
+
   // --- STEP 1: Fetch data from the backend ---
   const { data, loading, error, refetch } = useQuery(GET_PRODUCTS, {
-    variables: {
-      page: currentPage,
-      limit: itemsPerPage,
-      // Send null if 'All' is selected, otherwise send the category name
-      category: categoryFilter === 'All' ? null : categoryFilter,
-    },
     notifyOnNetworkStatusChange: true,
   });
 
   // --- Extract products and categories from the fetched data ---
-  const products: Product[] = data?.products || [];
-  const productCategories = (data?.products || []).map((p: Product) => p.category as string);
-  const uniqueCategories = Array.from(new Set(productCategories)) as string[];
-  const categories: string[] = ['All', ...uniqueCategories];
+  // Convert backend products to frontend format
+  const backendProducts: BackendProduct[] = data?.products || [];
+  const products: Product[] = backendProducts.map(mapProductToLegacy);
+
+  // Extract categories from the available categories, not from products
+  const categories: string[] = ['All', ...availableCategories.map((cat: Category) => cat.name)];
 
   // --- STEP 2: Define the mutations ---
-  const [addProduct] = useMutation(ADD_PRODUCT);
+  const [addProduct] = useMutation(CREATE_PRODUCT);
   const [updateProduct] = useMutation(UPDATE_PRODUCT);
   const [deleteProduct] = useMutation(DELETE_PRODUCT);
 
   // Filter products based on search and category
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -81,13 +78,15 @@ export default function InventoryPage() {
       category: product.category || '',
       qty: product.quantity || 0,
       price: product.price || 0,
-      minCount: product.minCount || 0
+      minCount: product.minCount || 0,
     });
   };
 
   const handleCategoryChange = (value: string) => {
     setCategoryFilter(value);
     setCurrentPage(1);
+    // Note: With the current backend setup, we filter on the frontend
+    // If you want to filter on the backend, you can use GET_PRODUCTS_BY_CATEGORY
   };
 
   const handleFormChange = (newForm: typeof form) => {
@@ -104,26 +103,44 @@ export default function InventoryPage() {
   const handleSave = async () => {
     if (!form.name || !form.category) return;
 
+    // Find the category ID from the category name
+    const selectedCategory = availableCategories.find(
+      (cat: Category) => cat.name === form.category,
+    );
+    if (!selectedCategory) {
+      toast.error('Invalid category selected');
+      return;
+    }
+
     try {
       if (editing) {
+        // For update, we need to find the original backend product to get the product_id
+        const originalProduct = backendProducts.find(
+          (p: BackendProduct) => p.product_id.toString() === editing.id,
+        );
+        if (!originalProduct) {
+          toast.error('Product not found for update');
+          return;
+        }
+
         const updateInput = {
-          id: editing.id,
-          name: form.name,
-          category: form.category,
-          quantity: Number(form.qty),
-          price: Number(form.price),
-          minCount: Number(form.minCount),
+          product_id: originalProduct.product_id,
+          product_name: form.name,
+          categoryIds: [selectedCategory.category_id],
+          stock: Number(form.qty),
+          default_price: Number(form.price),
+          min_stock: Number(form.minCount),
         };
         await updateProduct({ variables: { updateProductInput: updateInput } });
         toast.success('Product updated successfully!');
         setEditing(null);
       } else {
         const createInput = {
-          name: form.name,
-          category: form.category,
-          quantity: Number(form.qty),
-          price: Number(form.price),
-          minCount: Number(form.minCount),
+          product_name: form.name,
+          categoryIds: [selectedCategory.category_id],
+          stock: Number(form.qty),
+          default_price: Number(form.price),
+          min_stock: Number(form.minCount),
         };
         await addProduct({ variables: { createProductInput: createInput } });
         toast.success('Product added successfully!');
@@ -159,8 +176,12 @@ export default function InventoryPage() {
 
   const confirmDelete = async (id: string) => {
     try {
-      await deleteProduct({ variables: { id } });
-      refetch(); // Refetch the list to confirm deletion from server
+      await deleteProduct({
+        variables: { id: parseInt(id) },
+      });
+
+      // Force refetch to ensure UI is updated
+      await refetch();
       toast.success('Product permanently deleted.');
     } catch (err: unknown) {
       const error = err as Error;
@@ -174,7 +195,7 @@ export default function InventoryPage() {
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <InventoryHeader onAddProduct={handleAddProduct} />
-      
+
       <SearchFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

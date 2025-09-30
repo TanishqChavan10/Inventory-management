@@ -1,21 +1,42 @@
 import { SupplierRow } from './SupplierRow';
 import type { SuppliersTableProps } from '@/types';
 
-export function SuppliersTable({ suppliers, onEditSupplier, onDeleteSupplier }: SuppliersTableProps) {
+export function SuppliersTable({
+  suppliers,
+  onEditSupplier,
+  onDeleteSupplier,
+  fetchingSupplierForEdit = false,
+}: SuppliersTableProps) {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-neutral-700">
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Supplier Name</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Contact</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Products</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Orders</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Total Value</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Last Order</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Actions</th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Supplier Name
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Contact
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Products
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Orders
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Total Value
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Last Order
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Status
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
