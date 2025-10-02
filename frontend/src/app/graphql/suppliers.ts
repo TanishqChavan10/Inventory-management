@@ -14,6 +14,7 @@ const SUPPLIER_FRAGMENT = gql`
     registration_number
     tax_id
     status
+    category_id
     created_date
     updated_date
   }
@@ -45,6 +46,27 @@ const SHIPMENT_ITEM_FRAGMENT = gql`
     mfg_date
     expiry_date
     batch_number
+  }
+`;
+
+// Product Fragment for supplier products
+const PRODUCT_FRAGMENT = gql`
+  fragment ProductFragment on Product {
+    product_id
+    product_name
+    default_price
+    stock
+    min_stock
+  }
+`;
+
+// Fetches products available for a supplier (based on supplier's category)
+export const GET_SUPPLIER_PRODUCTS = gql`
+  ${PRODUCT_FRAGMENT}
+  query GetSupplierProducts($supplier_id: ID!) {
+    supplierProducts(supplier_id: $supplier_id) {
+      ...ProductFragment
+    }
   }
 `;
 

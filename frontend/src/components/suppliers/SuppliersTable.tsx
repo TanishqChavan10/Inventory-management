@@ -20,9 +20,6 @@ export function SuppliersTable({
                 Contact
               </th>
               <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
-                Products
-              </th>
-              <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
                 Orders
               </th>
               <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">
@@ -42,7 +39,7 @@ export function SuppliersTable({
           <tbody>
             {suppliers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center text-gray-500 py-8">
+                <td colSpan={7} className="text-center text-gray-500 py-8">
                   No suppliers found.
                 </td>
               </tr>

@@ -2,29 +2,210 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input CreateProductInput {
-  category: String!
+type Category {
+  category_id: Int!
   name: String!
-  price: Float!
-  quantity: Int!
-  sku: String!
+  products: [Product!]
 }
+
+input CreateCategoryInput {
+  name: String!
+}
+
+input CreateProductCategoryInput {
+  category_id: Int!
+  product_id: Int!
+}
+
+input CreateProductInput {
+  categoryIds: [Int!]
+  default_price: Float!
+  min_stock: Int!
+  product_name: String!
+  stock: Int!
+}
+
+input CreateShipmentInput {
+  invoice_amt: Float!
+  items: [ShipmentItemInput!]!
+  payment_mthd: String!
+  payment_status: String! = "Pending"
+  received_date: DateTime
+  ref_no: String!
+  supplier_id: String!
+  total_items: Int!
+}
+
+input CreateShipmentItemInput {
+  batch_number: String
+  expiry_date: DateTime
+  mfg_date: DateTime
+  product_id: String!
+  product_name: String!
+  quantity_received: Int!
+  shipment_id: String!
+  unit_price: Float!
+}
+
+input CreateSupplierInput {
+  address: String
+  category_id: Int!
+  contact_person: String
+  email: String!
+  name: String!
+  phone_no: String!
+  registration_number: String
+  status: String! = "Active"
+  tax_id: String
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type Mutation {
-  addProduct(createProductInput: CreateProductInput!): ProductModel!
-  deleteProduct(id: ID!): ProductModel!
+  addShipment(createShipmentInput: CreateShipmentInput!): ShipmentModel!
+  addShipmentItem(createShipmentItemInput: CreateShipmentItemInput!): ShipmentItemModel!
+  addShipmentItems(createShipmentItemsInput: [CreateShipmentItemInput!]!): [ShipmentItemModel!]!
+  addSupplier(createSupplierInput: CreateSupplierInput!): SupplierModel!
+  bulkAssignCategoriesToProduct(categoryIds: [Int!]!, productId: Int!): [ProductCategory!]!
+  createCategory(createCategoryInput: CreateCategoryInput!): Category!
+  createProduct(createProductInput: CreateProductInput!): Product!
+  createProductCategory(createProductCategoryInput: CreateProductCategoryInput!): ProductCategory!
+  deleteShipment(shipment_id: ID!): ShipmentModel!
+  deleteShipmentItem(id: ID!): ShipmentItemModel!
+  deleteSupplier(supplier_id: ID!): SupplierModel!
+  removeAllCategoriesFromProduct(productId: Int!): Boolean!
+  removeAllProductsFromCategory(categoryId: Int!): Boolean!
+  removeCategory(id: Int!): Boolean!
+  removeProduct(id: Int!): Boolean!
+  removeProductCategory(removeProductCategoryInput: RemoveProductCategoryInput!): Boolean!
+  updateCategory(updateCategoryInput: UpdateCategoryInput!): Category!
+  updateProduct(updateProductInput: UpdateProductInput!): Product!
+  updateProductStock(id: Int!, quantity: Int!): Product!
+  updateShipmentPaymentStatus(payment_status: String!, shipment_id: ID!): ShipmentModel!
+  updateSupplier(updateSupplierInput: UpdateSupplierInput!): SupplierModel!
 }
 
-type ProductModel {
-  category: String!
-  id: ID!
-  name: String!
-  price: Float!
-  quantity: Int!
-  sku: String!
+type Product {
+  categories: [Category!]
+  default_price: Float!
+  min_stock: Int!
+  product_id: Int!
+  product_name: String!
+  stock: Int!
+}
+
+type ProductCategory {
+  category_id: Int!
+  product_id: Int!
 }
 
 type Query {
-  product(id: ID!): ProductModel!
-  products(category: String, limit: Int! = 5, page: Int! = 1): [ProductModel!]!
+  categories: [Category!]!
+  categoriesByName(name: String!): [Category!]!
+  categoriesSimple: [Category!]!
+  category(id: Int!): Category!
+  expiringShipmentItems(days: Int! = 30): [ShipmentItemModel!]!
+  lowStockProducts: [Product!]!
+  product(id: Int!): Product!
+  productCategories: [ProductCategory!]!
+  productCategoriesByCategory(categoryId: Int!): [ProductCategory!]!
+  productCategoriesByProduct(productId: Int!): [ProductCategory!]!
+  products: [Product!]!
+  productsByCategory(categoryId: Int!): [Product!]!
+  productsByName(name: String!): [Product!]!
+  searchCategories(searchTerm: String!): [Category!]!
+  searchProducts(searchTerm: String!): [Product!]!
+  shipment(shipment_id: ID!): ShipmentModel!
+  shipmentItem(id: ID!): ShipmentItemModel!
+  shipmentItems(limit: Int! = 10, page: Int! = 1): [ShipmentItemModel!]!
+  shipmentItemsByShipment(shipment_id: ID!): [ShipmentItemModel!]!
+  shipmentItemsBySupplier(supplier_id: ID!): [ShipmentItemModel!]!
+  shipments(limit: Int! = 10, page: Int! = 1, supplier_id: String): [ShipmentModel!]!
+  shipmentsBySupplier(supplier_id: ID!): [ShipmentModel!]!
+  supplier(supplier_id: ID!): SupplierModel!
+  supplierProducts(supplier_id: ID!): [Product!]!
+  supplierStats(supplier_id: ID!): String!
+  suppliers(limit: Int! = 10, page: Int! = 1, status: String): [SupplierModel!]!
+  totalInventoryValue: Float!
+}
+
+input RemoveProductCategoryInput {
+  category_id: Int!
+  product_id: Int!
+}
+
+input ShipmentItemInput {
+  batch_number: String
+  product_id: String!
+  product_name: String!
+  quantity_received: Int!
+  unit_price: Float!
+}
+
+type ShipmentItemModel {
+  batch_number: String
+  expiry_date: DateTime
+  id: ID!
+  mfg_date: DateTime
+  product_id: String!
+  product_name: String!
+  quantity_received: Int!
+  shipment_id: String!
+  unit_price: Float!
+}
+
+type ShipmentModel {
+  invoice_amt: Float!
+  payment_mthd: String!
+  payment_status: String!
+  received_date: DateTime!
+  ref_no: String!
+  shipment_id: ID!
+  supplier_id: String!
+  total_items: Int!
+}
+
+type SupplierModel {
+  address: String
+  category_id: Int!
+  contact_person: String
+  created_date: DateTime!
+  email: String!
+  name: String!
+  phone_no: String!
+  registration_number: String
+  status: String!
+  supplier_id: ID!
+  tax_id: String
+  updated_date: DateTime!
+}
+
+input UpdateCategoryInput {
+  category_id: Int!
+  name: String
+}
+
+input UpdateProductInput {
+  categoryIds: [Int!]
+  default_price: Float
+  min_stock: Int
+  product_id: Int!
+  product_name: String
+  stock: Int
+}
+
+input UpdateSupplierInput {
+  address: String
+  category_id: Int
+  contact_person: String
+  email: String
+  name: String
+  phone_no: String
+  registration_number: String
+  status: String
+  supplier_id: ID!
+  tax_id: String
 }

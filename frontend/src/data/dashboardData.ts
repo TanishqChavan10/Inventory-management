@@ -1,5 +1,6 @@
 
 // Dashboard data based on ER Diagram entities
+import { formatIndianRupee } from '@/lib/formatters';
 
 // Types
 export interface StatDetails {
@@ -44,7 +45,7 @@ export const inventoryStats: InventoryStats = {
   totalProducts: 8,
   lowStockItems: 3,
   outOfStock: 0,
-  totalValue: "$42,420.6"
+  totalValue: formatIndianRupee(42420.6)
 };
 
 // Mock inventory data that matches the screenshot for display purposes
@@ -97,8 +98,8 @@ export const statsData: StatData[] = [
   },
   {
     title: "Total Revenue",
-    value: "$45,678.90",
-    icon: "dollar-sign",
+    value: formatIndianRupee(45678.90),
+    icon: "rupee-indian",
     change: "+8.2%",
     description: "from last month",
     details: {
@@ -168,7 +169,7 @@ export const recentActivity: ActivityItem[] = [
     type: "sale",
     message: "Laptop Computer sold",
     time: "2 hours ago",
-    badge: "$999.99"
+    badge: formatIndianRupee(999.99)
   },
   {
     type: "restock",

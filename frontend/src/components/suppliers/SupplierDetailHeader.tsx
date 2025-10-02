@@ -1,10 +1,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, Building } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building, Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import type { SupplierDetailHeaderProps } from '@/types';
 
-export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
+export function SupplierDetailHeader({
+  supplier,
+  onCreateShipment,
+  onRefresh,
+}: SupplierDetailHeaderProps) {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -32,10 +36,22 @@ export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
           >
             {supplier.status}
           </Badge>
+          {onRefresh && (
+            <Button variant="outline" onClick={onRefresh} className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </Button>
+          )}
+          {onCreateShipment && (
+            <Button onClick={onCreateShipment} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Create Shipment Order
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
           <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           <div>
@@ -64,6 +80,16 @@ export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
 
         <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
           <div className="w-5 h-5 bg-orange-600 dark:bg-orange-400 rounded" />
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">Category</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {supplier.category?.name || `Category ${supplier.category_id}`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+          <div className="w-5 h-5 bg-indigo-600 dark:bg-indigo-400 rounded" />
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">Member Since</p>
             <p className="text-sm text-gray-600 dark:text-gray-300">

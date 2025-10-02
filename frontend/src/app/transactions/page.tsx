@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, ChevronDownIcon, Plus, DollarSign, TrendingUp, Receipt, RefreshCw } from 'lucide-react';
+import { Eye, Search, ChevronDownIcon, Plus, DollarSign, TrendingUp, Receipt } from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -25,85 +25,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-// Enhanced mock data matching your screenshot
-const mockTransactionsList = [
-  {
-    transaction_id: 'TXN-001',
-    transaction_date: '2024-01-15',
-    time: '14:30',
-    total_amt: 1059.97,
-    payment_method: 'Credit Card',
-    customer: { name: 'Alice Brown' },
-    employee: { name: 'John Smith' },
-    status: 'Completed',
-  },
-  {
-    transaction_id: 'TXN-002',
-    transaction_date: '2024-01-15',
-    time: '13:15',
-    total_amt: 249.98,
-    payment_method: 'Cash',
-    customer: { name: 'Bob Wilson' },
-    employee: { name: 'Sarah Johnson' },
-    status: 'Completed',
-  },
-  {
-    transaction_id: 'TXN-003',
-    transaction_date: '2024-01-15',
-    time: '12:45',
-    total_amt: 106.95,
-    payment_method: 'Debit Card',
-    customer: { name: 'Carol Davis' },
-    employee: { name: 'Mike Davis' },
-    status: 'Completed',
-  },
-  {
-    transaction_id: 'TXN-004',
-    transaction_date: '2024-01-14',
-    time: '16:20',
-    total_amt: 70.93,
-    payment_method: 'Credit Card',
-    customer: { name: 'David Miller' },
-    employee: { name: 'Lisa Wilson' },
-    status: 'Refunded',
-  },
-  {
-    transaction_id: 'TXN-005',
-    transaction_date: '2024-01-14',
-    time: '10:30',
-    total_amt: 185.50,
-    payment_method: 'Mobile Payment',
-    customer: { name: 'Emma Davis' },
-    employee: { name: 'John Smith' },
-    status: 'Completed',
-  },
-  {
-    transaction_id: 'TXN-006',
-    transaction_date: '2024-01-13',
-    time: '15:45',
-    total_amt: 325.00,
-    payment_method: 'Credit Card',
-    customer: { name: 'Frank Johnson' },
-    employee: { name: 'Sarah Johnson' },
-    status: 'Pending',
-  },
-];
-
-// Calculate summary stats
-const totalRevenue = mockTransactionsList
-  .filter(t => t.status === 'Completed')
-  .reduce((sum, t) => sum + t.total_amt, 0);
-
-const todaysSales = mockTransactionsList
-  .filter(t => t.transaction_date === '2024-01-15' && t.status === 'Completed')
-  .length;
-
-const totalTransactions = mockTransactionsList.length;
-
-const refunds = mockTransactionsList
-  .filter(t => t.status === 'Refunded')
-  .length;
+import { NewTransactionForm } from '@/components/transactions/NewTransactionForm';
+import {
+  mockProducts,
+  mockEmployees,
+  mockCustomers,
+  generateTransactionId,
+  generatePaymentRefNo,
+} from '@/data/transactionData';
 
 export default function TransactionsListPage() {
   const router = useRouter();
@@ -113,29 +42,104 @@ export default function TransactionsListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // New Transaction Form State
+  const [isNewTransactionFormOpen, setIsNewTransactionFormOpen] = useState(false);
+
+  // Transactions state - start with empty array
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  // Calculate summary stats based on current transactions
+  const totalRevenue = transactions
+    .filter((t) => t.status === 'Completed')
+    .reduce((sum, t) => sum + t.total_amt, 0);
+
+  const todaysSales = transactions.filter(
+    (t) =>
+      t.transaction_date === new Date().toISOString().split('T')[0] && t.status === 'Completed',
+  ).length;
+
+  const totalTransactions = transactions.length;
+
+  // Handler for creating a new transaction
+  const handleCreateTransaction = async (transactionData: any) => {
+    try {
+      console.log('Creating transaction:', transactionData);
+
+      // Generate transaction ID and payment reference if needed
+      const transactionId = generateTransactionId();
+      const paymentRefNo =
+        transactionData.payment_refno || generatePaymentRefNo(transactionData.payment_method);
+
+      // Find customer and employee names for display
+      const customer =
+        transactionData.customer_id && transactionData.customer_id !== 'walk-in'
+          ? mockCustomers.find((c) => c.customer_id === transactionData.customer_id)
+          : null;
+
+      const employee = mockEmployees.find((e) => e.employee_id === transactionData.cashier_id);
+
+      // Create the complete transaction object for display
+      const newTransaction = {
+        transaction_id: transactionId,
+        transaction_date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        total_amt: transactionData.total_amt,
+        payment_method: transactionData.payment_method,
+        customer: customer ? { name: customer.name } : { name: 'Walk-in Customer' },
+        employee: employee ? { name: employee.name } : { name: 'Unknown' },
+        status: 'Completed' as const,
+        // Store additional data for potential API calls
+        customer_id: transactionData.customer_id,
+        cashier_id: transactionData.cashier_id,
+        payment_refno: paymentRefNo,
+        tax_amount: transactionData.tax_amount,
+        discount_amount: transactionData.discount_amount,
+        subtotal: transactionData.subtotal,
+        notes: transactionData.notes,
+        items: transactionData.items,
+      };
+
+      // Add the new transaction to the state
+      setTransactions((prevTransactions) => [newTransaction, ...prevTransactions]);
+
+      // Here you would typically make an API call to save the transaction
+      console.log('New transaction created:', newTransaction);
+
+      // Show success message (you can replace this with a proper toast notification)
+      alert(`Transaction ${transactionId} created successfully!`);
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      throw error; // Re-throw to let the form handle the error
+    }
+  };
+
   const filteredTransactions = useMemo(() => {
-    let transactions = mockTransactionsList;
+    let filteredList = transactions;
 
     // Filter by search term
     if (searchTerm) {
-      transactions = transactions.filter(
-        (transaction) =>
+      filteredList = filteredList.filter(
+        (transaction: any) =>
           transaction.transaction_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.employee.name.toLowerCase().includes(searchTerm.toLowerCase()),
+          transaction.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.employee?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Filter by date
     if (date) {
-      transactions = transactions.filter((transaction) => {
+      filteredList = filteredList.filter((transaction: any) => {
         const transactionDate = new Date(transaction.transaction_date);
         return transactionDate.toDateString() === date.toDateString();
       });
     }
 
-    return transactions;
-  }, [searchTerm, date]);
+    return filteredList;
+  }, [transactions, searchTerm, date]);
 
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -159,8 +163,6 @@ export default function TransactionsListPage() {
         return 'bg-black text-white dark:bg-white dark:text-black';
       case 'Pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'Refunded':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
@@ -193,7 +195,10 @@ export default function TransactionsListPage() {
               View and manage all sales transactions and payment records.
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => setIsNewTransactionFormOpen(true)}
+          >
             <Plus className="w-4 h-4" />
             New Transaction
           </Button>
@@ -226,12 +231,8 @@ export default function TransactionsListPage() {
               <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {todaysSales}
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Transactions today
-              </p>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{todaysSales}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Transactions today</p>
             </CardContent>
           </Card>
 
@@ -246,26 +247,7 @@ export default function TransactionsListPage() {
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {totalTransactions}
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                All time
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Refunds
-              </CardTitle>
-              <RefreshCw className="h-4 w-4 text-red-600 dark:text-red-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {refunds}
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Refunded transactions
-              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">All time</p>
             </CardContent>
           </Card>
         </div>
@@ -357,8 +339,8 @@ export default function TransactionsListPage() {
               </TableHeader>
               <TableBody>
                 {paginatedTransactions.length > 0 ? (
-                  paginatedTransactions.map((transaction) => (
-                    <TableRow 
+                  paginatedTransactions.map((transaction: any) => (
+                    <TableRow
                       key={transaction.transaction_id}
                       className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
                       onClick={() => handleRowClick(transaction.transaction_id)}
@@ -375,10 +357,10 @@ export default function TransactionsListPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-900 dark:text-white">
-                        {transaction.customer.name}
+                        {transaction.customer?.name || 'Walk-in Customer'}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {transaction.employee.name}
+                        {transaction.employee?.name || 'Unknown'}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         <div className="flex items-center gap-2">
@@ -408,8 +390,17 @@ export default function TransactionsListPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center h-24 text-gray-500 dark:text-gray-400">
-                      No transactions found for the selected criteria.
+                    <TableCell
+                      colSpan={8}
+                      className="text-center h-32 text-gray-500 dark:text-gray-400"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <Receipt className="w-8 h-8 text-gray-400" />
+                        <div>
+                          <p className="font-medium">No transactions found</p>
+                          <p className="text-sm">Start by creating your first transaction</p>
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -451,6 +442,16 @@ export default function TransactionsListPage() {
           )}
         </div>
       </div>
+
+      {/* New Transaction Form Modal */}
+      <NewTransactionForm
+        isOpen={isNewTransactionFormOpen}
+        onClose={() => setIsNewTransactionFormOpen(false)}
+        onSubmit={handleCreateTransaction}
+        products={mockProducts}
+        employees={mockEmployees}
+        customers={mockCustomers}
+      />
     </div>
   );
 }

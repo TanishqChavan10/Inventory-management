@@ -16,7 +16,7 @@ const CATEGORY_FRAGMENT = gql`
   }
 `;
 
-// Get all categories
+// Get all categories (with products)
 export const GET_CATEGORIES: TypedDocumentNode<
   { categories: Category[] },
   {}
@@ -25,6 +25,19 @@ export const GET_CATEGORIES: TypedDocumentNode<
   query GetCategories {
     categories {
       ...CategoryFragment
+    }
+  }
+`;
+
+// Get all categories (simple - without products relation)
+export const GET_CATEGORIES_SIMPLE: TypedDocumentNode<
+  { categoriesSimple: Category[] },
+  {}
+> = gql`
+  query GetCategoriesSimple {
+    categoriesSimple {
+      category_id
+      name
     }
   }
 `;

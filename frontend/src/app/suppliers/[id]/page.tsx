@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -9,7 +9,8 @@ import {
   SupplierDetailHeader,
   SupplierStats,
   SupplierShipments,
-  SupplierProducts,
+  CreateShipmentModal,
+  ShipmentItemsTable,
 } from '@/components/suppliers';
 
 // --- Custom Hook ---
@@ -24,13 +25,39 @@ type Params = {
 
 export default function SupplierDetailsPage({ params }: Params) {
   const { id } = use(params);
+  const [isCreateShipmentOpen, setIsCreateShipmentOpen] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [selectedShipmentItems, setSelectedShipmentItems] = useState<ShipmentItem[]>([]);
 
   // Use the custom hook to fetch supplier details from database
-  const { supplierDetail, shipments, shipmentItems, loading, error } = useSupplierDetail(id);
+  const { supplierDetail, shipments, shipmentItems, loading, error, refetchAll } =
+    useSupplierDetail(id);
+
+  // Add debugging logs
+  console.log('🔍 Supplier Detail Page Debug:', {
+    supplierId: id,
+    supplierDetail,
+    shipmentsCount: shipments.length,
+    shipmentItemsCount: shipmentItems.length,
+    loading,
+    error: error?.message,
+  });
+
+  const handleCreateShipment = () => {
+    setIsCreateShipmentOpen(true);
+  };
+
+  const handleShipmentCreated = async () => {
+    toast.success('Shipment order created successfully!');
+    // Refresh the data after creating a shipment
+    await refetchAll();
+  };
 
   const handleViewShipment = (shipment: Shipment) => {
-    toast.info(`Viewing details for shipment: ${shipment.shipment_id}`);
-    // In a real app, this would navigate to a shipment detail page
+    setSelectedShipment(shipment);
+    // Filter items for this shipment
+    const items = shipmentItems.filter((item) => item.shipment_id === shipment.shipment_id);
+    setSelectedShipmentItems(items);
   };
 
   // Show loading state
@@ -105,7 +132,11 @@ export default function SupplierDetailsPage({ params }: Params) {
   return (
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <div className="space-y-6">
-        <SupplierDetailHeader supplier={supplierDetail} />
+        <SupplierDetailHeader
+          supplier={supplierDetail}
+          onCreateShipment={handleCreateShipment}
+          onRefresh={refetchAll}
+        />
 
         <SupplierStats
           totalShipments={shipments.length}
@@ -117,7 +148,18 @@ export default function SupplierDetailsPage({ params }: Params) {
 
         <SupplierShipments shipments={shipments} onViewShipment={handleViewShipment} />
 
-        <SupplierProducts shipmentItems={shipmentItems} />
+        {/* Show shipment details when selected */}
+        {selectedShipment && selectedShipmentItems.length > 0 && (
+          <ShipmentItemsTable shipment={selectedShipment} items={selectedShipmentItems} />
+        )}
+
+        {/* Create Shipment Modal */}
+        <CreateShipmentModal
+          isOpen={isCreateShipmentOpen}
+          onClose={() => setIsCreateShipmentOpen(false)}
+          supplier={supplierDetail}
+          onShipmentCreated={handleShipmentCreated}
+        />
       </div>
     </div>
   );

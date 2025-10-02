@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
-import Link from 'next/link';
 import StatCard from '@/components/dashboard/StatCard';
+import StatCardSkeleton from '@/components/dashboard/StatCardSkeleton';
+import DashboardError from '@/components/dashboard/DashboardError';
 import CategoryDashboard from '@/components/dashboard/CategoryDashboard';
 import LowStockAlert from '@/components/dashboard/LowStockAlert';
 import DashboardModal from '@/components/dashboard/DashboardModal';
-import { statsData, lowStockItems } from '@/data/dashboardData';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 export default function DashboardPage() {
   const [modal, setModal] = useState<null | {
@@ -16,6 +15,8 @@ export default function DashboardPage() {
     columns: string[];
     data: (string | number)[][];
   }>(null);
+
+  const { stats, loading, error, refetch } = useDashboardStats();
 
   return (
     <div className="px-32 py-8 min-h-screen bg-gray-50 dark:bg-neutral-950">
@@ -31,17 +32,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <div className="mb-8">
+          <DashboardError error={error} onRetry={refetch} />
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {statsData.map((stat, index) => (
-          <StatCard key={index} stat={stat} onClick={() => setModal(stat.details)} />
-        ))}
+        {loading
+          ? // Loading skeletons
+            Array.from({ length: 6 }).map((_, index) => <StatCardSkeleton key={index} />)
+          : // Real data
+            stats.map((stat, index) => (
+              <StatCard key={index} stat={stat} onClick={() => setModal(stat.details)} />
+            ))}
       </div>
 
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CategoryDashboard />
-        <LowStockAlert items={lowStockItems} />
+        <LowStockAlert />
       </div>
 
       {/* Modal */}

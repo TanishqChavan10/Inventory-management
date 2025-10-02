@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { InventoryModule } from './inventory/inventory.module';
+import { SupplierModule } from './supplier/supplier.module';
 
 @Module({
   imports: [
@@ -26,14 +27,17 @@ import { InventoryModule } from './inventory/inventory.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'Neeraj/043011',
+      password: 'root',
       database: 'inventory',
       autoLoadEntities: true,
       synchronize: true,
     }),
    
     AuthModule,
-    InventoryModule
+    InventoryModule,
+    SupplierModule,
+
+  
     
   ],
   controllers: [AppController],

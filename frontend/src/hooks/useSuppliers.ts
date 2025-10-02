@@ -45,20 +45,48 @@ export function useSuppliers(page: number = 1, limit: number = 10, status?: stri
   const [deleteSupplierMutation] = useMutation(DELETE_SUPPLIER);
 
   useEffect(() => {
-    if (data?.suppliers) {
-      console.log('📊 Suppliers data updated:', data.suppliers.length, 'suppliers');
-      // Transform suppliers for table display
-      // Note: We're using empty arrays for shipments/items since this is just for table display
-      // The actual calculations will show 0 orders, $0 total value, etc. which is correct
-      // for the suppliers list view
-      const transformedSuppliers = data.suppliers.map((supplier: SupplierGraphQL) =>
-        transformSupplierForTable(supplier, [], [])
-      );
-      setSuppliers(transformedSuppliers);
-      console.log('✅ Transformed suppliers set:', transformedSuppliers.length);
-    }
-    setLoading(queryLoading);
-  }, [data, queryLoading]);
+    const loadSuppliersWithShipments = async () => {
+      if (data?.suppliers) {
+        console.log('📊 Suppliers data updated:', data.suppliers.length, 'suppliers');
+        setLoading(true);
+        
+        try {
+          // Fetch shipments for each supplier
+          const suppliersWithShipments = await Promise.all(
+            data.suppliers.map(async (supplier: SupplierGraphQL) => {
+              try {
+                const { data: shipmentsData } = await apolloClient.query({
+                  query: GET_SHIPMENTS_BY_SUPPLIER,
+                  variables: { supplier_id: supplier.supplier_id },
+                  errorPolicy: 'all',
+                });
+                
+                const shipments = shipmentsData?.shipmentsBySupplier || [];
+                return transformSupplierForTable(supplier, shipments, []);
+              } catch (error) {
+                console.error(`Error fetching shipments for supplier ${supplier.supplier_id}:`, error);
+                // Return supplier with empty shipments data if fetch fails
+                return transformSupplierForTable(supplier, [], []);
+              }
+            })
+          );
+          
+          setSuppliers(suppliersWithShipments);
+          console.log('✅ Transformed suppliers with shipments set:', suppliersWithShipments.length);
+        } catch (error) {
+          console.error('Error loading suppliers with shipments:', error);
+          // Fallback to suppliers without shipments data
+          const transformedSuppliers = data.suppliers.map((supplier: SupplierGraphQL) =>
+            transformSupplierForTable(supplier, [], [])
+          );
+          setSuppliers(transformedSuppliers);
+        }
+      }
+      setLoading(queryLoading);
+    };
+
+    loadSuppliersWithShipments();
+  }, [data, queryLoading, apolloClient]);
 
   const addSupplier = async (supplierData: Omit<SupplierGraphQL, 'supplier_id' | 'created_date' | 'updated_date'>) => {
     console.log('🔄 addSupplier called with:', supplierData);
@@ -85,9 +113,16 @@ export function useSuppliers(page: number = 1, limit: number = 10, status?: stri
   const updateSupplier = async (supplierData: Partial<SupplierGraphQL> & { supplier_id: string }) => {
     console.log('🔄 updateSupplier called with:', supplierData);
     try {
+      // Ensure category_id is valid before sending to backend
+      const updateData = { ...supplierData };
+      if (!updateData.category_id || updateData.category_id <= 0) {
+        // Remove invalid category_id to avoid NOT NULL constraint violation
+        delete updateData.category_id;
+      }
+
       const { data } = await updateSupplierMutation({
         variables: {
-          updateSupplierInput: supplierData,
+          updateSupplierInput: updateData,
         },
       });
 
@@ -137,23 +172,44 @@ export function useSuppliers(page: number = 1, limit: number = 10, status?: stri
 }
 
 export function useSupplierDetail(supplier_id: string) {
+  // Ensure supplier_id is a string and not empty
+  const sanitizedSupplierId = supplier_id?.toString().trim();
+  console.log('🔍 useSupplierDetail called with supplier_id:', sanitizedSupplierId, 'original:', supplier_id);
+  
   const [supplierDetail, setSupplierDetail] = useState<SupplierDetail | null>(null);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shipmentItems, setShipmentItems] = useState<ShipmentItem[]>([]);
 
   const { data: supplierData, loading: supplierLoading, error: supplierError } = useQuery(GET_SUPPLIER, {
-    variables: { supplier_id },
+    variables: { supplier_id: sanitizedSupplierId },
     errorPolicy: 'all',
+    skip: !sanitizedSupplierId, // Skip if no valid supplier_id
   });
 
-  const { data: shipmentsData, loading: shipmentsLoading, error: shipmentsError } = useQuery(GET_SHIPMENTS_BY_SUPPLIER, {
-    variables: { supplier_id },
+  const { data: shipmentsData, loading: shipmentsLoading, error: shipmentsError, refetch: refetchShipments } = useQuery(GET_SHIPMENTS_BY_SUPPLIER, {
+    variables: { supplier_id: sanitizedSupplierId },
     errorPolicy: 'all',
+    fetchPolicy: 'cache-and-network', // Try to get fresh data
+    skip: !sanitizedSupplierId, // Skip if no valid supplier_id
+    onCompleted: (data) => {
+      console.log('📦 Shipments query completed for supplier_id:', sanitizedSupplierId, 'data:', data);
+    },
+    onError: (error) => {
+      console.error('📦 Shipments query error for supplier_id:', sanitizedSupplierId, 'error:', error);
+    }
   });
 
-  const { data: shipmentItemsData, loading: shipmentItemsLoading, error: shipmentItemsError } = useQuery(GET_SHIPMENT_ITEMS_BY_SUPPLIER, {
-    variables: { supplier_id },
+  const { data: shipmentItemsData, loading: shipmentItemsLoading, error: shipmentItemsError, refetch: refetchShipmentItems } = useQuery(GET_SHIPMENT_ITEMS_BY_SUPPLIER, {
+    variables: { supplier_id: sanitizedSupplierId },
     errorPolicy: 'all',
+    fetchPolicy: 'cache-and-network', // Try to get fresh data
+    skip: !sanitizedSupplierId, // Skip if no valid supplier_id
+    onCompleted: (data) => {
+      console.log('📋 Shipment items query completed for supplier_id:', sanitizedSupplierId, 'data:', data);
+    },
+    onError: (error) => {
+      console.error('📋 Shipment items query error for supplier_id:', sanitizedSupplierId, 'error:', error);
+    }
   });
 
   // Log errors for debugging
@@ -177,24 +233,49 @@ export function useSupplierDetail(supplier_id: string) {
 
   useEffect(() => {
     if (shipmentsData?.shipmentsBySupplier) {
+      console.log('🚚 Raw shipments data:', shipmentsData.shipmentsBySupplier);
       const transformedShipments = shipmentsData.shipmentsBySupplier.map((shipment: ShipmentGraphQL) =>
         transformShipment(shipment)
       );
+      console.log('🚚 Transformed shipments:', transformedShipments);
       setShipments(transformedShipments);
+    } else {
+      console.log('🚚 No shipments data received:', shipmentsData);
     }
   }, [shipmentsData]);
 
   useEffect(() => {
     if (shipmentItemsData?.shipmentItemsBySupplier) {
+      console.log('📦 Raw shipment items data:', shipmentItemsData.shipmentItemsBySupplier);
       const transformedItems = shipmentItemsData.shipmentItemsBySupplier.map((item: ShipmentItemGraphQL) =>
         transformShipmentItem(item)
       );
+      console.log('📦 Transformed shipment items:', transformedItems);
       setShipmentItems(transformedItems);
+    } else {
+      console.log('📦 No shipment items data received:', shipmentItemsData);
     }
   }, [shipmentItemsData]);
 
   const loading = supplierLoading || shipmentsLoading || shipmentItemsLoading;
   const error = supplierError || shipmentsError || shipmentItemsError;
+
+  const refetchAll = async () => {
+    console.log('🔄 Manually refetching all data for supplier:', sanitizedSupplierId);
+    if (!sanitizedSupplierId) {
+      console.error('❌ Cannot refetch: invalid supplier_id');
+      return;
+    }
+    try {
+      await Promise.all([
+        refetchShipments(),
+        refetchShipmentItems()
+      ]);
+      console.log('✅ Manual refetch completed');
+    } catch (error) {
+      console.error('❌ Manual refetch failed:', error);
+    }
+  };
 
   return {
     supplierDetail,
@@ -202,17 +283,20 @@ export function useSupplierDetail(supplier_id: string) {
     shipmentItems,
     loading,
     error,
+    refetchAll
   };
 }
 
 export function useSupplierForEdit() {
   const fetchSupplierById = async (supplier_id: string, client: any) => {
     try {
+      console.log('🔍 Fetching supplier by ID:', supplier_id);
       const result = await client.query({
         query: GET_SUPPLIER,
         variables: { supplier_id },
-        fetchPolicy: 'cache-first', // Use cache if available, fetch if not
+        fetchPolicy: 'network-only', // Force fresh fetch to ensure we get latest data
       });
+      console.log('📥 Supplier fetch result:', result.data?.supplier);
       return result.data?.supplier || null;
     } catch (error) {
       console.error('Error fetching supplier for edit:', error);

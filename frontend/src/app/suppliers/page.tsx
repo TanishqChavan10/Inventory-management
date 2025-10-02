@@ -5,12 +5,7 @@ import { toast } from 'sonner';
 import { useApolloClient } from '@apollo/client';
 
 // --- Component Imports ---
-import {
-  SuppliersHeader,
-  SuppliersSearchBar,
-  SuppliersTable,
-  SupplierModal,
-} from '@/components/suppliers';
+import { SuppliersHeader, SuppliersSearchBar, SuppliersTable } from '@/components/suppliers';
 
 // --- Custom Hook ---
 import { useSuppliers, useSupplierForEdit } from '@/hooks/useSuppliers';
@@ -47,7 +42,6 @@ export default function SuppliersPage() {
     return (
       supplier.name.toLowerCase().includes(searchLower) ||
       supplier.email.toLowerCase().includes(searchLower) ||
-      supplier.products.some((product) => product.toLowerCase().includes(searchLower)) ||
       supplier.contact.toLowerCase().includes(searchLower)
     );
   });
@@ -183,16 +177,6 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
-
-      {/* Supplier Modal */}
-      <SupplierModal
-        isOpen={isModalOpen}
-        isEditing={isEditing}
-        supplier={editingSupplier}
-        onSave={handleSaveSupplier}
-        onClose={handleCloseModal}
-        loading={modalLoading}
-      />
     </div>
   );
 }

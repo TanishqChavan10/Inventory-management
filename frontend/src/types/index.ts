@@ -1,3 +1,5 @@
+import { formatIndianRupee } from '@/lib/formatters';
+
 // Centralized type definitions for better TypeScript performance
 
 // Enhanced Category types
@@ -101,6 +103,8 @@ export type Supplier = {
   totalValue: string;
   lastOrder: string;
   status: 'Active' | 'Inactive';
+  category_id?: number;
+  category?: Category;
 };
 
 export type SupplierDetail = {
@@ -114,6 +118,41 @@ export type SupplierDetail = {
   tax_id?: string;
   created_date: string;
   status: 'Active' | 'Inactive';
+  category_id: number;
+  category?: Category;
+};
+
+// Create Supplier Input
+export type CreateSupplierInput = {
+  name: string;
+  email: string;
+  phone_no: string;
+  address?: string;
+  contact_person?: string;
+  registration_number?: string;
+  tax_id?: string;
+  status?: 'Active' | 'Inactive';
+  category_id: number;
+};
+
+// Enhanced Shipment types
+export type CreateShipmentInput = {
+  supplier_id: string;
+  ref_no: string;
+  received_date?: Date;
+  payment_status: 'Pending' | 'Paid' | 'Failed';
+  payment_mthd: string;
+  invoice_amt: number;
+  total_items: number;
+  items: ShipmentItemInput[];
+};
+
+export type ShipmentItemInput = {
+  product_id: string;
+  product_name: string;
+  quantity_received: number;
+  unit_price: number;
+  batch_number?: string;
 };
 
 export type Shipment = {
@@ -147,7 +186,7 @@ export type TransactionDetail = {
   payment_method: 'Cash' | 'Credit Card' | 'Debit Card' | 'Mobile Payment';
   total_amt: number;
   payment_refno?: string;
-  status: 'Completed' | 'Pending' | 'Refunded' | 'Failed';
+  status: 'Completed' | 'Pending' | 'Failed';
   tax_amount?: number;
   discount_amount?: number;
   subtotal: number;
@@ -239,9 +278,23 @@ export interface SuppliersTableProps {
   fetchingSupplierForEdit?: boolean;
 }
 
-// Supplier detail page props
+// Enhanced Supplier detail page props
 export interface SupplierDetailHeaderProps {
   supplier: SupplierDetail;
+  onCreateShipment?: () => void;
+  onRefresh?: () => void;
+}
+
+export interface CreateShipmentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  supplier: SupplierDetail;
+  onShipmentCreated?: () => void;
+}
+
+export interface ShipmentItemsTableProps {
+  shipment: Shipment;
+  items: ShipmentItem[];
 }
 
 export interface SupplierStatsProps {
@@ -255,10 +308,6 @@ export interface SupplierStatsProps {
 export interface SupplierShipmentsProps {
   shipments: Shipment[];
   onViewShipment?: (shipment: Shipment) => void;
-}
-
-export interface SupplierProductsProps {
-  shipmentItems: ShipmentItem[];
 }
 
 // Transaction component props
@@ -280,13 +329,6 @@ export interface TransactionItemsProps {
 
 export interface TransactionPaymentProps {
   transaction: TransactionDetail;
-  refundHistory?: Array<{
-    refund_id: string;
-    amount: number;
-    date: string;
-    reason: string;
-    processed_by: string;
-  }>;
 }
 
 // Reports and Analytics types
@@ -322,7 +364,6 @@ export interface FinancialOverviewProps {
     profit: number;
     profit_margin: number;
     tax_collected: number;
-    refunds: number;
   }>;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
 }
@@ -340,6 +381,7 @@ export type SupplierGraphQL = {
   status: 'Active' | 'Inactive';
   created_date: string;
   updated_date: string;
+  category_id?: number; // Made optional to match reality
 };
 
 export type ShipmentGraphQL = {
@@ -373,11 +415,8 @@ export function transformSupplierForTable(
 ): Supplier {
   const totalValue = shipments.reduce((sum, shipment) => sum + shipment.invoice_amt, 0);
   const lastOrder = shipments.length > 0 
-    ? shipments.sort((a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime())[0].received_date
+    ? [...shipments].sort((a, b) => new Date(b.received_date).getTime() - new Date(a.received_date).getTime())[0].received_date
     : supplier.created_date;
-  
-  // Get unique products from shipment items
-  const products = Array.from(new Set(shipmentItems.map(item => item.product_name)));
 
   return {
     id: supplier.supplier_id,
@@ -385,9 +424,9 @@ export function transformSupplierForTable(
     contact: supplier.contact_person || supplier.email,
     email: supplier.email,
     phone: supplier.phone_no,
-    products: products.slice(0, 3), // Show max 3 products in table
+    products: [], // Empty array since products column was removed
     orders: shipments.length,
-    totalValue: `$${totalValue.toLocaleString()}`,
+    totalValue: formatIndianRupee(totalValue),
     lastOrder: new Date(lastOrder).toLocaleDateString(),
     status: supplier.status,
   };
@@ -405,6 +444,7 @@ export function transformSupplierDetail(supplier: SupplierGraphQL): SupplierDeta
     tax_id: supplier.tax_id,
     created_date: supplier.created_date,
     status: supplier.status,
+    category_id: supplier.category_id || 1, // Provide fallback value
   };
 }
 

@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Truck, DollarSign } from 'lucide-react';
+import { Eye, Truck, IndianRupee } from 'lucide-react';
 import type { SupplierShipmentsProps } from '@/types';
 
 export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmentsProps) {
@@ -20,9 +20,7 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Shipment History
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Shipment History</h2>
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <Truck className="w-4 h-4" />
           <span>{shipments.length} shipments</span>
@@ -74,9 +72,7 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
                   <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">
                     {shipment.shipment_id}
                   </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                    {shipment.ref_no}
-                  </td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{shipment.ref_no}</td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
                     {new Date(shipment.received_date).toLocaleDateString()}
                   </td>
@@ -85,7 +81,7 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
                   </td>
                   <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
                     <div className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4" />
+                      <IndianRupee className="w-4 h-4" />
                       {shipment.invoice_amt.toLocaleString()}
                     </div>
                   </td>
