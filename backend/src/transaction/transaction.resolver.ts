@@ -92,7 +92,6 @@ export class TransactionResolver {
       quantity: item.quantity,
       unit_price: item.unit_price,
       discount: item.discount,
-      total_price: item.total_price,
       product_name: item.product?.product_name || 'Unknown Product',
       category_name: item.product?.categories?.[0]?.name || undefined,
     }));

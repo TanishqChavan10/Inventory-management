@@ -65,9 +65,6 @@ export class TransactionItemModel {
   @Field(() => Float, { defaultValue: 0 })
   discount: number;
 
-  @Field(() => Float)
-  total_price: number;
-
   @Field(() => String)
   product_name: string;
 

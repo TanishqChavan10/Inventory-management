@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { InventoryModule } from './inventory/inventory.module';
 import { SupplierModule } from './supplier/supplier.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -32,13 +33,10 @@ import { SupplierModule } from './supplier/supplier.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
-   
     AuthModule,
     InventoryModule,
     SupplierModule,
-
-  
-    
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

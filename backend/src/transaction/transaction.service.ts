@@ -119,15 +119,17 @@ export class TransactionService {
       // Create transaction items and update product stock
       const transactionItems: TransactionItem[] = [];
       for (const item of createTransactionInput.items) {
-        const itemTotalPrice = (item.unit_price * item.quantity) - (item.discount || 0);
-        
+        // Calculate total price with proper validation
+        const quantity = Math.max(1, item.quantity); // Ensure minimum quantity of 1
+        const unitPrice = Math.max(0, item.unit_price); // Ensure non-negative price
+        const discount = Math.max(0, Math.min(item.discount || 0, unitPrice * quantity)); // Ensure discount doesn't exceed total
+
         const transactionItem = this.transactionItemRepository.create({
           transaction_id: savedTransaction.transaction_id,
           product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          discount: item.discount || 0,
-          total_price: itemTotalPrice,
+          quantity: quantity,
+          unit_price: unitPrice,
+          discount: discount,
         });
 
         await queryRunner.manager.save(transactionItem);
@@ -356,13 +358,13 @@ export class TransactionService {
       .addSelect('product.product_name', 'product_name')
       .addSelect('category.name', 'category_name')
       .addSelect('SUM(item.quantity)', 'total_sold')
-      .addSelect('SUM(item.total_price)', 'revenue')
+      .addSelect('SUM(item.unit_price * item.quantity - item.discount)', 'revenue')
       .addSelect('AVG(item.unit_price)', 'avg_price')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
       .groupBy('item.product_id')
       .addGroupBy('product.product_name')
       .addGroupBy('category.name')
-      .orderBy('SUM(item.total_price)', 'DESC')
+      .orderBy('SUM(item.unit_price * item.quantity - item.discount)', 'DESC')
       .limit(limit)
       .getRawMany();
 
@@ -417,7 +419,7 @@ export class TransactionService {
     const totalResult = await this.transactionItemRepository
       .createQueryBuilder('item')
       .leftJoin('item.transaction', 'transaction')
-      .select('SUM(item.total_price)', 'total')
+      .select('SUM(item.unit_price * item.quantity - item.discount)', 'total')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
       .getRawOne();
 
@@ -429,10 +431,10 @@ export class TransactionService {
       .leftJoin('product.categories', 'category')
       .leftJoin('item.transaction', 'transaction')
       .select('category.name', 'category')
-      .addSelect('SUM(item.total_price)', 'revenue')
+      .addSelect('SUM(item.unit_price * item.quantity - item.discount)', 'revenue')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
       .groupBy('category.name')
-      .orderBy('SUM(item.total_price)', 'DESC')
+      .orderBy('SUM(item.unit_price * item.quantity - item.discount)', 'DESC')
       .getRawMany();
 
     return result.map(item => ({

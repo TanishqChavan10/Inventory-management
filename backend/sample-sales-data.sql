@@ -59,24 +59,24 @@ ON DUPLICATE KEY UPDATE
   status = VALUES(status);
 
 -- Insert sample transaction items
-INSERT INTO transaction_item (transaction_id, product_id, quantity, unit_price, discount, total_price) 
-SELECT 'TXN001', p.product_id, 1, 1200.00, 0.00, 1200.00
+INSERT INTO transaction_item (transaction_id, product_id, quantity, unit_price, discount) 
+SELECT 'TXN001', p.product_id, 1, 1200.00, 0.00
 FROM product p WHERE p.product_name = 'Dell XPS 13 Laptop'
 UNION ALL
 SELECT 'TXN002', p.product_id, 1, 25.00, 0.00, 25.00
 FROM product p WHERE p.product_name = 'Wireless Mouse'
 UNION ALL
-SELECT 'TXN003', p.product_id, 1, 120.00, 0.00, 120.00
+SELECT 'TXN003', p.product_id, 1, 120.00, 0.00
 FROM product p WHERE p.product_name = 'Mechanical Keyboard'
 UNION ALL
-SELECT 'TXN004', p.product_id, 1, 950.00, 0.00, 950.00
+SELECT 'TXN004', p.product_id, 1, 950.00, 0.00
 FROM product p WHERE p.product_name = 'HP Pavilion Laptop'
 UNION ALL
-SELECT 'TXN005', p.product_id, 1, 60.00, 0.00, 60.00
+SELECT 'TXN005', p.product_id, 1, 60.00, 0.00
 FROM product p WHERE p.product_name = 'Gaming Mouse'
 UNION ALL
-SELECT 'TXN005', p.product_id, 1, 25.00, 0.00, 25.00
+SELECT 'TXN005', p.product_id, 1, 25.00, 0.00
 FROM product p WHERE p.product_name = 'Wireless Mouse'
 ON DUPLICATE KEY UPDATE 
   quantity = VALUES(quantity),
-  total_price = VALUES(total_price);
+  discount = VALUES(discount);
