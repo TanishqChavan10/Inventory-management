@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Supplier } from './supplier.entity';
+import { Shipment } from './shipment.entity';
+import { ShipmentItem } from './shipment-item.entity';
 import { CreateSupplierInput } from './dto/create-supplier.input';
 import { UpdateSupplierInput } from './dto/update-supplier.input';
 import { Product } from '../inventory/product/product.entity';
@@ -11,8 +13,13 @@ export class SupplierService {
   constructor(
     @InjectRepository(Supplier)
     private supplierRepository: Repository<Supplier>,
+    @InjectRepository(Shipment)
+    private shipmentRepository: Repository<Shipment>,
+    @InjectRepository(ShipmentItem)
+    private shipmentItemRepository: Repository<ShipmentItem>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private dataSource: DataSource,
   ) {}
 
   async create(createSupplierInput: CreateSupplierInput): Promise<Supplier> {
@@ -103,7 +110,34 @@ export class SupplierService {
 
   async remove(supplier_id: string): Promise<Supplier> {
     const supplier = await this.findOne(supplier_id);
-    await this.supplierRepository.delete(supplier_id);
+    
+    // Use transaction to ensure data consistency
+    await this.dataSource.transaction(async manager => {
+      // First, get all shipments for this supplier
+      const shipments = await manager.find(Shipment, {
+        where: { supplier_id },
+        select: ['shipment_id']
+      });
+      
+      if (shipments.length > 0) {
+        const shipmentIds = shipments.map(shipment => shipment.shipment_id);
+        
+        // Delete all shipment items for these shipments
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(ShipmentItem)
+          .where('shipment_id IN (:...shipmentIds)', { shipmentIds })
+          .execute();
+        
+        // Delete all shipments for this supplier
+        await manager.delete(Shipment, { supplier_id });
+      }
+      
+      // Finally, delete the supplier
+      await manager.delete(Supplier, supplier_id);
+    });
+    
     return supplier;
   }
 

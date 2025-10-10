@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Shipment } from './shipment.entity';
 import { ShipmentItem } from './shipment-item.entity';
+import { Product } from '../inventory/product/product.entity';
 import { CreateShipmentInput } from './dto/create-shipment.input';
 
 @Injectable()
@@ -12,6 +13,9 @@ export class ShipmentService {
     private shipmentRepository: Repository<Shipment>,
     @InjectRepository(ShipmentItem)
     private shipmentItemRepository: Repository<ShipmentItem>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    private dataSource: DataSource,
   ) {}
 
   private generateRandomDates(orderDate: Date) {
@@ -31,29 +35,75 @@ export class ShipmentService {
   async create(createShipmentInput: CreateShipmentInput): Promise<Shipment> {
     const { items, ...shipmentData } = createShipmentInput;
     
+    console.log('🔄 Creating shipment with data:', { 
+      ...shipmentData, 
+      itemsCount: items.length 
+    });
+    
     // Set received_date to current date if not provided
     if (!shipmentData.received_date) {
       shipmentData.received_date = new Date();
     }
 
-    const shipment = this.shipmentRepository.create(shipmentData);
-    const savedShipment = await this.shipmentRepository.save(shipment);
+    let shipmentId: string | undefined;
 
-    // Create shipment items with auto-generated dates
-    const shipmentItems = items.map(item => {
-      const { mfg_date, expiry_date } = this.generateRandomDates(shipmentData.received_date as Date);
-      
-      return this.shipmentItemRepository.create({
-        ...item,
-        shipment_id: savedShipment.shipment_id,
-        mfg_date,
-        expiry_date,
-      });
+    // Use transaction to ensure data consistency
+    await this.dataSource.transaction(async manager => {
+      try {
+        // Create and save shipment
+        const shipment = manager.create(Shipment, shipmentData);
+        const savedShipment = await manager.save(shipment);
+        shipmentId = savedShipment.shipment_id;
+        
+        console.log('✅ Shipment saved with ID:', savedShipment.shipment_id);
+
+        // Create shipment items with auto-generated dates
+        const shipmentItems = items.map(item => {
+          const { mfg_date, expiry_date } = this.generateRandomDates(shipmentData.received_date as Date);
+          
+          return manager.create(ShipmentItem, {
+            ...item,
+            shipment_id: savedShipment.shipment_id,
+            mfg_date,
+            expiry_date,
+          });
+        });
+
+        await manager.save(ShipmentItem, shipmentItems);
+        console.log('✅ Shipment items saved:', shipmentItems.length);
+
+        // Update inventory stock for each shipment item
+        for (const item of shipmentItems) {
+          // Find the product by product_id
+          const product = await manager.findOne(Product, {
+            where: { product_id: parseInt(item.product_id) }
+          });
+
+          if (product) {
+            // Add the received quantity to the existing stock
+            product.stock += item.quantity_received;
+            await manager.save(Product, product);
+            
+            console.log(`✅ Updated inventory for ${product.product_name}: +${item.quantity_received} (New stock: ${product.stock})`);
+          } else {
+            console.warn(`⚠️ Product with ID ${item.product_id} not found in inventory. Stock not updated.`);
+          }
+        }
+
+        console.log('✅ Transaction completed successfully');
+      } catch (error) {
+        console.error('❌ Error in shipment creation transaction:', error);
+        throw error;
+      }
     });
 
-    await this.shipmentItemRepository.save(shipmentItems);
-
-    return await this.findOne(savedShipment.shipment_id);
+    // Load and return the complete shipment after transaction
+    if (!shipmentId) {
+      throw new Error('Shipment creation failed - no shipment ID generated');
+    }
+    
+    console.log('🔍 Loading shipment with relations for ID:', shipmentId);
+    return await this.findOne(shipmentId);
   }
 
   async findAll(page: number = 1, limit: number = 10, supplier_id?: string): Promise<Shipment[]> {
@@ -98,8 +148,39 @@ export class ShipmentService {
   }
 
   async remove(shipment_id: string): Promise<Shipment> {
-    const shipment = await this.findOne(shipment_id);
-    await this.shipmentRepository.delete(shipment_id);
-    return shipment;
+    // Use transaction to ensure data consistency
+    return await this.dataSource.transaction(async manager => {
+      // Get the shipment with its items before deletion
+      const shipment = await manager.findOne(Shipment, {
+        where: { shipment_id },
+        relations: ['shipmentItems'],
+      });
+
+      if (!shipment) {
+        throw new NotFoundException(`Shipment with ID ${shipment_id} not found`);
+      }
+
+      // Decrease inventory stock for each shipment item
+      for (const item of shipment.shipmentItems) {
+        const product = await manager.findOne(Product, {
+          where: { product_id: parseInt(item.product_id) }
+        });
+
+        if (product) {
+          // Subtract the received quantity from the existing stock
+          product.stock = Math.max(0, product.stock - item.quantity_received);
+          await manager.save(Product, product);
+          
+          console.log(`✅ Reverted inventory for ${product.product_name}: -${item.quantity_received} (New stock: ${product.stock})`);
+        } else {
+          console.warn(`⚠️ Product with ID ${item.product_id} not found in inventory. Stock not reverted.`);
+        }
+      }
+
+      // Delete the shipment (shipment items will be deleted by cascade)
+      await manager.delete(Shipment, shipment_id);
+      
+      return shipment;
+    });
   }
 }
