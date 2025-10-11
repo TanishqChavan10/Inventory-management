@@ -88,9 +88,15 @@ export class TransactionModel {
 
   @Field({ nullable: true })
   customer_id?: string;
+  
+  @Field({ nullable: true })
+  customer_name?: string;
 
   @Field()
   employee_id: string;
+  
+  @Field({ nullable: true })
+  employee_name?: string;
 
   @Field({ nullable: true })
   payment_refno?: string;

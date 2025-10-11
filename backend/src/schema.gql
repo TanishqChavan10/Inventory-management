@@ -298,9 +298,11 @@ type TransactionItemModel {
 type TransactionModel {
   customer: CustomerModel
   customer_id: String
+  customer_name: String
   discount_amount: Float!
   employee: EmployeeModel!
   employee_id: String!
+  employee_name: String
   items: [TransactionItemModel!]!
   notes: String
   payment_method: String!

@@ -29,6 +29,20 @@ export class TransactionResolver {
   ) {
     return this.transactionService.findAll(page, limit, status, customer_id);
   }
+  
+  @ResolveField(() => String, { nullable: true })
+  async customer_name(@Parent() transaction: Transaction) {
+    if (!transaction.customer_id) return 'Walk-in Customer';
+    const customer = await this.transactionService.findCustomer(transaction.customer_id);
+    return customer ? customer.name : 'Unknown Customer';
+  }
+  
+  @ResolveField(() => String, { nullable: true })
+  async employee_name(@Parent() transaction: Transaction) {
+    if (!transaction.employee_id) return 'Unknown';
+    const employee = await this.transactionService.findEmployee(transaction.employee_id);
+    return employee ? employee.name : 'Unknown Employee';
+  }
 
   @Query(() => TransactionModel, { name: 'transaction' })
   findOne(@Args('transaction_id', { type: () => ID }) transaction_id: string) {
