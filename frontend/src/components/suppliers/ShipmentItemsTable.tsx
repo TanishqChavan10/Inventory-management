@@ -1,10 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Edit, Eye } from 'lucide-react';
-import { formatIndianRupee } from '@/lib/formatters';
+import { useSupplierCalculations } from '@/hooks/useSupplierCalculations';
 import type { ShipmentItemsTableProps } from '@/types';
 
 export function ShipmentItemsTable({ shipment, items }: ShipmentItemsTableProps) {
+  const { formatTotal, calculateItemSubtotal } = useSupplierCalculations();
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -32,17 +34,6 @@ export function ShipmentItemsTable({ shipment, items }: ShipmentItemsTableProps)
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Reference: {shipment.ref_no} • Received: {formatDate(shipment.received_date)}
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className={getStatusColor(shipment.payment_status)}>
-              {shipment.payment_status}
-            </Badge>
-            <div className="text-right">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                ${shipment.invoice_amt.toFixed(2)}
-              </p>
-            </div>
           </div>
         </div>
 
@@ -126,10 +117,10 @@ export function ShipmentItemsTable({ shipment, items }: ShipmentItemsTableProps)
                       {item.quantity_received}
                     </td>
                     <td className="py-3 px-4 text-gray-900 dark:text-white">
-                      {formatIndianRupee(item.unit_price)}
+                      {calculateItemSubtotal(1, item.unit_price)}
                     </td>
                     <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">
-                      {formatIndianRupee(item.quantity_received * item.unit_price)}
+                      {calculateItemSubtotal(item.quantity_received, item.unit_price)}
                     </td>
                     <td className="py-3 px-4">
                       <div className="space-y-1">
@@ -172,10 +163,7 @@ export function ShipmentItemsTable({ shipment, items }: ShipmentItemsTableProps)
               <div className="text-right">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Grand Total</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  $
-                  {items
-                    .reduce((sum, item) => sum + item.quantity_received * item.unit_price, 0)
-                    .toFixed(2)}
+                  {formatTotal(items)}
                 </p>
               </div>
             </div>

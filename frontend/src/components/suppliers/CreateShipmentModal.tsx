@@ -549,55 +549,7 @@ export function CreateShipmentModal({
               )}
             </div>
 
-            {/* Summary Section */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-neutral-700">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Order Summary
-                </h3>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center md:text-left">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Total Items
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {form.total_items}
-                    </p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Payment Status
-                    </p>
-                    <Badge
-                      variant={form.payment_status === 'Paid' ? 'default' : 'secondary'}
-                      className={`text-sm px-3 py-1 ${
-                        form.payment_status === 'Paid'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : form.payment_status === 'Failed'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                      }`}
-                    >
-                      {form.payment_status}
-                    </Badge>
-                  </div>
-
-                  <div className="text-center md:text-right">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Total Amount
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {formatIndianRupee(form.invoice_amt)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Action Buttons */}
             <div className="flex gap-4 justify-end pt-6 border-t border-gray-200 dark:border-neutral-700">

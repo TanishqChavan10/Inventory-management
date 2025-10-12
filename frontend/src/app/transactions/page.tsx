@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Table,
@@ -13,7 +13,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, ChevronDownIcon, Plus, DollarSign, TrendingUp, Receipt } from 'lucide-react';
+import {
+  Eye,
+  Search,
+  ChevronDownIcon,
+  Plus,
+  IndianRupee,
+  TrendingUp,
+  Receipt,
+  Loader2,
+} from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -21,18 +30,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationEllipsis,
 } from '@/components/ui/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { NewTransactionForm } from '@/components/transactions/NewTransactionForm';
-import {
-  mockProducts,
-  mockEmployees,
-  mockCustomers,
-  generateTransactionId,
-  generatePaymentRefNo,
-} from '@/data/transactionData';
+import { useTransactions, useCreateTransaction } from '@/hooks/useTransactions';
+import { formatIndianRupee } from '@/lib/formatters';
+import { toast } from '@/components/ui/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function TransactionsListPage() {
   const router = useRouter();
@@ -40,82 +47,129 @@ export default function TransactionsListPage() {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   // New Transaction Form State
   const [isNewTransactionFormOpen, setIsNewTransactionFormOpen] = useState(false);
 
-  // Transactions state - start with empty array
-  const [transactions, setTransactions] = useState<any[]>([]);
+  // Fetch transactions from GraphQL with date filter
+  const {
+    transactions = [],
+    loading,
+    error,
+    refetch,
+  } = useTransactions({
+    page: currentPage,
+    limit: itemsPerPage,
+    status: statusFilter || undefined,
+    transaction_date: date ? date.toISOString().split('T')[0] : undefined,
+  });
 
-  // Calculate summary stats based on current transactions
-  const totalRevenue = transactions
-    .filter((t) => t.status === 'Completed')
-    .reduce((sum, t) => sum + t.total_amt, 0);
-
-  const todaysSales = transactions.filter(
-    (t) =>
-      t.transaction_date === new Date().toISOString().split('T')[0] && t.status === 'Completed',
-  ).length;
-
-  const totalTransactions = transactions.length;
-
-  // Handler for creating a new transaction
-  const handleCreateTransaction = async (transactionData: any) => {
-    try {
-      console.log('Creating transaction:', transactionData);
-
-      // Generate transaction ID and payment reference if needed
-      const transactionId = generateTransactionId();
-      const paymentRefNo =
-        transactionData.payment_refno || generatePaymentRefNo(transactionData.payment_method);
-
-      // Find customer and employee names for display
-      const customer =
-        transactionData.customer_id && transactionData.customer_id !== 'walk-in'
-          ? mockCustomers.find((c) => c.customer_id === transactionData.customer_id)
-          : null;
-
-      const employee = mockEmployees.find((e) => e.employee_id === transactionData.cashier_id);
-
-      // Create the complete transaction object for display
-      const newTransaction = {
-        transaction_id: transactionId,
-        transaction_date: new Date().toISOString().split('T')[0],
-        time: new Date().toLocaleTimeString('en-US', {
-          hour12: false,
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        total_amt: transactionData.total_amt,
-        payment_method: transactionData.payment_method,
-        customer: customer ? { name: customer.name } : { name: 'Walk-in Customer' },
-        employee: employee ? { name: employee.name } : { name: 'Unknown' },
-        status: 'Completed' as const,
-        // Store additional data for potential API calls
-        customer_id: transactionData.customer_id,
-        cashier_id: transactionData.cashier_id,
-        payment_refno: paymentRefNo,
-        tax_amount: transactionData.tax_amount,
-        discount_amount: transactionData.discount_amount,
-        subtotal: transactionData.subtotal,
-        notes: transactionData.notes,
-        items: transactionData.items,
-      };
-
-      // Add the new transaction to the state
-      setTransactions((prevTransactions) => [newTransaction, ...prevTransactions]);
-
-      // Here you would typically make an API call to save the transaction
-      console.log('New transaction created:', newTransaction);
-
-      // Show success message (you can replace this with a proper toast notification)
-      alert(`Transaction ${transactionId} created successfully!`);
-    } catch (error) {
-      console.error('Error creating transaction:', error);
-      throw error; // Re-throw to let the form handle the error
+  // Handle fetch errors
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch transactions. Please try again.',
+        variant: 'destructive',
+      });
     }
-  };
+  }, [error]);
+
+  // Create transaction mutation
+  const { createTransaction, loading: createLoading, error: createError } = useCreateTransaction();
+
+  // Calculate summary stats based on current transactions - memoized to prevent unnecessary recalculations
+  const { totalRevenue, todaysSales, totalTransactions } = useMemo(() => {
+    if (!transactions) return { totalRevenue: 0, todaysSales: 0, totalTransactions: 0 };
+
+    const revenue = transactions
+      .filter((t: any) => (t.status || 'Completed') === 'Completed')
+      .reduce((sum: number, t: any) => sum + (t.total_amount || 0), 0);
+
+    const today = new Date().toISOString().split('T')[0];
+    const salesCount = transactions.filter((t: any) => {
+      if (!t.transaction_date) return false;
+      const transactionDate = new Date(t.transaction_date).toISOString().split('T')[0];
+      return transactionDate === today && (t.status || 'Completed') === 'Completed';
+    }).length;
+
+    return {
+      totalRevenue: revenue,
+      todaysSales: salesCount,
+      totalTransactions: transactions.length,
+    };
+  }, [transactions]);
+
+  // Handler for creating a new transaction - memoize to prevent recreation on each render
+  const handleCreateTransaction = useCallback(
+    async (transactionData: any) => {
+      try {
+        // Generate a transaction ID with current timestamp and random number
+        const timestamp = Date.now();
+        const randomSuffix = Math.floor(Math.random() * 1000)
+          .toString()
+          .padStart(3, '0');
+        const transactionId = `TXN${timestamp}${randomSuffix}`;
+
+        // Format the transaction data for the GraphQL mutation
+        const createTransactionInput = {
+          transaction_id: transactionId,
+          employee_id: transactionData.cashier_id,
+          payment_method: transactionData.payment_method,
+          payment_refno: transactionData.payment_refno || null,
+          customer_name: transactionData.new_customer?.name || null,
+          customer_phone: transactionData.new_customer?.phone_no || null,
+          customer_id:
+            transactionData.customer_id && transactionData.customer_id !== 'walk-in'
+              ? transactionData.customer_id
+              : null,
+          items: transactionData.items.map((item: any) => ({
+            product_id: parseInt(item.product_id, 10),
+            quantity: parseInt(item.quantity, 10),
+            unit_price: parseFloat(item.unit_price),
+            discount: item.discount || 0,
+          })),
+        };
+
+        // Debug: Log the transformed input for debugging
+        console.log('Transaction data from form:', transactionData);
+        console.log('Formatted transaction input for mutation:', createTransactionInput);
+
+        // Call the createTransaction mutation
+        const result = await createTransaction({
+          variables: {
+            createTransactionInput,
+          },
+        });
+
+        if (result.data?.createTransaction) {
+          // Refresh the transactions list
+          refetch();
+
+          // Show success message
+          toast({
+            title: 'Transaction Created',
+            description: `Transaction ${result.data.createTransaction.transaction_id} created successfully!`,
+            variant: 'default',
+          });
+        }
+      } catch (error) {
+        console.error('Error creating transaction:', error);
+
+        // Show error message
+        toast({
+          title: 'Error',
+          description: `Failed to create transaction: ${(error as Error).message}`,
+          variant: 'destructive',
+        });
+
+        throw error; // Re-throw to let the form handle the error
+      }
+    },
+    [createTransaction, refetch, toast],
+  );
 
   const filteredTransactions = useMemo(() => {
     let filteredList = transactions;
@@ -124,29 +178,38 @@ export default function TransactionsListPage() {
     if (searchTerm) {
       filteredList = filteredList.filter(
         (transaction: any) =>
-          transaction.transaction_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.employee?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
+          transaction.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.employeeName?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
-    // Filter by date
-    if (date) {
-      filteredList = filteredList.filter((transaction: any) => {
-        const transactionDate = new Date(transaction.transaction_date);
-        return transactionDate.toDateString() === date.toDateString();
-      });
-    }
+    // Date filtering is now handled by the backend via the GraphQL query
 
     return filteredList;
   }, [transactions, searchTerm, date]);
 
-  const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredTransactions, currentPage]);
+  // For server-side pagination, we should use the fetched data directly
+  const paginatedTransactions = filteredTransactions;
 
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  // Handle page change with refetch - use callback to avoid recreating function on every render
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      refetch({
+        page,
+        limit: itemsPerPage,
+        status: statusFilter || undefined,
+        transaction_date: date ? date.toISOString().split('T')[0] : undefined,
+      });
+    },
+    [setCurrentPage, refetch, itemsPerPage, statusFilter, date],
+  );
+
+  // Get total count from response or calculate based on available data
+  // In a real implementation, the backend would return the total count
+  const totalItems = transactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleRowClick = (transactionId: string) => {
     router.push(`/transactions/${transactionId}`);
@@ -211,11 +274,11 @@ export default function TransactionsListPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Total Revenue
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <IndianRupee className="h-4 w-4 text-green-600 dark:text-green-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${totalRevenue.toFixed(2)}
+                {formatIndianRupee(totalRevenue || 0)}
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 From completed transactions
@@ -283,7 +346,7 @@ export default function TransactionsListPage() {
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="justify-between">
-                    {date ? date.toLocaleDateString() : 'All Status'}
+                    {date ? date.toLocaleDateString() : 'Select Date'}
                     <ChevronDownIcon className="w-4 h-4" />
                   </Button>
                 </PopoverTrigger>
@@ -291,15 +354,38 @@ export default function TransactionsListPage() {
                   <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={(date) => {
-                      setDate(date);
+                    onSelect={(newDate) => {
+                      setDate(newDate);
+                      setCurrentPage(1); // Reset to first page when date changes
                       setOpen(false);
+                      // Refetch transactions with the new date
+                      if (newDate) {
+                        refetch({
+                          page: 1,
+                          limit: itemsPerPage,
+                          status: statusFilter || undefined,
+                          transaction_date: newDate.toISOString().split('T')[0],
+                        });
+                      }
                     }}
                   />
                 </PopoverContent>
               </Popover>
               {date && (
-                <Button variant="ghost" onClick={() => setDate(undefined)}>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setDate(undefined);
+                    setCurrentPage(1); // Reset to first page
+                    // Refetch without date filter
+                    refetch({
+                      page: 1,
+                      limit: itemsPerPage,
+                      status: statusFilter || undefined,
+                      transaction_date: undefined,
+                    });
+                  }}
+                >
                   Reset
                 </Button>
               )}
@@ -338,7 +424,18 @@ export default function TransactionsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedTransactions.length > 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center h-32">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Loading transactions...</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedTransactions.length > 0 ? (
                   paginatedTransactions.map((transaction: any) => (
                     <TableRow
                       key={transaction.transaction_id}
@@ -350,17 +447,26 @@ export default function TransactionsListPage() {
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         <div>
-                          <div>{transaction.transaction_date}</div>
+                          <div>
+                            {transaction.transaction_date
+                              ? new Date(transaction.transaction_date).toLocaleDateString()
+                              : ''}
+                          </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {transaction.time}
+                            {transaction.transaction_date
+                              ? new Date(transaction.transaction_date).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : ''}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-900 dark:text-white">
-                        {transaction.customer?.name || 'Walk-in Customer'}
+                        {transaction.customer_name || 'Walk-in Customer'}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {transaction.employee?.name || 'Unknown'}
+                        {transaction.employee_name || 'Unknown'}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         <div className="flex items-center gap-2">
@@ -369,11 +475,11 @@ export default function TransactionsListPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-medium text-gray-900 dark:text-white">
-                        ${transaction.total_amt.toFixed(2)}
+                        {formatIndianRupee(transaction.total_amount || 0)}
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
+                        <Badge className={getStatusColor(transaction.status || 'Completed')}>
+                          {transaction.status || 'Completed'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -416,28 +522,136 @@ export default function TransactionsListPage() {
                   <PaginationItem>
                     <PaginationPrevious
                       href="#"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) {
+                          handlePageChange(currentPage - 1);
+                        }
+                      }}
+                      className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                     />
                   </PaginationItem>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <PaginationItem key={i}>
-                      <PaginationLink
-                        href="#"
-                        isActive={currentPage === i + 1}
-                        onClick={() => setCurrentPage(i + 1)}
-                      >
-                        {i + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {totalPages <= 5 ? (
+                    // Show all pages if 5 or fewer
+                    [...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i + 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))
+                  ) : (
+                    // Show limited pages with ellipsis for larger page counts
+                    <>
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(1);
+                          }}
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+
+                      {currentPage > 3 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+
+                      {currentPage > 2 && (
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(currentPage - 1);
+                            }}
+                          >
+                            {currentPage - 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+
+                      {currentPage !== 1 && currentPage !== totalPages && (
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            isActive
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(currentPage);
+                            }}
+                          >
+                            {currentPage}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+
+                      {currentPage < totalPages - 1 && (
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(currentPage + 1);
+                            }}
+                          >
+                            {currentPage + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+
+                      {currentPage < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+
+                      {totalPages > 1 && (
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === totalPages}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(totalPages);
+                            }}
+                          >
+                            {totalPages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )}
+                    </>
+                  )}
                   <PaginationItem>
                     <PaginationNext
                       href="#"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) {
+                          handlePageChange(currentPage + 1);
+                        }
+                      }}
+                      className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
                     />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
+
+              <div className="mt-2 text-center text-sm text-gray-500">
+                Showing page {currentPage} of {totalPages}
+              </div>
             </div>
           )}
         </div>
@@ -448,10 +662,11 @@ export default function TransactionsListPage() {
         isOpen={isNewTransactionFormOpen}
         onClose={() => setIsNewTransactionFormOpen(false)}
         onSubmit={handleCreateTransaction}
-        products={mockProducts}
-        employees={mockEmployees}
-        customers={mockCustomers}
+        loading={createLoading}
       />
+
+      {/* Add Toaster for notifications */}
+      <Toaster />
     </div>
   );
 }

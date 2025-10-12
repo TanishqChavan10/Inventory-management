@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useApolloClient } from '@apollo/client';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 
 // --- Component Imports ---
-import { SuppliersHeader, SuppliersSearchBar, SuppliersTable } from '@/components/suppliers';
+import {
+  SuppliersHeader,
+  SuppliersSearchBar,
+  SuppliersTable,
+  SupplierModal,
+} from '@/components/suppliers';
 
 // --- Custom Hook ---
 import { useSuppliers, useSupplierForEdit } from '@/hooks/useSuppliers';
 
 // --- Types ---
-import type { Supplier, SupplierGraphQL } from '@/types';
+import type { Supplier, SupplierGraphQL, CreateSupplierInput } from '@/types';
 
 export default function SuppliersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +41,29 @@ export default function SuppliersPage() {
   const [editingSupplier, setEditingSupplier] = useState<SupplierGraphQL | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [fetchingSupplierForEdit, setFetchingSupplierForEdit] = useState(false);
+
+  // Form state with explicit types to match GraphQL expectations
+  const [form, setForm] = useState<{
+    name: string;
+    email: string;
+    phone_no: string;
+    address: string;
+    contact_person: string;
+    registration_number: string;
+    tax_id: string;
+    status: 'Active' | 'Inactive';
+    category_id: string;
+  }>({
+    name: '',
+    email: '',
+    phone_no: '',
+    address: '',
+    contact_person: '',
+    registration_number: '',
+    tax_id: '',
+    status: 'Active', // Default to Active
+    category_id: '', // Will be converted to number before sending to API
+  });
 
   // Use the custom hooks
   const { suppliers, loading, error, addSupplier, updateSupplier, deleteSupplier } = useSuppliers(
@@ -46,6 +83,18 @@ export default function SuppliersPage() {
     );
   });
 
+  // Pagination logic
+  const itemsPerPage = 10;
+  const totalItems = filteredSuppliers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Get current page items
+  const currentItems = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSuppliers.slice(startIndex, endIndex);
+  }, [filteredSuppliers, page, itemsPerPage]);
+
   const handleAddSupplier = () => {
     setIsEditing(false);
     setEditingSupplier(null);
@@ -61,6 +110,17 @@ export default function SuppliersPage() {
       if (fullSupplierData) {
         setIsEditing(true);
         setEditingSupplier(fullSupplierData);
+        setForm({
+          name: fullSupplierData.name,
+          email: fullSupplierData.email,
+          phone_no: fullSupplierData.phone_no,
+          address: fullSupplierData.address || '',
+          contact_person: fullSupplierData.contact_person || '',
+          registration_number: fullSupplierData.registration_number || '',
+          tax_id: fullSupplierData.tax_id || '',
+          status: fullSupplierData.status,
+          category_id: fullSupplierData.category_id?.toString() || '',
+        });
         setIsModalOpen(true);
       } else {
         toast.error('Could not fetch supplier details');
@@ -73,7 +133,7 @@ export default function SuppliersPage() {
     }
   };
 
-  const handleSaveSupplier = async (supplierData: any) => {
+  const handleSaveSupplier = async (supplierData: typeof form) => {
     console.log('🔄 Starting supplier save process...');
     console.log('📝 Supplier data to save:', supplierData);
     console.log('✏️ Is editing:', isEditing);
@@ -81,11 +141,21 @@ export default function SuppliersPage() {
 
     setModalLoading(true);
     try {
+      // Convert string category_id to number and prepare input data
+      const formattedData = {
+        ...supplierData,
+        // Properly handle category_id conversion, ensuring valid number or undefined
+        category_id:
+          supplierData.category_id && supplierData.category_id.trim() !== ''
+            ? parseInt(supplierData.category_id, 10)
+            : undefined,
+      };
+
       if (isEditing && editingSupplier) {
         console.log('🔄 Calling updateSupplier...');
         const updatedSupplier = await updateSupplier({
           supplier_id: editingSupplier.supplier_id,
-          ...supplierData,
+          ...formattedData,
         });
 
         console.log('✅ Update response:', updatedSupplier);
@@ -98,7 +168,12 @@ export default function SuppliersPage() {
         }
       } else {
         console.log('🔄 Calling addSupplier...');
-        const newSupplier = await addSupplier(supplierData);
+        const createInput = {
+          ...formattedData,
+          status: formattedData.status || 'Active', // Ensure status is never undefined
+        };
+
+        const newSupplier = await addSupplier(createInput);
 
         console.log('✅ Add response:', newSupplier);
 
@@ -161,7 +236,7 @@ export default function SuppliersPage() {
       <SuppliersSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <SuppliersTable
-        suppliers={filteredSuppliers}
+        suppliers={currentItems}
         onEditSupplier={handleEditSupplier}
         onDeleteSupplier={handleDeleteSupplier}
         fetchingSupplierForEdit={fetchingSupplierForEdit}
@@ -177,6 +252,159 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page > 1) {
+                      setPage(page - 1);
+                    }
+                  }}
+                  className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+
+              {totalPages <= 5 ? (
+                // Show all pages if 5 or fewer
+                [...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={page === i + 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))
+              ) : (
+                // Show limited pages with ellipsis for larger page counts
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={page === 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage(1);
+                      }}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {page > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {page > 2 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(page - 1);
+                        }}
+                      >
+                        {page - 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {page !== 1 && page !== totalPages && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        isActive
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(page);
+                        }}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {page < totalPages - 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(page + 1);
+                        }}
+                      >
+                        {page + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {page < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {totalPages > 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        isActive={page === totalPages}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(totalPages);
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (page < totalPages) {
+                      setPage(page + 1);
+                    }
+                  }}
+                  className={page >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="mt-2 text-center text-sm text-gray-500">
+            Showing page {page} of {totalPages} ({totalItems} suppliers)
+          </div>
+        </div>
+      )}
+
+      <SupplierModal
+        isOpen={isModalOpen}
+        isEditing={isEditing}
+        form={form}
+        onFormChange={(newForm) => setForm(newForm)}
+        onSave={() => handleSaveSupplier(form)}
+        onClose={handleCloseModal}
+        loading={modalLoading}
+      />
     </div>
   );
 }

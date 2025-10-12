@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react';
+import { CreditCard, Clock, CheckCircle, AlertCircle, IndianRupee } from 'lucide-react';
 import { formatIndianRupee } from '@/lib/formatters';
 import type { TransactionPaymentProps } from '@/types';
 
@@ -58,7 +58,7 @@ export function TransactionPayment({ transaction }: TransactionPaymentProps) {
 
             {transaction.payment_refno && (
               <div className="flex items-center gap-3">
-                <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <IndianRupee className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">Reference Number</p>
                   <p className="text-gray-600 dark:text-gray-400 font-mono text-sm">

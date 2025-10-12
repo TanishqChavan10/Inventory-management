@@ -8,6 +8,7 @@ import CategoryDashboard from '@/components/dashboard/CategoryDashboard';
 import LowStockAlert from '@/components/dashboard/LowStockAlert';
 import DashboardModal from '@/components/dashboard/DashboardModal';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import ProtectedRoute from '@/components/protected-route';
 
 export default function DashboardPage() {
   const [modal, setModal] = useState<null | {
@@ -18,6 +19,45 @@ export default function DashboardPage() {
 
   const { stats, loading, error, refetch } = useDashboardStats();
 
+  return (
+    <ProtectedRoute>
+      <DashboardContent
+        stats={stats}
+        loading={loading}
+        error={error}
+        refetch={refetch}
+        modal={modal}
+        setModal={setModal}
+      />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent({
+  stats,
+  loading,
+  error,
+  refetch,
+  modal,
+  setModal,
+}: {
+  stats: any;
+  loading: boolean;
+  error: any;
+  refetch: () => void;
+  modal: null | {
+    title: string;
+    columns: string[];
+    data: (string | number)[][];
+  };
+  setModal: React.Dispatch<
+    React.SetStateAction<{
+      title: string;
+      columns: string[];
+      data: (string | number)[][];
+    } | null>
+  >;
+}) {
   return (
     <div className="px-32 py-8 min-h-screen bg-gray-50 dark:bg-neutral-950">
       {/* Header */}

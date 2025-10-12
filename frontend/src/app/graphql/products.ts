@@ -136,3 +136,44 @@ export const DELETE_PRODUCT = gql`
     removeProduct(id: $id)
   }
 `;
+
+// Query for comprehensive inventory analytics
+export const GET_INVENTORY_ANALYTICS = gql`
+  query GetInventoryAnalytics {
+    products {
+      product_id
+      product_name
+      default_price
+      stock
+      min_stock
+      categories {
+        category_id
+        name
+      }
+    }
+    lowStockProducts {
+      product_id
+      product_name
+      default_price
+      stock
+      min_stock
+      categories {
+        category_id
+        name
+      }
+    }
+    totalInventoryValue
+  }
+`;
+
+// Query for inventory overview statistics
+export const GET_INVENTORY_OVERVIEW = gql`
+  query GetInventoryOverview {
+    products {
+      product_id
+      stock
+      min_stock
+    }
+    totalInventoryValue
+  }
+`;

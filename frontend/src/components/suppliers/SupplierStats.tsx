@@ -1,12 +1,13 @@
-import { Package, TrendingUp, DollarSign, Calendar, ShoppingCart } from 'lucide-react';
+import { Package, TrendingUp, IndianRupee, Calendar, ShoppingCart } from 'lucide-react';
+import { formatIndianRupee } from '@/lib/formatters';
 import type { SupplierStatsProps } from '@/types';
 
-export function SupplierStats({ 
-  totalShipments, 
-  totalValue, 
-  totalProducts, 
-  avgOrderValue, 
-  lastOrderDate 
+export function SupplierStats({
+  totalShipments,
+  totalValue,
+  totalProducts,
+  avgOrderValue,
+  lastOrderDate,
 }: SupplierStatsProps) {
   const stats = [
     {
@@ -18,8 +19,8 @@ export function SupplierStats({
     },
     {
       label: 'Total Value',
-      value: `$${totalValue.toLocaleString()}`,
-      icon: DollarSign,
+      value: formatIndianRupee(totalValue*10),
+      icon: IndianRupee,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
     },
@@ -32,7 +33,7 @@ export function SupplierStats({
     },
     {
       label: 'Avg Order Value',
-      value: `$${avgOrderValue.toLocaleString()}`,
+      value: formatIndianRupee(avgOrderValue*10),
       icon: TrendingUp,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
@@ -51,22 +52,21 @@ export function SupplierStats({
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         Supplier Statistics
       </h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+            <div
+              key={index}
+              className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg"
+            >
               <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {stat.value}
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  {stat.label}
-                </p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{stat.value}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300">{stat.label}</p>
               </div>
             </div>
           );

@@ -1,12 +1,13 @@
 'use client';
 
-import { ApolloProvider } from "@apollo/client";
-import client from "@/lib/apollo-client"; // Adjust path if needed
+import { ApolloProvider } from '@apollo/client';
+import client from '@/lib/apollo-client';
+import { AuthProvider } from '@/context/auth-context';
 
 export function ApolloAppProvider({ children }: { children: React.ReactNode }) {
   return (
     <ApolloProvider client={client}>
-      {children}
+      <AuthProvider>{children}</AuthProvider>
     </ApolloProvider>
   );
 }

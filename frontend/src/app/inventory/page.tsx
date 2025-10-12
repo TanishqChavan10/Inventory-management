@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 
 // --- Apollo Client and GraphQL Imports ---
 import { useQuery, useMutation } from '@apollo/client';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 
 // --- Component Imports ---
 import {
@@ -29,7 +38,7 @@ export default function InventoryPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [adding, setAdding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [form, setForm] = useState({ name: '', category: '', qty: 0, price: 0, minCount: 0 });
 
@@ -63,6 +72,17 @@ export default function InventoryPage() {
     const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
+
+  // Calculate pagination values
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Get current page items
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
 
   const resetForm = () => setForm({ name: '', category: '', qty: 0, price: 0, minCount: 0 });
 
@@ -205,10 +225,153 @@ export default function InventoryPage() {
       />
 
       <ProductTable
-        products={filteredProducts}
+        products={currentItems}
         onEditProduct={handleEditProduct}
         onDeleteProduct={handleDelete}
       />
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      setCurrentPage(currentPage - 1);
+                    }
+                  }}
+                  className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+
+              {totalPages <= 5 ? (
+                // Show all pages if 5 or fewer
+                [...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === i + 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))
+              ) : (
+                // Show limited pages with ellipsis for larger page counts
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(1);
+                      }}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {currentPage > 2 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(currentPage - 1);
+                        }}
+                      >
+                        {currentPage - 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {currentPage !== 1 && currentPage !== totalPages && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        isActive
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(currentPage);
+                        }}
+                      >
+                        {currentPage}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {currentPage < totalPages - 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(currentPage + 1);
+                        }}
+                      >
+                        {currentPage + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {totalPages > 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === totalPages}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(totalPages);
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      setCurrentPage(currentPage + 1);
+                    }
+                  }}
+                  className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="mt-2 text-center text-sm text-gray-500">
+            Showing page {currentPage} of {totalPages} ({totalItems} items)
+          </div>
+        </div>
+      )}
 
       <ProductModal
         isOpen={adding || editing !== null}

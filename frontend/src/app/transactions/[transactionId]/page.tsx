@@ -1,131 +1,85 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useParams } from 'next/navigation';
 import { TransactionDetailHeader } from '@/components/transactions/TransactionDetailHeader';
 import { TransactionStats } from '@/components/transactions/TransactionStats';
 import { TransactionItems } from '@/components/transactions/TransactionItems';
 import { TransactionPayment } from '@/components/transactions/TransactionPayment';
 import type { TransactionDetail, Customer, Employee, OrderItem } from '@/types';
-
-// Enhanced mock data based on ER diagram
-const mockTransactionData = {
-  transaction: {
-    transaction_id: 'TXN-001',
-    customer_id: 'CUST-001',
-    cashier_id: 'EMP-002',
-    transaction_date: '2024-01-15T14:30:00Z',
-    payment_method: 'Credit Card' as const,
-    total_amt: 1416.9,
-    payment_refno: 'REF-CC-12345',
-    status: 'Completed' as const,
-    tax_amount: 127.53,
-    discount_amount: 75.5,
-    subtotal: 1364.87,
-    notes: 'Customer requested separate bags for frozen items.',
-  } as TransactionDetail,
-  customer: {
-    customer_id: 'CUST-001',
-    name: 'Alice Brown',
-    phone_no: '+1-555-0123',
-    email: 'alice.brown@email.com',
-    address: '123 Main St, Anytown, AT 12345',
-    loyalty_points: 1250,
-    total_purchases: 15,
-    created_date: '2023-06-15T10:00:00Z',
-  } as Customer,
-  cashier: {
-    employee_id: 'EMP-002',
-    name: 'John Smith',
-    role: 'Cashier',
-    contact: '+1-555-0198',
-    department: 'Sales',
-    hire_date: '2023-01-15T09:00:00Z',
-  } as Employee,
-  order_items: [
-    {
-      transaction_id: 'TXN-001',
-      product_id: 'LAP-001',
-      product_name: 'Dell XPS 13 Laptop',
-      quantity: 1,
-      unit_price: 1200.0,
-      total_price: 1200.0,
-      discount_applied: 50.0,
-      category_name: 'Electronics',
-    },
-    {
-      transaction_id: 'TXN-001',
-      product_id: 'MOU-001',
-      product_name: 'Wireless Mouse',
-      quantity: 2,
-      unit_price: 25.0,
-      total_price: 50.0,
-      discount_applied: 5.0,
-      category_name: 'Electronics',
-    },
-    {
-      transaction_id: 'TXN-001',
-      product_id: 'LAP-002',
-      product_name: 'HP Pavilion Laptop',
-      quantity: 1,
-      unit_price: 950.0,
-      total_price: 950.0,
-      discount_applied: 20.5,
-      category_name: 'Electronics',
-    },
-    {
-      transaction_id: 'TXN-001',
-      product_id: 'MOU-002',
-      product_name: 'Gaming Mouse',
-      quantity: 1,
-      unit_price: 45.0,
-      total_price: 45.0,
-      discount_applied: 0,
-      category_name: 'Electronics',
-    },
-    {
-      transaction_id: 'TXN-001',
-      product_id: 'KEY-001',
-      product_name: 'Mechanical Keyboard',
-      quantity: 1,
-      unit_price: 120.0,
-      total_price: 120.0,
-      discount_applied: 0,
-      category_name: 'Electronics',
-    },
-  ] as OrderItem[],
-};
+import { useTransactionDetails } from '@/hooks/useTransactions';
+import { Loader2 } from 'lucide-react';
 
 export default function TransactionDetailsPage() {
-  const { transaction, customer, cashier, order_items } = mockTransactionData;
+  // Get transaction ID from URL params
+  const { transactionId } = useParams();
 
+  // Fetch transaction details using the hook
+  const { transaction, customer, cashier, orderItems, loading, error } = useTransactionDetails(
+    transactionId as string,
+  );
+
+  // Calculate stats from fetched order items
   const stats = useMemo(() => {
-    const totalItems = order_items.reduce((sum, item) => sum + item.quantity, 0);
-    const uniqueProducts = order_items.length;
+    if (!orderItems || !orderItems.length) return { totalItems: 0, uniqueProducts: 0 };
+
+    const totalItems = orderItems.reduce((sum: number, item: OrderItem) => sum + item.quantity, 0);
+    const uniqueProducts = orderItems.length;
 
     return {
       totalItems,
       uniqueProducts,
     };
-  }, [order_items]);
+  }, [orderItems]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <p className="text-gray-600 dark:text-gray-400">Loading transaction details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !transaction) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
+          <h1 className="text-2xl font-bold text-red-500">Error Loading Transaction</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {error ? `Error: ${error.message}` : 'Transaction not found'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
-        <TransactionDetailHeader transaction={transaction} customer={customer} cashier={cashier} />
+        <TransactionDetailHeader
+          transaction={transaction as TransactionDetail}
+          customer={customer as Customer}
+          cashier={cashier as Employee}
+        />
 
         {/* Stats */}
         <TransactionStats
-          transaction={transaction}
+          transaction={transaction as TransactionDetail}
           totalItems={stats.totalItems}
           uniqueProducts={stats.uniqueProducts}
         />
 
         {/* Order Items */}
-        <TransactionItems orderItems={order_items} />
+        <TransactionItems orderItems={orderItems as OrderItem[]} />
 
         {/* Payment Information */}
-        <TransactionPayment transaction={transaction} />
+        <TransactionPayment transaction={transaction as TransactionDetail} />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { TrendingUp, Package, ShoppingCart, Receipt, DollarSign, Percent } from 'lucide-react';
+import { TrendingUp, Package, ShoppingCart, Receipt, Percent, IndianRupee } from 'lucide-react';
 import { formatIndianRupee } from '@/lib/formatters';
 import type { TransactionStatsProps } from '@/types';
 
@@ -37,7 +37,7 @@ export function TransactionStats({
     {
       label: 'Tax Amount',
       value: formatIndianRupee(transaction.tax_amount || 0),
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-100 dark:bg-orange-900',
     },

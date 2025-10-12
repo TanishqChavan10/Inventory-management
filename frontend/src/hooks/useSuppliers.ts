@@ -113,11 +113,22 @@ export function useSuppliers(page: number = 1, limit: number = 10, status?: stri
   const updateSupplier = async (supplierData: Partial<SupplierGraphQL> & { supplier_id: string }) => {
     console.log('🔄 updateSupplier called with:', supplierData);
     try {
-      // Ensure category_id is valid before sending to backend
+      // Create a clean copy of the supplier data
       const updateData = { ...supplierData };
-      if (!updateData.category_id || updateData.category_id <= 0) {
-        // Remove invalid category_id to avoid NOT NULL constraint violation
-        delete updateData.category_id;
+      
+      // Handle category_id properly - convert string to number if needed
+      if (updateData.category_id !== undefined) {
+        const categoryIdValue = typeof updateData.category_id === 'string' 
+          ? parseInt(updateData.category_id, 10)
+          : updateData.category_id;
+          
+        // If category_id is invalid, remove it from the update data
+        if (isNaN(categoryIdValue) || categoryIdValue <= 0) {
+          delete updateData.category_id;
+        } else {
+          // Otherwise, ensure it's saved as a number
+          updateData.category_id = categoryIdValue;
+        }
       }
 
       const { data } = await updateSupplierMutation({

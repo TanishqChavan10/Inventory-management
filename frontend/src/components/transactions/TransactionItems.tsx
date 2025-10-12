@@ -96,16 +96,16 @@ export function TransactionItems({ orderItems }: TransactionItemsProps) {
                   {formatIndianRupee(item.unit_price)}
                 </td>
                 <td className="py-4 px-4 text-right">
-                  {item.discount_applied && item.discount_applied > 0 ? (
+                  {item.discount > 0 ? (
                     <span className="text-red-600 dark:text-red-400">
-                      -{formatIndianRupee(item.discount_applied)}
+                      -{formatIndianRupee(item.discount)}
                     </span>
                   ) : (
                     <span className="text-gray-400 dark:text-gray-500">-</span>
                   )}
                 </td>
                 <td className="py-4 px-4 text-right font-medium text-gray-900 dark:text-white">
-                  {formatIndianRupee(item.total_price)}
+                  {formatIndianRupee(item.unit_price * item.quantity - (item.discount || 0))}
                 </td>
               </tr>
             ))}
@@ -122,7 +122,12 @@ export function TransactionItems({ orderItems }: TransactionItemsProps) {
           </div>
           <div className="text-lg font-semibold text-gray-900 dark:text-white">
             Subtotal:{' '}
-            {formatIndianRupee(orderItems.reduce((sum, item) => sum + item.total_price, 0))}
+            {formatIndianRupee(
+              orderItems.reduce(
+                (sum, item) => sum + (item.unit_price * item.quantity - (item.discount || 0)),
+                0,
+              ),
+            )}
           </div>
         </div>
       </div>

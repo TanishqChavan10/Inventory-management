@@ -14,27 +14,34 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, X, ShoppingCart, User, CreditCard, Receipt, Calculator } from 'lucide-react';
+import {
+  Plus,
+  Minus,
+  X,
+  ShoppingCart,
+  User,
+  CreditCard,
+  Receipt,
+  Calculator,
+  Loader2,
+} from 'lucide-react';
 import { formatIndianRupee } from '@/lib/formatters';
-import type { Product, Customer, Employee } from '@/types';
+import type { Product } from '@/types';
+import { useEmployees } from '@/hooks/useTransactions';
+import { useProducts } from '@/hooks/useProducts';
+import type { TransactionItem } from '@/types/transaction.types';
 
-interface TransactionItem {
-  product_id: string;
-  product_name: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-  available_stock: number;
-  discount_applied?: number;
+// Define Employee type if not imported from types
+interface Employee {
+  employee_id: string;
+  name: string;
 }
 
 interface NewTransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (transactionData: any) => void;
-  products: Product[];
-  employees: Employee[];
-  customers?: Customer[];
+  loading?: boolean;
 }
 
 const PAYMENT_METHODS = [
@@ -44,32 +51,60 @@ const PAYMENT_METHODS = [
   { value: 'Mobile Payment', label: 'Mobile Payment', icon: '📱' },
 ];
 
+// Generate a payment reference number based on the payment method
+const generatePaymentReference = (method: string): string => {
+  const now = new Date();
+  const timestamp = now.getTime().toString().slice(-8); // Last 8 digits of timestamp
+  const date = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+
+  switch (method) {
+    case 'Cash':
+      return `CASH-${date}-${timestamp}`;
+    case 'Credit Card':
+      return `CC-${date}-${timestamp}`;
+    case 'Debit Card':
+      return `DC-${date}-${timestamp}`;
+    case 'Mobile Payment':
+      return `UPI-${date}-${timestamp}`;
+    default:
+      return `PAY-${date}-${timestamp}`;
+  }
+};
+
 export function NewTransactionForm({
   isOpen,
   onClose,
   onSubmit,
-  products = [],
-  employees = [],
-  customers = [],
+  loading = false,
 }: NewTransactionFormProps) {
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
+  const { products = [], loading: productsLoading } = useProducts();
+  // Fetch employees from the backend
+  const { employees = [], loading: employeesLoading, error: employeesError } = useEmployees();
+
+  // For debugging
+  console.log('Employees:', employees);
+  console.log('Employees loading:', employeesLoading);
+  console.log('Employees error:', employeesError);
   const [selectedCashier, setSelectedCashier] = useState<string>('');
   const [selectedItems, setSelectedItems] = useState<TransactionItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string>('');
-  const [paymentRefNo, setPaymentRefNo] = useState<string>('');
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
-  const [taxRate, setTaxRate] = useState<number>(10); // Default 10% tax
-  const [notes, setNotes] = useState<string>('');
+
+  // Auto-generated payment reference number
+  const [paymentRefNumber, setPaymentRefNumber] = useState<string>('');
   const [searchProduct, setSearchProduct] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Customer form for new customer
-  const [showNewCustomerForm, setShowNewCustomerForm] = useState<boolean>(false);
-  const [newCustomer, setNewCustomer] = useState({
+  // Fixed tax and discount rates
+  const TAX_RATE = 18; // 18% GST
+  const STORE_DISCOUNT_RATE = 10; // 10% store discount
+
+  // Combined loading state (external prop or internal state)
+  const submitting = isSubmitting || loading;
+
+  // Customer form data
+  const [customerData, setCustomerData] = useState({
     name: '',
     phone_no: '',
-    email: '',
-    address: '',
   });
 
   // Filter products based on search
@@ -83,22 +118,30 @@ export function NewTransactionForm({
 
   // Calculate totals
   const calculations = useMemo(() => {
-    const subtotal = selectedItems.reduce((sum, item) => sum + item.total_price, 0);
-    const discountTotal =
-      selectedItems.reduce((sum, item) => sum + (item.discount_applied || 0), 0) + discountAmount;
+    const subtotal = selectedItems.reduce((sum, item) => {
+      const itemTotal = item.unit_price * item.quantity - (item.discount || 0);
+      return sum + itemTotal;
+    }, 0);
+
+    // Apply fixed store discount (10%)
+    const storeDiscount = (subtotal * STORE_DISCOUNT_RATE) / 100;
+    const discountTotal = storeDiscount; // Only store discount now, no per-item discounts
+
+    // Apply fixed tax rate (18%)
     const taxableAmount = subtotal - discountTotal;
-    const taxAmount = (taxableAmount * taxRate) / 100;
+    const taxAmount = (taxableAmount * TAX_RATE) / 100;
     const totalAmount = taxableAmount + taxAmount;
 
     return {
       subtotal,
       discountTotal,
+      storeDiscount,
       taxAmount,
       totalAmount,
       totalItems: selectedItems.reduce((sum, item) => sum + item.quantity, 0),
       uniqueProducts: selectedItems.length,
     };
-  }, [selectedItems, discountAmount, taxRate]);
+  }, [selectedItems, STORE_DISCOUNT_RATE, TAX_RATE]);
 
   const addProductToTransaction = (product: Product) => {
     const existingItem = selectedItems.find(
@@ -113,9 +156,8 @@ export function NewTransactionForm({
         product_name: product.product_name,
         quantity: 1,
         unit_price: product.default_price,
-        total_price: product.default_price,
+        discount: 0,
         available_stock: product.stock,
-        discount_applied: 0,
       };
       setSelectedItems([...selectedItems, newItem]);
     }
@@ -131,30 +173,29 @@ export function NewTransactionForm({
     setSelectedItems((items) =>
       items.map((item) => {
         if (item.product_id === productId) {
-          const updatedItem = {
+          const validQuantity = Math.min(newQuantity, item.available_stock);
+          return {
             ...item,
-            quantity: Math.min(newQuantity, item.available_stock),
-            total_price:
-              Math.min(newQuantity, item.available_stock) * item.unit_price -
-              (item.discount_applied || 0),
+            quantity: validQuantity,
           };
-          return updatedItem;
         }
         return item;
       }),
     );
   };
 
+  // Removed the updateItemDiscount function as item-specific discounts are no longer needed
+
   const updateItemDiscount = (productId: string, discount: number) => {
     setSelectedItems((items) =>
       items.map((item) => {
         if (item.product_id === productId) {
-          const maxDiscount = item.quantity * item.unit_price;
-          const validDiscount = Math.min(Math.max(0, discount), maxDiscount);
+          const subtotal = item.quantity * item.unit_price;
+          const validDiscount = Math.min(Math.max(0, discount), subtotal);
           return {
             ...item,
-            discount_applied: validDiscount,
-            total_price: item.quantity * item.unit_price - validDiscount,
+            discount: validDiscount,
+            discount: validDiscount,
           };
         }
         return item;
@@ -188,31 +229,40 @@ export function NewTransactionForm({
 
     try {
       const transactionData = {
-        customer_id: selectedCustomer && selectedCustomer !== 'walk-in' ? selectedCustomer : null,
+        customer_id: null,
         cashier_id: selectedCashier,
         payment_method: paymentMethod,
-        payment_refno: paymentRefNo || null,
-        total_amt: calculations.totalAmount,
+        payment_refno: paymentRefNumber || null,
+        customer_name: customerData.name || null,
+        customer_phone: customerData.phone_no || null,
+        items: selectedItems.map((item) => ({
+          product_id: parseInt(item.product_id, 10),
+          quantity: item.quantity,
+          unit_price: parseFloat(item.unit_price.toString()),
+          discount: parseFloat(item.discount.toString()),
+        })),
+        new_customer: customerData.name
+          ? {
+              name: customerData.name,
+              phone_no: customerData.phone_no,
+              email: '',
+              address: '',
+            }
+          : null,
         subtotal: calculations.subtotal,
         tax_amount: calculations.taxAmount,
         discount_amount: calculations.discountTotal,
-        notes: notes || null,
-        items: selectedItems,
-        new_customer: showNewCustomerForm ? newCustomer : null,
+        total_amt: calculations.totalAmount,
       };
 
       await onSubmit(transactionData);
 
       // Reset form
-      setSelectedCustomer('');
       setSelectedCashier('');
       setSelectedItems([]);
       setPaymentMethod('');
-      setPaymentRefNo('');
-      setDiscountAmount(0);
-      setNotes('');
-      setShowNewCustomerForm(false);
-      setNewCustomer({ name: '', phone_no: '', email: '', address: '' });
+      setPaymentRefNumber('');
+      setCustomerData({ name: '', phone_no: '' });
 
       onClose();
     } catch (error) {
@@ -252,67 +302,28 @@ export function NewTransactionForm({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="customer">Select Customer (Optional)</Label>
-                  <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a customer..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="walk-in">Walk-in Customer</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.customer_id} value={customer.customer_id}>
-                          {customer.name} - {customer.phone_no}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowNewCustomerForm(!showNewCustomerForm)}
-                  className="w-full"
-                >
-                  {showNewCustomerForm ? 'Cancel' : 'Add New Customer'}
-                </Button>
-
-                {showNewCustomerForm && (
-                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg">
-                    <div>
-                      <Label htmlFor="customerName">Customer Name *</Label>
-                      <Input
-                        id="customerName"
-                        value={newCustomer.name}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                        placeholder="Enter customer name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="customerPhone">Phone Number</Label>
-                      <Input
-                        id="customerPhone"
-                        value={newCustomer.phone_no}
-                        onChange={(e) =>
-                          setNewCustomer({ ...newCustomer, phone_no: e.target.value })
-                        }
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="customerEmail">Email</Label>
-                      <Input
-                        id="customerEmail"
-                        type="email"
-                        value={newCustomer.email}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                        placeholder="Enter email address"
-                      />
-                    </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="customerName">Customer Name</Label>
+                    <Input
+                      id="customerName"
+                      value={customerData.name}
+                      onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })}
+                      placeholder="Enter customer name"
+                    />
                   </div>
-                )}
+                  <div>
+                    <Label htmlFor="customerPhone">Phone Number</Label>
+                    <Input
+                      id="customerPhone"
+                      value={customerData.phone_no}
+                      onChange={(e) =>
+                        setCustomerData({ ...customerData, phone_no: e.target.value })
+                      }
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -332,9 +343,9 @@ export function NewTransactionForm({
                       <SelectValue placeholder="Choose a cashier..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {employees.map((employee) => (
+                      {employees.map((employee: Employee) => (
                         <SelectItem key={employee.employee_id} value={employee.employee_id}>
-                          {employee.name} - {employee.role}
+                          {employee.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -459,28 +470,14 @@ export function NewTransactionForm({
                           </p>
                         </div>
 
-                        <div>
-                          <Label htmlFor={`discount-${item.product_id}`} className="text-xs">
-                            Item Discount
-                          </Label>
-                          <Input
-                            id={`discount-${item.product_id}`}
-                            type="number"
-                            value={item.discount_applied || 0}
-                            onChange={(e) =>
-                              updateItemDiscount(item.product_id, parseFloat(e.target.value) || 0)
-                            }
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                            max={item.quantity * item.unit_price}
-                          />
-                        </div>
+                        {/* Item discount field removed */}
 
                         <div>
                           <Label className="text-xs">Total</Label>
                           <p className="text-sm font-bold py-2 text-green-600 dark:text-green-400">
-                            {formatIndianRupee(item.total_price)}
+                            {formatIndianRupee(
+                              item.unit_price * item.quantity - (item.discount || 0),
+                            )}
                           </p>
                         </div>
                       </div>
@@ -503,7 +500,14 @@ export function NewTransactionForm({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="paymentMethod">Payment Method *</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod} required>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={(value) => {
+                      setPaymentMethod(value);
+                      setPaymentRefNumber(generatePaymentReference(value));
+                    }}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select payment method..." />
                     </SelectTrigger>
@@ -521,13 +525,22 @@ export function NewTransactionForm({
                 </div>
 
                 <div>
-                  <Label htmlFor="paymentRefNo">Payment Reference No.</Label>
-                  <Input
-                    id="paymentRefNo"
-                    value={paymentRefNo}
-                    onChange={(e) => setPaymentRefNo(e.target.value)}
-                    placeholder="Enter reference number (optional)"
-                  />
+                  {paymentMethod && (
+                    <>
+                      <Label htmlFor="paymentRefNo">
+                        {paymentMethod === 'Cash' && 'Receipt Number'}
+                        {paymentMethod === 'Credit Card' && 'Credit Card Reference'}
+                        {paymentMethod === 'Debit Card' && 'Transaction ID'}
+                        {paymentMethod === 'Mobile Payment' && 'UPI/Mobile Reference'}
+                      </Label>
+                      <Input
+                        id="paymentRefNo"
+                        value={paymentRefNumber}
+                        readOnly
+                        className="bg-gray-50 dark:bg-gray-800"
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -542,32 +555,14 @@ export function NewTransactionForm({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="additionalDiscount">Additional Discount</Label>
-                  <Input
-                    id="additionalDiscount"
-                    type="number"
-                    value={discountAmount}
-                    onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                  <Input
-                    id="taxRate"
-                    type="number"
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                    placeholder="10"
-                    step="0.1"
-                    min="0"
-                    max="100"
-                  />
+              {/* Tax rate and discount information */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+                  <p className="text-sm font-medium mb-1">Fixed Transaction Rates</p>
+                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    <li>• Store Discount: {STORE_DISCOUNT_RATE}% (applied to subtotal)</li>
+                    <li>• Tax Rate: {TAX_RATE}% (applied after discounts)</li>
+                  </ul>
                 </div>
               </div>
 
@@ -579,17 +574,20 @@ export function NewTransactionForm({
                   <span className="font-medium">{formatIndianRupee(calculations.subtotal)}</span>
                 </div>
 
-                {calculations.discountTotal > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Discount:</span>
-                    <span className="font-medium text-red-600 dark:text-red-400">
-                      -{formatIndianRupee(calculations.discountTotal)}
-                    </span>
-                  </div>
-                )}
+                {/* Store Discount */}
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Store Discount ({STORE_DISCOUNT_RATE}%):
+                  </span>
+                  <span className="font-medium text-red-600 dark:text-red-400">
+                    -{formatIndianRupee(calculations.storeDiscount)}
+                  </span>
+                </div>
+
+                {/* Item-specific discounts removed */}
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Tax ({taxRate}%):</span>
+                  <span className="text-gray-600 dark:text-gray-400">Tax ({TAX_RATE}%):</span>
                   <span className="font-medium">{formatIndianRupee(calculations.taxAmount)}</span>
                 </div>
 
@@ -611,32 +609,17 @@ export function NewTransactionForm({
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaction Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes for this transaction..."
-                rows={3}
-              />
-            </CardContent>
-          </Card>
-
           {/* Submit Actions */}
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-neutral-700">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || selectedItems.length === 0}
+              disabled={submitting || selectedItems.length === 0}
               className="flex items-center gap-2"
             >
-              {isSubmitting ? (
+              {submitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Processing...

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatData } from '@/data/dashboardData';
 import { memo, useMemo } from 'react';
-import { Box, AlertTriangle, DollarSign, Users, Activity, Clock, IndianRupee } from 'lucide-react';
+import { Box, AlertTriangle, Users, Activity, Clock, IndianRupee } from 'lucide-react';
 
 interface StatCardProps {
   stat: StatData;

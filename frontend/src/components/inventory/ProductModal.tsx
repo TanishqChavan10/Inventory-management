@@ -89,7 +89,7 @@ export function ProductModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium mb-1 dark:text-gray-200">Price ($)</label>
+              <label className="block font-medium mb-1 dark:text-gray-200">Price</label>
               <input
                 type="number"
                 step="0.01"

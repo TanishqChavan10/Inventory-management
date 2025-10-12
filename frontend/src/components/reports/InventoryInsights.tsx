@@ -1,176 +1,282 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Package, Calendar, TrendingDown, Truck, Clock, ExternalLink } from 'lucide-react';
+import { ExportDropdown } from '@/components/ui/export-dropdown';
+import {
+  AlertTriangle,
+  Package,
+  Calendar,
+  TrendingDown,
+  Truck,
+  Clock,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { formatIndianRupee } from '@/lib/formatters';
+import { GET_INVENTORY_ANALYTICS } from '@/app/graphql/products';
+import { GET_SHIPMENTS } from '@/app/graphql/suppliers';
+import { transformInventoryDataForExport } from '@/hooks/useExportData';
 import type { InventoryInsightsProps } from '@/types';
 
-// Mock data based on ER diagram
-const mockInventoryData = {
-  overview: {
-    totalProducts: 1247,
-    lowStockItems: 23,
-    expiringItems: 8,
-    expiredItems: 3,
-    overstockItems: 15,
-  },
-  alerts: [
-    {
-      type: 'low_stock' as const,
-      product_id: 'LAP-003',
-      product_name: 'MacBook Air M2',
-      current_stock: 2,
-      threshold: 10,
-      severity: 'high' as const,
-    },
-    {
-      type: 'expiring_soon' as const,
-      product_id: 'FOOD-001',
-      product_name: 'Organic Milk 1L',
-      current_stock: 15,
-      threshold: 20,
-      days_until_expiry: 3,
-      severity: 'high' as const,
-    },
-    {
-      type: 'expired' as const,
-      product_id: 'FOOD-002',
-      product_name: 'Fresh Bread',
-      current_stock: 8,
-      threshold: 0,
-      days_until_expiry: -2,
-      severity: 'high' as const,
-    },
-    {
-      type: 'low_stock' as const,
-      product_id: 'MOU-001',
-      product_name: 'Wireless Mouse',
-      current_stock: 5,
-      threshold: 15,
-      severity: 'medium' as const,
-    },
-    {
-      type: 'overstock' as const,
-      product_id: 'KEY-002',
-      product_name: 'USB Keyboard',
-      current_stock: 150,
-      threshold: 50,
-      severity: 'low' as const,
-    },
-  ],
-  categoryInsights: [
-    {
-      category: 'Electronics',
-      total_products: 456,
-      low_stock: 12,
-      avg_turnover: 8.5,
-      value: 145670.80,
-    },
-    {
-      category: 'Food & Beverage',
-      total_products: 234,
-      low_stock: 6,
-      avg_turnover: 15.2,
-      value: 34567.90,
-    },
-    {
-      category: 'Clothing',
-      total_products: 189,
-      low_stock: 3,
-      avg_turnover: 12.8,
-      value: 78934.50,
-    },
-    {
-      category: 'Home & Garden',
-      total_products: 198,
-      low_stock: 2,
-      avg_turnover: 6.7,
-      value: 56789.20,
-    },
-  ],
-  recentShipments: [
-    {
-      shipment_id: 'SHP-001',
-      supplier_name: 'TechCorp Solutions',
-      received_date: '2024-01-15',
-      total_items: 45,
-      payment_status: 'Paid',
-      products_count: 12,
-    },
-    {
-      shipment_id: 'SHP-002',
-      supplier_name: 'Fresh Foods Ltd',
-      received_date: '2024-01-14',
-      total_items: 78,
-      payment_status: 'Pending',
-      products_count: 23,
-    },
-    {
-      shipment_id: 'SHP-003',
-      supplier_name: 'Office Supplies Inc',
-      received_date: '2024-01-13',
-      total_items: 156,
-      payment_status: 'Paid',
-      products_count: 34,
-    },
-  ],
-};
+interface Product {
+  product_id: number;
+  product_name: string;
+  default_price: number;
+  stock: number;
+  min_stock: number;
+  categories: Array<{
+    category_id: number;
+    name: string;
+  }>;
+}
 
-export function InventoryInsights({ alerts }: InventoryInsightsProps) {
-  const { overview, categoryInsights, recentShipments } = mockInventoryData;
-  const allAlerts = alerts.length > 0 ? alerts : mockInventoryData.alerts;
+interface Shipment {
+  shipment_id: string;
+  supplier_id: string;
+  ref_no: string;
+  received_date: string;
+  payment_status: string;
+  payment_mthd: string;
+  invoice_amt: number;
+  total_items: number;
+}
+
+interface InventoryAnalyticsData {
+  products: Product[];
+  lowStockProducts: Product[];
+  totalInventoryValue: number;
+}
+
+interface ShipmentsData {
+  shipments: Shipment[];
+}
+
+interface InventoryAlert {
+  type: 'low_stock' | 'expiring_soon' | 'expired' | 'overstock';
+  product_id: number;
+  product_name: string;
+  current_stock: number;
+  threshold: number;
+  severity: 'high' | 'medium' | 'low';
+  days_until_expiry?: number;
+}
+
+interface CategoryInsight {
+  category: string;
+  total_products: number;
+  low_stock: number;
+  avg_turnover: number;
+  value: number;
+}
+
+export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsightsProps) {
+  // Pagination state for alerts
+  const [currentPage, setCurrentPage] = useState(1);
+  const alertsPerPage = 5;
+
+  const {
+    data: inventoryData,
+    loading: inventoryLoading,
+    error: inventoryError,
+  } = useQuery<InventoryAnalyticsData>(GET_INVENTORY_ANALYTICS, {
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  const {
+    data: shipmentsData,
+    loading: shipmentsLoading,
+    error: shipmentsError,
+  } = useQuery<ShipmentsData>(GET_SHIPMENTS, {
+    variables: { page: 1, limit: 5 },
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  // Calculate inventory insights from real data
+  const products = inventoryData?.products || [];
+  const lowStockProducts = inventoryData?.lowStockProducts || [];
+  const totalInventoryValue = inventoryData?.totalInventoryValue || 0;
+  const shipments = shipmentsData?.shipments || [];
+
+  // Generate alerts from real data
+  const alerts: InventoryAlert[] = [
+    ...lowStockProducts.map((product) => ({
+      type: 'low_stock' as const,
+      product_id: product.product_id,
+      product_name: product.product_name,
+      current_stock: product.stock,
+      threshold: product.min_stock,
+      severity: (product.stock === 0
+        ? 'high'
+        : product.stock < product.min_stock / 2
+          ? 'medium'
+          : 'low') as 'high' | 'medium' | 'low',
+    })),
+    ...products
+      .filter((p) => p.stock > p.min_stock * 3)
+      .map((product) => ({
+        type: 'overstock' as const,
+        product_id: product.product_id,
+        product_name: product.product_name,
+        current_stock: product.stock,
+        threshold: product.min_stock * 3,
+        severity: 'low' as const,
+      })),
+  ];
+
+  // Reset pagination when alerts change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [alerts.length]);
+
+  if (inventoryLoading || shipmentsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-600 dark:text-gray-400" />
+        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading inventory insights...</span>
+      </div>
+    );
+  }
+
+  if (inventoryError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <AlertCircle className="w-8 h-8 text-red-500 mr-2" />
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium">
+            Failed to load inventory data
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{inventoryError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate overview metrics
+  const overview = {
+    totalProducts: products.length,
+    lowStockItems: lowStockProducts.length,
+    expiringItems: 0, // TODO: Add expiry date logic when available
+    expiredItems: 0, // TODO: Add expired items logic when available
+    overstockItems: products.filter((p) => p.stock > p.min_stock * 3).length, // Consider 3x min_stock as overstock
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(alerts.length / alertsPerPage);
+  const startIndex = (currentPage - 1) * alertsPerPage;
+  const endIndex = startIndex + alertsPerPage;
+  const paginatedAlerts = alerts.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  // Calculate category insights
+  const categoryMap = new Map<
+    string,
+    { products: Product[]; low_stock: number; total_value: number }
+  >();
+
+  products.forEach((product) => {
+    const categoryName = product.categories?.[0]?.name || 'Uncategorized';
+    if (!categoryMap.has(categoryName)) {
+      categoryMap.set(categoryName, { products: [], low_stock: 0, total_value: 0 });
+    }
+    const categoryData = categoryMap.get(categoryName)!;
+    categoryData.products.push(product);
+    categoryData.total_value += product.stock * product.default_price;
+    if (lowStockProducts.some((lsp) => lsp.product_id === product.product_id)) {
+      categoryData.low_stock += 1;
+    }
+  });
+
+  const categoryInsights: CategoryInsight[] = Array.from(categoryMap.entries()).map(
+    ([category, data]) => ({
+      category,
+      total_products: data.products.length,
+      low_stock: data.low_stock,
+      avg_turnover: 0, // TODO: Calculate when transaction data is linked
+      value: data.total_value,
+    }),
+  );
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'low':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+    }
+  };
 
   const getAlertIcon = (type: string) => {
     switch (type) {
       case 'low_stock':
-        return <TrendingDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+        return <Package className="w-4 h-4" />;
       case 'expiring_soon':
-        return <Clock className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+        return <Clock className="w-4 h-4" />;
       case 'expired':
-        return <AlertTriangle className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+        return <AlertTriangle className="w-4 h-4" />;
       case 'overstock':
-        return <Package className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+        return <TrendingDown className="w-4 h-4" />;
       default:
-        return <AlertTriangle className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
-    }
-  };
-
-  const getAlertColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
-      case 'medium':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
-      case 'low':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
+        return <AlertTriangle className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'Pending':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'Overdue':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
 
-  const handleViewProduct = (productId: string) => {
-    toast.info(`Viewing product details for ${productId}`);
+  const handleResolveAlert = (alertId: number) => {
+    toast.info(`Resolving alert for product ${alertId}...`);
   };
 
-  const handleReorderProduct = (productId: string) => {
-    toast.success(`Reorder initiated for ${productId}`);
+  const handleViewShipment = (shipmentId: string) => {
+    toast.info(`Viewing shipment ${shipmentId}...`);
   };
 
   return (
     <div className="space-y-6">
+      {/* Export Section */}
+      <div className="flex justify-end">
+        <ExportDropdown
+          data={transformInventoryDataForExport(inventoryData?.products || [])}
+          filename="inventory-insights"
+          title="Inventory Analytics Report"
+          variant="outline"
+        />
+      </div>
+
       {/* Inventory Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -182,26 +288,22 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {overview.totalProducts.toLocaleString()}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              In inventory
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Active inventory items</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Low Stock
+              Low Stock Items
             </CardTitle>
-            <TrendingDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <AlertTriangle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {overview.lowStockItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Need reorder
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Require attention</p>
           </CardContent>
         </Card>
 
@@ -213,213 +315,236 @@ export function InventoryInsights({ alerts }: InventoryInsightsProps) {
             <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {overview.expiringItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Within 7 days
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Within 7 days</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Expired
+              Overstock Items
             </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <TrendingDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-              {overview.expiredItems}
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              {overview.overstockItems}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Need removal
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Excessive stock</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Overstock
+              Total Value
             </CardTitle>
             <Package className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-              {overview.overstockItems}
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              {formatIndianRupee(totalInventoryValue)}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Excess inventory
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Current inventory value</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Inventory Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              Inventory Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="max-h-96 overflow-y-auto">
-            <div className="space-y-3">
-              {allAlerts.map((alert, index) => (
-                <div
-                  key={`${alert.product_id}-${index}`}
-                  className={`p-4 border rounded-lg ${getAlertColor(alert.severity)}`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {getAlertIcon(alert.type)}
+      {/* Alerts Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Inventory Alerts
+            {alerts.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {alerts.length} active
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {alerts.length > 0 ? (
+              <>
+                {paginatedAlerts.map((alert) => (
+                  <div
+                    key={`${alert.type}-${alert.product_id}`}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${getSeverityColor(alert.severity)}`}>
+                        {getAlertIcon(alert.type)}
+                      </div>
                       <div>
-                        <h3 className="font-medium">
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {alert.product_name}
-                        </h3>
-                        <p className="text-sm opacity-75">
-                          ID: {alert.product_id}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {alert.type === 'low_stock' &&
+                            `Stock: ${alert.current_stock} / Min: ${alert.threshold}`}
+                          {alert.type === 'overstock' &&
+                            `Stock: ${alert.current_stock} / Recommended: ${alert.threshold}`}
+                          {alert.type === 'expiring_soon' &&
+                            `Expires in ${alert.days_until_expiry} days`}
+                          {alert.type === 'expired' &&
+                            `Expired ${Math.abs(alert.days_until_expiry || 0)} days ago`}
                         </p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {alert.type.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  
-                  <div className="text-sm space-y-1">
-                    <p>Current Stock: <span className="font-medium">{alert.current_stock}</span></p>
-                    {alert.threshold > 0 && (
-                      <p>Threshold: <span className="font-medium">{alert.threshold}</span></p>
-                    )}
-                    {alert.days_until_expiry !== undefined && (
-                      <p>
-                        {alert.days_until_expiry < 0 
-                          ? `Expired ${Math.abs(alert.days_until_expiry)} days ago`
-                          : `Expires in ${alert.days_until_expiry} days`
-                        }
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2 mt-3">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleViewProduct(alert.product_id)}
-                      className="text-xs"
-                    >
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    {alert.type === 'low_stock' && (
-                      <Button 
+
+                    <div className="flex items-center space-x-3">
+                      <Badge className={getSeverityColor(alert.severity)}>{alert.severity}</Badge>
+                      <Button
+                        variant="outline"
                         size="sm"
-                        onClick={() => handleReorderProduct(alert.product_id)}
-                        className="text-xs"
+                        onClick={() => handleResolveAlert(alert.product_id)}
                       >
-                        Reorder
+                        Resolve
                       </Button>
-                    )}
+                    </div>
                   </div>
+                ))}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Page {currentPage} of {totalPages} ({alerts.length} total alerts)
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">No inventory alerts at this time</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Category Insights and Recent Shipments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Category Insights */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Category Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {categoryInsights.length > 0 ? (
+                categoryInsights.map((category) => (
+                  <div
+                    key={category.category}
+                    className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {category.category}
+                      </p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                        <span>{category.total_products} products</span>
+                        <span>{category.low_stock} low stock</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {formatIndianRupee(category.value)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Total Value</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 dark:text-gray-400">No category data available</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Category Insights */}
+        {/* Recent Shipments */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              Category Performance
+            <CardTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5" />
+              Recent Shipments
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {categoryInsights.map((category) => (
-                <div key={category.category} className="p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      {category.category}
-                    </h3>
-                    <Badge 
-                      variant={category.low_stock > 5 ? 'secondary' : 'outline'}
-                      className="text-xs"
-                    >
-                      {category.low_stock} low stock
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+              {shipments.length > 0 ? (
+                shipments.map((shipment) => (
+                  <div
+                    key={shipment.shipment_id}
+                    className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0"
+                  >
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Products</p>
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {category.total_products}
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {shipment.shipment_id}
                       </p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                        <span>
+                          <Calendar className="w-3 h-3 inline mr-1" />
+                          {new Date(shipment.received_date).toLocaleDateString()}
+                        </span>
+                        <span>{shipment.total_items} items</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Turnover (days)</p>
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {category.avg_turnover}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-gray-600 dark:text-gray-400">Inventory Value</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        ${category.value.toLocaleString()}
-                      </p>
+
+                    <div className="flex items-center space-x-3">
+                      <Badge className={getStatusColor(shipment.payment_status)}>
+                        {shipment.payment_status}
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewShipment(shipment.shipment_id)}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <Truck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {shipmentsError ? 'Failed to load shipments' : 'No recent shipments'}
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Shipments */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-            Recent Shipments
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentShipments.map((shipment) => (
-              <div key={shipment.shipment_id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Truck className="w-8 h-8 text-gray-600 dark:text-gray-400" />
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      {shipment.supplier_name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Calendar className="w-3 h-3" />
-                      {shipment.received_date}
-                      <span>•</span>
-                      <span>{shipment.total_items} items</span>
-                      <span>•</span>
-                      <span>{shipment.products_count} products</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge className={getStatusColor(shipment.payment_status)}>
-                    {shipment.payment_status}
-                  </Badge>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -210,8 +210,7 @@ export type OrderItem = {
   product_name: string;
   quantity: number;
   unit_price: number;
-  total_price: number;
-  discount_applied?: number;
+  discount: number;
   category_name?: string;
 };
 
