@@ -9,8 +9,22 @@ const navItems = [
   { label: 'Reports', href: '/reports' },
 ];
 
-export default function NavLinks({ onClick, className }: { onClick?: () => void; className?: string }) {
+export default function NavLinks({
+  onClick,
+  className,
+  isAuthenticated = false,
+}: {
+  onClick?: () => void;
+  className?: string;
+  isAuthenticated?: boolean;
+}) {
   const pathname = usePathname();
+
+  // Don't render navigation links if user is not authenticated
+  if (!isAuthenticated) {
+    return <div className={className}></div>;
+  }
+
   return (
     <div className={className}>
       {navItems.map((item) => (

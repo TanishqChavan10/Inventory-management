@@ -18,7 +18,7 @@ export default function MobileMenu({ open, closeMenu }: { open: boolean; closeMe
       className={`md:hidden bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 transition-all duration-300 overflow-hidden ${open ? 'max-h-96' : 'max-h-0'}`}
     >
       <div className="flex flex-col px-6 py-3">
-        <NavLinks onClick={closeMenu} />
+        <NavLinks onClick={closeMenu} isAuthenticated={isAuthenticated} />
         <ThemeToggle outline fullWidth />
 
         {/* Mobile Authentication Section */}

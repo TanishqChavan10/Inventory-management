@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { z } from 'zod';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 const signupSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -100,6 +102,17 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {/* Back button */}
+              <div className="flex justify-start">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Link>
+              </div>
+
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Create an Account</h1>
                 <p className="text-muted-foreground text-balance">

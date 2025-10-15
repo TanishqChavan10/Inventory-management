@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Menu, User, X } from 'lucide-react';
+import { LogOut, Menu, User, X, Warehouse } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
 import ThemeToggle from '@/components/landing/navbar/ThemeToggle';
@@ -59,8 +59,9 @@ export function AppHeader() {
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center">
-            <span className="font-bold text-lg md:text-xl">Inventory MS</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Warehouse className="h-7 w-7" />
+            <span className="font-bold text-lg md:text-xl">InventoryMS</span>
           </Link>
 
           {/* Desktop Navigation */}

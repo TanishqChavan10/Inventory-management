@@ -28,7 +28,10 @@ export default function Navbar() {
           <Warehouse className="h-7 w-7" />
           <span className="text-2xl font-extrabold tracking-tight">InventoryMS</span>
         </Link>
-        <NavLinks className="hidden md:flex items-center gap-8 flex-1 justify-center" />
+        <NavLinks
+          className="hidden md:flex items-center gap-8 flex-1 justify-center"
+          isAuthenticated={isAuthenticated}
+        />
         <div className="flex items-center gap-2">
           <ThemeToggle />
 

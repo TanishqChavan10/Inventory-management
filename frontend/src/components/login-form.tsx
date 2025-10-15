@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
@@ -65,6 +66,17 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         <CardContent className="grid p-0 md:grid-cols-2">
           <form className="p-6 md:p-8" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {/* Back button */}
+              <div className="flex justify-start">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Link>
+              </div>
+
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-muted-foreground text-balance">
@@ -98,6 +110,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   id="password"
                   type="password"
                   value={password}
+                  placeholder="Enter your password"
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   aria-invalid={!!formErrors.password}

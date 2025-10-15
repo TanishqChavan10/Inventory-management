@@ -91,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { data } = await loginMutation({
         variables: {
-          loginInput: { username, password },
+          input: { username, password },
         },
       });
 
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { data } = await registerMutation({
         variables: {
-          registerInput: userData,
+          input: userData,
         },
       });
 
