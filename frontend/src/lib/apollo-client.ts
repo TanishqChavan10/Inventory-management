@@ -11,9 +11,10 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
       console.error(
         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
       );
-      // Handle 401 Unauthorized errors
+      // Don't auto-redirect on auth errors - let the components handle it
+      // This prevents infinite redirect loops
       if (message.includes('Unauthorized') || message.includes('Invalid token')) {
-        window.location.href = '/login';
+        console.log('Authentication error detected, components will handle redirect');
       }
     });
   if (networkError) console.error(`[Network error]: ${networkError}`);

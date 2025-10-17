@@ -15,13 +15,21 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   const { user, isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
+    // Only redirect if we're sure the user is not authenticated and loading is complete
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      // Add a small delay to prevent immediate redirect loops
+      const timer = setTimeout(() => {
+        router.push('/login');
+      }, 100);
+      return () => clearTimeout(timer);
     }
 
     // Check if user has required role (if specified)
     if (!loading && isAuthenticated && requiredRole && user?.role !== requiredRole) {
-      router.push('/dashboard'); // Redirect to dashboard if not authorized
+      const timer = setTimeout(() => {
+        router.push('/dashboard');
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, loading, router, user, requiredRole]);
 

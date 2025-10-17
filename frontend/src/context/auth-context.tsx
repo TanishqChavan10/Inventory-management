@@ -52,6 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [registerMutation] = useMutation(REGISTER_USER);
   const [getCurrentUser, { loading: fetchingUser }] = useLazyQuery(GET_CURRENT_USER, {
     fetchPolicy: 'network-only',
+    errorPolicy: 'ignore', // Don't throw errors, handle them gracefully
     onCompleted: (data) => {
       if (data?.me) {
         setUser(data.me);
@@ -60,7 +61,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     onError: (error) => {
       console.error('Error fetching user:', error);
       setError(error);
-      if (error.message.includes('Unauthorized')) {
+      // Only logout if it's specifically an unauthorized error AND we're not on auth pages
+      if (
+        error.message.includes('Unauthorized') &&
+        !window.location.pathname.includes('/login') &&
+        !window.location.pathname.includes('/signup')
+      ) {
         logout();
       }
     },
@@ -76,13 +82,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } catch (err) {
         console.error('Auth check error:', err);
+        // Don't throw error, just log it - let user stay on current page
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, [getCurrentUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - prevents infinite loops
 
   // Login function
   const login = async (username: string, password: string) => {
