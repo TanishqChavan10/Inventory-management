@@ -18,10 +18,7 @@ input CreateCategoryInput {
 }
 
 input CreateCustomerInput {
-  address: String
   customer_id: ID!
-  email: String
-  loyalty_points: Int = 0
   name: String!
   phone_number: String
 }
@@ -96,14 +93,10 @@ input CreateTransactionItemInput {
 }
 
 type CustomerModel {
-  address: String
   created_date: DateTime!
   customer_id: ID!
-  email: String
-  loyalty_points: Int!
   name: String!
   phone_number: String
-  total_purchases: Int!
   transactions: [TransactionModel!]
 }
 

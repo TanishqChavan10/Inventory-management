@@ -195,7 +195,6 @@ export function NewTransactionForm({
           return {
             ...item,
             discount: validDiscount,
-            discount: validDiscount,
           };
         }
         return item;
@@ -229,7 +228,6 @@ export function NewTransactionForm({
 
     try {
       const transactionData = {
-        customer_id: null,
         cashier_id: selectedCashier,
         payment_method: paymentMethod,
         payment_refno: paymentRefNumber || null,
@@ -245,8 +243,6 @@ export function NewTransactionForm({
           ? {
               name: customerData.name,
               phone_no: customerData.phone_no,
-              email: '',
-              address: '',
             }
           : null,
         subtotal: calculations.subtotal,

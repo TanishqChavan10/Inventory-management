@@ -196,11 +196,7 @@ export type TransactionDetail = {
 export type Customer = {
   customer_id: string;
   name: string;
-  phone_no?: string;
-  email?: string;
-  address?: string;
-  loyalty_points?: number;
-  total_purchases?: number;
+  phone_number?: string;
   created_date: string;
 };
 

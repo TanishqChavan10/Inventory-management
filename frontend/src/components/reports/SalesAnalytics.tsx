@@ -284,7 +284,6 @@ export function SalesAnalytics() {
                       <p className="font-medium text-gray-900 dark:text-white">
                         {formatIndianRupee(payment.total_amount)}
                       </p>
-                      <p className="text-sm text-gray-500">{payment.percentage}%</p>
                     </div>
                   </div>
                 ))
@@ -312,7 +311,6 @@ export function SalesAnalytics() {
                       <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {category.category}
                       </span>
-                      <span className="text-sm text-gray-500">{category.percentage}%</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div

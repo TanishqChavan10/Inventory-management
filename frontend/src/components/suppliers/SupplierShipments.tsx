@@ -82,7 +82,7 @@ export function SupplierShipments({ shipments, onViewShipment }: SupplierShipmen
                   <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
                     <div className="flex items-center gap-1">
                       <IndianRupee className="w-4 h-4" />
-                      {(shipment.invoice_amt * 10).toLocaleString()}
+                      {shipment.invoice_amt.toLocaleString()}
                     </div>
                   </td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-300">

@@ -132,10 +132,6 @@ export default function TransactionsListPage() {
           payment_refno: transactionData.payment_refno || null,
           customer_name: transactionData.new_customer?.name || null,
           customer_phone: transactionData.new_customer?.phone_no || null,
-          customer_id:
-            transactionData.customer_id && transactionData.customer_id !== 'walk-in'
-              ? transactionData.customer_id
-              : null,
           items: transactionData.items.map((item: any) => ({
             product_id: parseInt(item.product_id, 10),
             quantity: parseInt(item.quantity, 10),

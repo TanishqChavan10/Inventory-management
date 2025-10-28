@@ -84,9 +84,8 @@ export const GET_EXPIRING_ITEMS_COUNT: TypedDocumentNode<
 // Combined dashboard stats query for efficiency
 export const GET_DASHBOARD_STATS: TypedDocumentNode<
   {
-    products: { product_id: number }[];
+    products: { product_id: number; stock: number; default_price: number }[];
     lowStockProducts: { product_id: number }[];
-    totalInventoryValue: number;
     suppliers: { supplier_id: string }[];
     shipments: { shipment_id: string; received_date: string }[];
     expiringShipmentItems: { id: string }[];
@@ -104,11 +103,12 @@ export const GET_DASHBOARD_STATS: TypedDocumentNode<
   ) {
     products {
       product_id
+      stock
+      default_price
     }
     lowStockProducts {
       product_id
     }
-    totalInventoryValue
     suppliers(status: $supplierStatus, limit: 1000) {
       supplier_id
     }

@@ -74,8 +74,7 @@ shared/
 │   ├── customer.entity.ts         # Customer entity
 │   └── employee.entity.ts         # Employee entity
 ├── services/
-│   ├── seed.service.ts            # Database seeding service
-│   └── migration.service.ts       # Data migration service
+│   └── seed.service.ts            # Database seeding service
 ├── shared.module.ts               # Shared module definition
 └── index.ts                       # Barrel exports
 ```

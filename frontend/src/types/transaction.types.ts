@@ -27,7 +27,5 @@ export type CreateTransactionInput = {
   new_customer?: {
     name: string;
     phone_no?: string;
-    email?: string;
-    address?: string;
   };
 };

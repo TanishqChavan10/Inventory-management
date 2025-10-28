@@ -19,7 +19,7 @@ export function SupplierStats({
     },
     {
       label: 'Total Value',
-      value: formatIndianRupee(totalValue*10),
+      value: formatIndianRupee(totalValue),
       icon: IndianRupee,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
@@ -33,7 +33,7 @@ export function SupplierStats({
     },
     {
       label: 'Avg Order Value',
-      value: formatIndianRupee(avgOrderValue*10),
+      value: formatIndianRupee(avgOrderValue),
       icon: TrendingUp,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',

@@ -33,6 +33,10 @@ export const useDashboardStats = (): UseDashboardStatsReturn => {
   }, [queryError]);
 
   // Process the data and calculate stats
+  const totalInventoryValue = data?.products 
+    ? data.products.reduce((total, product) => total + (product.stock * product.default_price), 0)
+    : 0;
+
   const processedStats: StatData[] = data ? [
     {
       title: "Total Products",
@@ -67,7 +71,7 @@ export const useDashboardStats = (): UseDashboardStatsReturn => {
     },
     {
       title: "Total Inventory Value",
-      value: formatIndianRupee(data.totalInventoryValue || 0),
+      value: formatIndianRupee(totalInventoryValue),
       icon: "rupee-indian",
       change: "+8.2%",
       description: "Current stock value",
@@ -75,7 +79,7 @@ export const useDashboardStats = (): UseDashboardStatsReturn => {
         title: "Inventory Valuation",
         columns: ["Category", "Value", "Percentage"],
         data: [
-          ["Total Value", formatIndianRupee(data.totalInventoryValue || 0), "100%"],
+          ["Total Value", formatIndianRupee(totalInventoryValue), "100%"],
           ["Active Stock", "Calculated", "Live"],
           ["Market Value", "Current", "Updated"]
         ]

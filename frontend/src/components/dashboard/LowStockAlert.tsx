@@ -125,9 +125,7 @@ export default function LowStockAlert({}: LowStockAlertProps) {
                   >
                     {item.stock}/{item.minStock}
                   </Badge>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {Math.round(item.stockPercentage)}% of min stock
-                  </p>
+                  
                 </div>
               </div>
             ))

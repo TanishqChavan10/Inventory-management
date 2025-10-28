@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useApolloClient } from '@apollo/client';
 import {
@@ -28,6 +29,10 @@ import { useSuppliers, useSupplierForEdit } from '@/hooks/useSuppliers';
 import type { Supplier, SupplierGraphQL, CreateSupplierInput } from '@/types';
 
 export default function SuppliersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryFilter = searchParams.get('category');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -66,21 +71,24 @@ export default function SuppliersPage() {
   });
 
   // Use the custom hooks
-  const { suppliers, loading, error, addSupplier, updateSupplier, deleteSupplier } = useSuppliers(
-    page,
-    10,
-    status,
-  );
+  const { suppliers, loading, error, addSupplier, updateSupplier, deleteSupplier, refetch } =
+    useSuppliers(page, 10, status);
   const { fetchSupplierById } = useSupplierForEdit();
 
-  // Filter suppliers based on search
+  // Filter suppliers based on search and category
   const filteredSuppliers = suppliers.filter((supplier) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       supplier.name.toLowerCase().includes(searchLower) ||
       supplier.email.toLowerCase().includes(searchLower) ||
-      supplier.contact.toLowerCase().includes(searchLower)
-    );
+      supplier.contact.toLowerCase().includes(searchLower);
+
+    // If category filter is applied, only show suppliers from that category
+    const matchesCategory = categoryFilter
+      ? supplier.category_id?.toString() === categoryFilter
+      : true;
+
+    return matchesSearch && matchesCategory;
   });
 
   // Pagination logic
@@ -199,6 +207,8 @@ export default function SuppliersPage() {
   const handleDeleteSupplier = async (supplier: Supplier) => {
     try {
       await deleteSupplier(supplier.id);
+      // Refetch the suppliers list to show updated data
+      await refetch();
     } catch (error) {
       // Error handling is done in the hook
       console.error('Delete failed:', error);
@@ -233,6 +243,23 @@ export default function SuppliersPage() {
     <div className="w-full px-32 py-8 bg-gray-50 dark:bg-neutral-900 min-h-screen">
       <SuppliersHeader onAddSupplier={handleAddSupplier} />
 
+      {/* Category Filter Indicator */}
+      {categoryFilter && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Filtered by Category ID: {categoryFilter}
+            </span>
+          </div>
+          <button
+            onClick={() => router.push('/suppliers')}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Clear Filter
+          </button>
+        </div>
+      )}
+
       <SuppliersSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <SuppliersTable
@@ -246,9 +273,11 @@ export default function SuppliersPage() {
       {filteredSuppliers.length === 0 && !loading && (
         <div className="text-center py-8">
           <div className="text-gray-600 dark:text-gray-400">
-            {searchQuery
-              ? 'No suppliers found matching your search.'
-              : 'No suppliers found. Add your first supplier!'}
+            {categoryFilter
+              ? 'No suppliers found for this category.'
+              : searchQuery
+                ? 'No suppliers found matching your search.'
+                : 'No suppliers found. Add your first supplier!'}
           </div>
         </div>
       )}

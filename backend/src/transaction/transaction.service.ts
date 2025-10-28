@@ -55,7 +55,6 @@ export class TransactionService {
             customer_id: customerId,
             name: createTransactionInput.customer_name,
             phone_number: createTransactionInput.customer_phone,
-            total_purchases: 0,
           });
           customer = await queryRunner.manager.save(customer);
         }
@@ -144,16 +143,6 @@ export class TransactionService {
           { product_id: item.product_id, userId },
           'stock',
           item.quantity
-        );
-      }
-
-      // Update customer total purchases
-      if (customer) {
-        await queryRunner.manager.increment(
-          Customer,
-          { customer_id: customer.customer_id },
-          'total_purchases',
-          1
         );
       }
 

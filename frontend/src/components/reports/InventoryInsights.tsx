@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,6 @@ import {
   AlertTriangle,
   Package,
   Calendar,
-  TrendingDown,
   Truck,
   Clock,
   ExternalLink,
@@ -60,13 +60,15 @@ interface ShipmentsData {
 }
 
 interface InventoryAlert {
-  type: 'low_stock' | 'expiring_soon' | 'expired' | 'overstock';
+  type: 'low_stock' | 'expiring_soon' | 'expired';
   product_id: number;
   product_name: string;
   current_stock: number;
   threshold: number;
   severity: 'high' | 'medium' | 'low';
   days_until_expiry?: number;
+  category_id?: number;
+  category_name?: string;
 }
 
 interface CategoryInsight {
@@ -78,6 +80,9 @@ interface CategoryInsight {
 }
 
 export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsightsProps) {
+  // Router for navigation
+  const router = useRouter();
+
   // Pagination state for alerts
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 5;
@@ -104,7 +109,10 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
   // Calculate inventory insights from real data
   const products = inventoryData?.products || [];
   const lowStockProducts = inventoryData?.lowStockProducts || [];
-  const totalInventoryValue = inventoryData?.totalInventoryValue || 0;
+  // Calculate total inventory value from products (stock * price)
+  const totalInventoryValue = products.reduce((total, product) => {
+    return total + product.stock * product.default_price;
+  }, 0);
   const shipments = shipmentsData?.shipments || [];
 
   // Generate alerts from real data
@@ -120,17 +128,9 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
         : product.stock < product.min_stock / 2
           ? 'medium'
           : 'low') as 'high' | 'medium' | 'low',
+      category_id: product.categories?.[0]?.category_id,
+      category_name: product.categories?.[0]?.name,
     })),
-    ...products
-      .filter((p) => p.stock > p.min_stock * 3)
-      .map((product) => ({
-        type: 'overstock' as const,
-        product_id: product.product_id,
-        product_name: product.product_name,
-        current_stock: product.stock,
-        threshold: product.min_stock * 3,
-        severity: 'low' as const,
-      })),
   ];
 
   // Reset pagination when alerts change
@@ -167,7 +167,6 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
     lowStockItems: lowStockProducts.length,
     expiringItems: 0, // TODO: Add expiry date logic when available
     expiredItems: 0, // TODO: Add expired items logic when available
-    overstockItems: products.filter((p) => p.stock > p.min_stock * 3).length, // Consider 3x min_stock as overstock
   };
 
   // Pagination calculations
@@ -235,8 +234,6 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
         return <Clock className="w-4 h-4" />;
       case 'expired':
         return <AlertTriangle className="w-4 h-4" />;
-      case 'overstock':
-        return <TrendingDown className="w-4 h-4" />;
       default:
         return <AlertTriangle className="w-4 h-4" />;
     }
@@ -255,8 +252,16 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
     }
   };
 
-  const handleResolveAlert = (alertId: number) => {
-    toast.info(`Resolving alert for product ${alertId}...`);
+  const handleResolveAlert = (alert: InventoryAlert) => {
+    if (alert.category_id) {
+      // Redirect to suppliers page with category filter
+      router.push(`/suppliers?category=${alert.category_id}`);
+      toast.info(`Redirecting to ${alert.category_name || 'category'} suppliers...`);
+    } else {
+      // If no category, just go to suppliers page
+      router.push('/suppliers');
+      toast.info('Redirecting to suppliers page...');
+    }
   };
 
   const handleViewShipment = (shipmentId: string) => {
@@ -325,21 +330,6 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Overstock Items
-            </CardTitle>
-            <TrendingDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {overview.overstockItems}
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Excessive stock</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Total Value
             </CardTitle>
             <Package className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -386,8 +376,6 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {alert.type === 'low_stock' &&
                             `Stock: ${alert.current_stock} / Min: ${alert.threshold}`}
-                          {alert.type === 'overstock' &&
-                            `Stock: ${alert.current_stock} / Recommended: ${alert.threshold}`}
                           {alert.type === 'expiring_soon' &&
                             `Expires in ${alert.days_until_expiry} days`}
                           {alert.type === 'expired' &&
@@ -398,11 +386,7 @@ export function InventoryInsights({ alerts: propsAlerts = [] }: InventoryInsight
 
                     <div className="flex items-center space-x-3">
                       <Badge className={getSeverityColor(alert.severity)}>{alert.severity}</Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleResolveAlert(alert.product_id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleResolveAlert(alert)}>
                         Resolve
                       </Button>
                     </div>

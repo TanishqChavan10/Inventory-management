@@ -11,24 +11,6 @@ export class CustomerModel {
   @Field({ nullable: true })
   phone_number?: string;
 
-  @Field({ nullable: true })
-  email?: string;
-
-  @Field({ nullable: true })
-  address?: string;
-
-
-
-
-
-
-
-  @Field(() => Int, { defaultValue: 0 })
-  total_purchases: number;
-
-  @Field(() => Int, { defaultValue: 0 })
-  loyalty_points: number;
-
   @Field()
   created_date: Date;
 

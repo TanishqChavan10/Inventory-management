@@ -92,11 +92,7 @@ export function useTransactionDetails(transactionId: string) {
     ? {
         customer_id: data.customer.customer_id,
         name: data.customer.name,
-        phone_no: data.customer.phone_number,
-        email: data.customer.email,
-        address: data.customer.address,
-        loyalty_points: data.customer.loyalty_points,
-        total_purchases: data.customer.total_purchases,
+        phone_number: data.customer.phone_number,
         created_date: data.customer.created_date,
       }
     : data?.transaction?.customer_id
@@ -155,20 +151,6 @@ export function useCreateTransaction() {
 }
 
 export function useEmployees() {
-  // Replace these with your actual database employees
-  // You mentioned that the frontend is not showing the employees you've fed into your database
-  // So update this array with your actual database values
-  const dbEmployees = [
-    // Add your actual employees from your database here
-    // Example format:
-    // { employee_id: "YOUR_ACTUAL_ID_FROM_DB", name: "YOUR_ACTUAL_NAME_FROM_DB" },
-    { employee_id: "EMP101", name: "Alice Johnson" },
-    { employee_id: "EMP102", name: "Bob Smith" },
-    { employee_id: "EMP103", name: "Carol Davis" },
-    { employee_id: "EMP104", name: "David Wilson" },
-    { employee_id: "EMP105", name: "Eva Brown" }
-  ];
-
   const { 
     data, 
     loading, 
@@ -186,11 +168,11 @@ export function useEmployees() {
     }
   });
 
-  // Always return the database employees for now
+  // Return the actual employees from the database
   return {
-    employees: dbEmployees,
-    loading: false,
-    error: null,
+    employees: data?.employees || [],
+    loading,
+    error,
   };
 }
 

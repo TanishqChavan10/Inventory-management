@@ -68,10 +68,6 @@ export const GET_TRANSACTION = gql`
       customer_id
       name
       phone_number
-      email
-      address
-      loyalty_points
-      total_purchases
       created_date
     }
     

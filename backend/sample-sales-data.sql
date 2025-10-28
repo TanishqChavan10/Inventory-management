@@ -39,13 +39,13 @@ INSERT INTO employee (employee_id, name) VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Insert sample customers
-INSERT INTO customer (customer_id, name, phone_number, email, total_purchases, loyalty_points) VALUES 
-  ('CUST001', 'Alice Johnson', '1234567890', 'alice@email.com', 0, 0),
-  ('CUST002', 'Bob Wilson', '0987654321', 'bob@email.com', 0, 0),
-  ('CUST003', 'Carol Brown', '1122334455', 'carol@email.com', 0, 0)
-ON DUPLICATE KEY UPDATE 
-  name = VALUES(name),
-  phone_number = VALUES(phone_number);
+INSERT INTO customers (customer_id, name, phone_number) VALUES 
+  ('CUST001', 'Alice Johnson', '1234567890'),
+  ('CUST002', 'Bob Wilson', '0987654321'),
+  ('CUST003', 'Carol Brown', '1122334455')
+ON CONFLICT (customer_id) DO UPDATE SET 
+  name = EXCLUDED.name,
+  phone_number = EXCLUDED.phone_number;
 
 -- Insert sample transactions
 INSERT INTO transaction (transaction_id, employee_id, customer_id, payment_method, subtotal, discount_amount, tax_amount, total_amount, status, transaction_date) VALUES 

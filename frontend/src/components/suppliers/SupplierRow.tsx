@@ -7,20 +7,6 @@ import type { SupplierRowProps } from '@/types';
 export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
   const router = useRouter();
 
-  // Safely multiply totalValue by 10
-  const getMultipliedTotalValue = () => {
-    try {
-      const numericValue = parseFloat(supplier.totalValue.replace(/[^0-9.-]+/g, ''));
-      if (isNaN(numericValue)) return supplier.totalValue;
-
-      const multipliedValue = numericValue * 10;
-      // Format in Indian currency format
-      return `₹${multipliedValue.toLocaleString('en-IN')}`;
-    } catch {
-      return supplier.totalValue;
-    }
-  };
-
   const handleRowClick = () => {
     router.push(`/suppliers/${supplier.id}`);
   };
@@ -48,7 +34,7 @@ export function SupplierRow({ supplier, onEdit, onDelete }: SupplierRowProps) {
         </div>
       </td>
       <td className="py-3 px-4 text-gray-900 dark:text-white">{supplier.orders}</td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white">{getMultipliedTotalValue()}</td>
+      <td className="py-3 px-4 text-gray-900 dark:text-white">{supplier.totalValue}</td>
       <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{supplier.lastOrder}</td>
       <td className="py-3 px-4">
         <Badge

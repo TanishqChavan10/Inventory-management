@@ -17,7 +17,7 @@ export const GET_CUSTOMERS = gql`
       customer_id
       name
       phone_number
-      email
+      created_date
     }
   }
 `;

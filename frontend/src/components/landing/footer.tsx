@@ -21,10 +21,10 @@ export default function Footer() {
           <span>
             Phone:{" "}
             <a
-              href="tel:+911234567890"
+              href="tel:+918828285194"
               className="hover:underline text-white"
             >
-              +91 12345 67890
+              +91 88282 85194
             </a>
           </span>
         </div>
