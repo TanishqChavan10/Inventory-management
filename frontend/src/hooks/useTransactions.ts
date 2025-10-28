@@ -27,7 +27,6 @@ export interface TransactionFilters {
   limit?: number;
   status?: string;
   customer_id?: string;
-  transaction_date?: string;
 }
 
 export function useTransactions(filters: TransactionFilters = {}) {
@@ -41,8 +40,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
       page: filters.page || 1,
       limit: filters.limit || 10,
       status: filters.status || null,
-      customer_id: filters.customer_id || null,
-      transaction_date: filters.transaction_date || null
+      customer_id: filters.customer_id || null
     },
     fetchPolicy: 'cache-and-network',
   });

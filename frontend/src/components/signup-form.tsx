@@ -151,7 +151,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="fullName">Full Name (Optional)</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
                   id="fullName"
                   name="fullName"

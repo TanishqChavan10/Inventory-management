@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product } from './product.entity';
@@ -15,14 +15,18 @@ export class ProductService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createProductInput: CreateProductInput): Promise<Product> {
+  async create(createProductInput: CreateProductInput, userId: string): Promise<Product> {
     const { categoryIds, ...productData } = createProductInput;
     
-    const product = this.productRepository.create(productData);
+    const product = this.productRepository.create({
+      ...productData,
+      userId, // Set the owner
+    });
 
     if (categoryIds && categoryIds.length > 0) {
       const categories = await this.categoryRepository.findBy({
         category_id: In(categoryIds),
+        userId, // Only use user's own categories
       });
       product.categories = categories;
     }
@@ -30,15 +34,16 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
+  async findAll(userId: string): Promise<Product[]> {
     return await this.productRepository.find({
+      where: { userId }, // Filter by user
       relations: ['categories'],
     });
   }
 
-  async findOne(id: number): Promise<Product> {
+  async findOne(id: number, userId: string): Promise<Product> {
     const product = await this.productRepository.findOne({
-      where: { product_id: id },
+      where: { product_id: id, userId }, // Filter by user
       relations: ['categories'],
     });
 
@@ -49,9 +54,9 @@ export class ProductService {
     return product;
   }
 
-  async update(id: number, updateProductInput: UpdateProductInput): Promise<Product> {
+  async update(id: number, updateProductInput: UpdateProductInput, userId: string): Promise<Product> {
     const { categoryIds, ...productData } = updateProductInput;
-    const product = await this.findOne(id);
+    const product = await this.findOne(id, userId);
 
     Object.assign(product, productData);
 
@@ -59,6 +64,7 @@ export class ProductService {
       if (categoryIds.length > 0) {
         const categories = await this.categoryRepository.findBy({
           category_id: In(categoryIds),
+          userId, // Only use user's own categories
         });
         product.categories = categories;
       } else {
@@ -69,53 +75,57 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async remove(id: number): Promise<boolean> {
-    const product = await this.findOne(id);
+  async remove(id: number, userId: string): Promise<boolean> {
+    const product = await this.findOne(id, userId);
     await this.productRepository.remove(product);
     return true;
   }
 
-  async findByName(name: string): Promise<Product[]> {
+  async findByName(name: string, userId: string): Promise<Product[]> {
     return await this.productRepository.find({
-      where: { product_name: name },
+      where: { product_name: name, userId }, // Filter by user
       relations: ['categories'],
     });
   }
 
-  async searchByName(searchTerm: string): Promise<Product[]> {
+  async searchByName(searchTerm: string, userId: string): Promise<Product[]> {
     return await this.productRepository
       .createQueryBuilder('product')
       .where('product.product_name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+      .andWhere('product.userId = :userId', { userId }) // Filter by user
       .leftJoinAndSelect('product.categories', 'categories')
       .getMany();
   }
 
-  async findLowStockProducts(): Promise<Product[]> {
+  async findLowStockProducts(userId: string): Promise<Product[]> {
     return await this.productRepository
       .createQueryBuilder('product')
       .where('product.stock <= product.min_stock')
+      .andWhere('product.userId = :userId', { userId }) // Filter by user
       .leftJoinAndSelect('product.categories', 'categories')
       .getMany();
   }
 
-  async findByCategory(categoryId: number): Promise<Product[]> {
+  async findByCategory(categoryId: number, userId: string): Promise<Product[]> {
     return await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.categories', 'category')
       .where('category.category_id = :categoryId', { categoryId })
+      .andWhere('product.userId = :userId', { userId }) // Filter by user
       .getMany();
   }
 
-  async updateStock(id: number, quantity: number): Promise<Product> {
-    const product = await this.findOne(id);
+  async updateStock(id: number, quantity: number, userId: string): Promise<Product> {
+    const product = await this.findOne(id, userId);
     product.stock += quantity;
     return await this.productRepository.save(product);
   }
 
-  async getTotalValue(): Promise<number> {
+  async getTotalValue(userId: string): Promise<number> {
     const result = await this.productRepository
       .createQueryBuilder('product')
       .select('SUM(product.stock * product.default_price)', 'total')
+      .where('product.userId = :userId', { userId }) // Filter by user
       .getRawOne();
     
     return parseFloat(result.total) || 0;

@@ -12,24 +12,30 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createCategoryInput: CreateCategoryInput): Promise<Category> {
-    const category = this.categoryRepository.create(createCategoryInput);
+  async create(createCategoryInput: CreateCategoryInput, userId: string): Promise<Category> {
+    const category = this.categoryRepository.create({
+      ...createCategoryInput,
+      userId, // Set the owner
+    });
     return await this.categoryRepository.save(category);
   }
 
-  async findAll(): Promise<Category[]> {
+  async findAll(userId: string): Promise<Category[]> {
     return await this.categoryRepository.find({
+      where: { userId }, // Filter by user
       relations: ['products'],
     });
   }
 
-  async findAllSimple(): Promise<Category[]> {
-    return await this.categoryRepository.find();
+  async findAllSimple(userId: string): Promise<Category[]> {
+    return await this.categoryRepository.find({
+      where: { userId }, // Filter by user
+    });
   }
 
-  async findOne(id: number): Promise<Category> {
+  async findOne(id: number, userId: string): Promise<Category> {
     const category = await this.categoryRepository.findOne({
-      where: { category_id: id },
+      where: { category_id: id, userId }, // Filter by user
       relations: ['products'],
     });
 
@@ -40,30 +46,31 @@ export class CategoryService {
     return category;
   }
 
-  async update(id: number, updateCategoryInput: UpdateCategoryInput): Promise<Category> {
-    const category = await this.findOne(id);
+  async update(id: number, updateCategoryInput: UpdateCategoryInput, userId: string): Promise<Category> {
+    const category = await this.findOne(id, userId);
     
     Object.assign(category, updateCategoryInput);
     return await this.categoryRepository.save(category);
   }
 
-  async remove(id: number): Promise<boolean> {
-    const category = await this.findOne(id);
+  async remove(id: number, userId: string): Promise<boolean> {
+    const category = await this.findOne(id, userId);
     await this.categoryRepository.remove(category);
     return true;
   }
 
-  async findByName(name: string): Promise<Category[]> {
+  async findByName(name: string, userId: string): Promise<Category[]> {
     return await this.categoryRepository.find({
-      where: { name: name },
+      where: { name: name, userId }, // Filter by user
       relations: ['products'],
     });
   }
 
-  async searchByName(searchTerm: string): Promise<Category[]> {
+  async searchByName(searchTerm: string, userId: string): Promise<Category[]> {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .where('category.name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+      .andWhere('category.userId = :userId', { userId }) // Filter by user
       .leftJoinAndSelect('category.products', 'products')
       .getMany();
   }

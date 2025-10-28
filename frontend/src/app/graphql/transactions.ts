@@ -7,14 +7,12 @@ export const GET_TRANSACTIONS = gql`
     $limit: Int = 10
     $status: String
     $customer_id: String
-    $transaction_date: String
   ) {
     transactions(
       page: $page
       limit: $limit
       status: $status
       customer_id: $customer_id
-      transaction_date: $transaction_date
     ) {
       transaction_id
       transaction_date

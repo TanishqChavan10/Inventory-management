@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Product } from '../../inventory/product/product.entity';
+import { Category } from '../../inventory/category/category.entity';
+import { Supplier } from '../../supplier/supplier.entity';
+import { Shipment } from '../../supplier/shipment.entity';
+import { Transaction } from '../../transaction/transaction.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -21,7 +26,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   fullName: string;
 
   @Column({
@@ -42,4 +47,20 @@ export class User {
 
   @Column({ nullable: true })
   lastLogin: Date;
+
+  // Relationships for multi-tenant data isolation
+  @OneToMany(() => Product, product => product.user)
+  products: Product[];
+
+  @OneToMany(() => Category, category => category.user)
+  categories: Category[];
+
+  @OneToMany(() => Supplier, supplier => supplier.user)
+  suppliers: Supplier[];
+
+  @OneToMany(() => Shipment, shipment => shipment.user)
+  shipments: Shipment[];
+
+  @OneToMany(() => Transaction, transaction => transaction.user)
+  transactions: Transaction[];
 }

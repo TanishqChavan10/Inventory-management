@@ -24,7 +24,7 @@ export class TransactionService {
     private dataSource: DataSource,
   ) {}
 
-  async createTransaction(createTransactionInput: CreateTransactionInput): Promise<Transaction> {
+  async createTransaction(createTransactionInput: CreateTransactionInput, userId: string): Promise<Transaction> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -63,9 +63,11 @@ export class TransactionService {
         customer_id = customer.customer_id;
       }
 
-      // Validate products and check stock
+      // Validate products and check stock (only user's products)
       const productIds = createTransactionInput.items.map(item => item.product_id);
-      const products = await this.productRepository.findByIds(productIds);
+      const products = await this.productRepository.find({
+        where: productIds.map(id => ({ product_id: id, userId })) as any
+      });
       
       if (products.length !== productIds.length) {
         throw new NotFoundException('One or more products not found');
@@ -99,7 +101,7 @@ export class TransactionService {
       const tax_amount = afterDiscount * gstRate;
       const total_amount = afterDiscount + tax_amount;
 
-      // Create transaction
+      // Create transaction with userId
       const transaction = this.transactionRepository.create({
         transaction_id: createTransactionInput.transaction_id,
         payment_method: createTransactionInput.payment_method as any,
@@ -112,6 +114,7 @@ export class TransactionService {
         total_amount,
         status: TransactionStatus.COMPLETED,
         transaction_date: new Date(),
+        userId, // Set the owner
       });
 
       const savedTransaction = await queryRunner.manager.save(transaction);
@@ -135,10 +138,10 @@ export class TransactionService {
         await queryRunner.manager.save(transactionItem);
         transactionItems.push(transactionItem);
 
-        // Update product stock
+        // Update product stock (only user's products)
         await queryRunner.manager.decrement(
           Product,
-          { product_id: item.product_id },
+          { product_id: item.product_id, userId },
           'stock',
           item.quantity
         );
@@ -157,7 +160,7 @@ export class TransactionService {
       await queryRunner.commitTransaction();
 
       // Return the complete transaction with relations
-      return this.findOne(savedTransaction.transaction_id);
+      return this.findOne(savedTransaction.transaction_id, userId);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -166,12 +169,13 @@ export class TransactionService {
     }
   }
 
-  async findAll(page: number = 1, limit: number = 10, status?: string, customer_id?: string): Promise<Transaction[]> {
+  async findAll(page: number = 1, limit: number = 10, status: string | undefined, customer_id: string | undefined, userId: string): Promise<Transaction[]> {
     const queryBuilder = this.transactionRepository.createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.customer', 'customer')
       .leftJoinAndSelect('transaction.employee', 'employee')
       .leftJoinAndSelect('transaction.items', 'items')
       .leftJoinAndSelect('items.product', 'product')
+      .where('transaction.userId = :userId', { userId }) // Filter by user
       .orderBy('transaction.transaction_date', 'DESC');
 
     if (status) {
@@ -188,9 +192,9 @@ export class TransactionService {
       .getMany();
   }
 
-  async findOne(transaction_id: string): Promise<Transaction> {
+  async findOne(transaction_id: string, userId: string): Promise<Transaction> {
     const transaction = await this.transactionRepository.findOne({
-      where: { transaction_id },
+      where: { transaction_id, userId }, // Filter by user
       relations: ['customer', 'employee', 'items', 'items.product', 'items.product.categories'],
     });
 
@@ -201,23 +205,23 @@ export class TransactionService {
     return transaction;
   }
 
-  async findByCustomer(customer_id: string): Promise<Transaction[]> {
+  async findByCustomer(customer_id: string, userId: string): Promise<Transaction[]> {
     return this.transactionRepository.find({
-      where: { customer_id },
+      where: { customer_id, userId }, // Filter by user
       relations: ['customer', 'employee', 'items', 'items.product'],
       order: { transaction_date: 'DESC' },
     });
   }
 
-  async findByEmployee(employee_id: string): Promise<Transaction[]> {
+  async findByEmployee(employee_id: string, userId: string): Promise<Transaction[]> {
     return this.transactionRepository.find({
-      where: { employee_id },
+      where: { employee_id, userId }, // Filter by user
       relations: ['customer', 'employee', 'items', 'items.product'],
       order: { transaction_date: 'DESC' },
     });
   }
 
-  async getDailySales(date?: Date): Promise<{ total_sales: number; transaction_count: number }> {
+  async getDailySales(date: Date | undefined, userId: string): Promise<{ total_sales: number; transaction_count: number }> {
     const targetDate = date || new Date();
     const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
@@ -231,6 +235,7 @@ export class TransactionService {
         end: endOfDay,
       })
       .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .getRawOne();
 
     return {
@@ -290,7 +295,7 @@ export class TransactionService {
   }
 
   // Sales Analytics Methods
-  async getSalesOverview(): Promise<{
+  async getSalesOverview(userId: string): Promise<{
     totalRevenue: number;
     totalTransactions: number;
     avgOrderValue: number;
@@ -316,6 +321,7 @@ export class TransactionService {
         end: endDate,
       })
       .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .getRawOne();
 
     const previousPeriod = await this.transactionRepository
@@ -326,6 +332,7 @@ export class TransactionService {
         end: previousEndDate,
       })
       .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .getRawOne();
 
     const currentRevenue = parseFloat(currentPeriod.total_revenue) || 0;
@@ -340,7 +347,7 @@ export class TransactionService {
     };
   }
 
-  async getTopProducts(limit: number = 5): Promise<Array<{
+  async getTopProducts(limit: number = 5, userId: string): Promise<Array<{
     product_id: number;
     product_name: string;
     category_name: string;
@@ -361,6 +368,7 @@ export class TransactionService {
       .addSelect('SUM(item.unit_price * item.quantity - item.discount)', 'revenue')
       .addSelect('AVG(item.unit_price)', 'avg_price')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .groupBy('item.product_id')
       .addGroupBy('product.product_name')
       .addGroupBy('category.name')
@@ -379,7 +387,7 @@ export class TransactionService {
     }));
   }
 
-  async getPaymentMethodStats(): Promise<Array<{
+  async getPaymentMethodStats(userId: string): Promise<Array<{
     method: string;
     count: number;
     total_amount: number;
@@ -389,6 +397,7 @@ export class TransactionService {
       .createQueryBuilder('transaction')
       .select('SUM(transaction.total_amount)', 'total')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .getRawOne();
 
     const totalAmount = parseFloat(totalResult.total) || 0;
@@ -399,6 +408,7 @@ export class TransactionService {
       .addSelect('COUNT(transaction.transaction_id)', 'count')
       .addSelect('SUM(transaction.total_amount)', 'total_amount')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .groupBy('transaction.payment_method')
       .orderBy('SUM(transaction.total_amount)', 'DESC')
       .getRawMany();
@@ -411,7 +421,7 @@ export class TransactionService {
     }));
   }
 
-  async getRevenueByCategory(): Promise<Array<{
+  async getRevenueByCategory(userId: string): Promise<Array<{
     category: string;
     revenue: number;
     percentage: number;
@@ -421,6 +431,7 @@ export class TransactionService {
       .leftJoin('item.transaction', 'transaction')
       .select('SUM(item.unit_price * item.quantity - item.discount)', 'total')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .getRawOne();
 
     const totalRevenue = parseFloat(totalResult.total) || 0;
@@ -433,6 +444,7 @@ export class TransactionService {
       .select('category.name', 'category')
       .addSelect('SUM(item.unit_price * item.quantity - item.discount)', 'revenue')
       .where('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.userId = :userId', { userId }) // Filter by user
       .groupBy('category.name')
       .orderBy('SUM(item.unit_price * item.quantity - item.discount)', 'DESC')
       .getRawMany();

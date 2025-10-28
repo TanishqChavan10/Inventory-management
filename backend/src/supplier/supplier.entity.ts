@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { Shipment } from './shipment.entity';
 import { Category } from '../inventory/category/category.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -39,6 +40,14 @@ export class Supplier {
 
   @UpdateDateColumn()
   updated_date: Date;
+
+  // Multi-tenant: Each supplier belongs to a user
+  @Column({ nullable: true })
+  userId: string;
+
+  @ManyToOne(() => User, user => user.suppliers)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   // Relationships
   @OneToMany(() => Shipment, shipment => shipment.supplier)

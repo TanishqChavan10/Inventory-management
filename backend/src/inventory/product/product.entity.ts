@@ -1,5 +1,6 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from '../category/category.entity';
+import { User } from '../../auth/entities/user.entity';
 
 
 @Entity()
@@ -18,6 +19,14 @@ export class Product {
 
   @Column()
   min_stock: number;
+
+  // Multi-tenant: Each product belongs to a user
+  @Column({ nullable: true })
+  userId: string;
+
+  @ManyToOne(() => User, user => user.products)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   // A product can belong to many categories
   @ManyToMany(() => Category, (category) => category.products)

@@ -32,7 +32,7 @@ export class ShipmentService {
     return { mfg_date, expiry_date };
   }
 
-  async create(createShipmentInput: CreateShipmentInput): Promise<Shipment> {
+  async create(createShipmentInput: CreateShipmentInput, userId: string): Promise<Shipment> {
     const { items, ...shipmentData } = createShipmentInput;
     
     console.log('🔄 Creating shipment with data:', { 
@@ -50,8 +50,11 @@ export class ShipmentService {
     // Use transaction to ensure data consistency
     await this.dataSource.transaction(async manager => {
       try {
-        // Create and save shipment
-        const shipment = manager.create(Shipment, shipmentData);
+        // Create and save shipment with userId
+        const shipment = manager.create(Shipment, {
+          ...shipmentData,
+          userId, // Set the owner
+        });
         const savedShipment = await manager.save(shipment);
         shipmentId = savedShipment.shipment_id;
         
@@ -72,11 +75,11 @@ export class ShipmentService {
         await manager.save(ShipmentItem, shipmentItems);
         console.log('✅ Shipment items saved:', shipmentItems.length);
 
-        // Update inventory stock for each shipment item
+        // Update inventory stock for each shipment item (only user's products)
         for (const item of shipmentItems) {
-          // Find the product by product_id
+          // Find the product by product_id and userId
           const product = await manager.findOne(Product, {
-            where: { product_id: parseInt(item.product_id) }
+            where: { product_id: parseInt(item.product_id), userId }
           });
 
           if (product) {
@@ -103,14 +106,15 @@ export class ShipmentService {
     }
     
     console.log('🔍 Loading shipment with relations for ID:', shipmentId);
-    return await this.findOne(shipmentId);
+    return await this.findOne(shipmentId, userId);
   }
 
-  async findAll(page: number = 1, limit: number = 10, supplier_id?: string): Promise<Shipment[]> {
-    const queryBuilder = this.shipmentRepository.createQueryBuilder('shipment');
+  async findAll(page: number = 1, limit: number = 10, supplier_id: string | undefined, userId: string): Promise<Shipment[]> {
+    const queryBuilder = this.shipmentRepository.createQueryBuilder('shipment')
+      .where('shipment.userId = :userId', { userId }); // Filter by user
 
     if (supplier_id) {
-      queryBuilder.where('shipment.supplier_id = :supplier_id', { supplier_id });
+      queryBuilder.andWhere('shipment.supplier_id = :supplier_id', { supplier_id });
     }
 
     return await queryBuilder
@@ -121,9 +125,9 @@ export class ShipmentService {
       .getMany();
   }
 
-  async findOne(shipment_id: string): Promise<Shipment> {
+  async findOne(shipment_id: string, userId: string): Promise<Shipment> {
     const shipment = await this.shipmentRepository.findOne({
-      where: { shipment_id },
+      where: { shipment_id, userId }, // Filter by user
       relations: ['supplier', 'shipmentItems'],
     });
 
@@ -134,25 +138,27 @@ export class ShipmentService {
     return shipment;
   }
 
-  async findBySupplier(supplier_id: string): Promise<Shipment[]> {
+  async findBySupplier(supplier_id: string, userId: string): Promise<Shipment[]> {
     return await this.shipmentRepository.find({
-      where: { supplier_id },
+      where: { supplier_id, userId }, // Filter by user
       relations: ['shipmentItems'],
       order: { received_date: 'DESC' },
     });
   }
 
-  async updatePaymentStatus(shipment_id: string, payment_status: 'Pending' | 'Paid' | 'Failed'): Promise<Shipment> {
+  async updatePaymentStatus(shipment_id: string, payment_status: 'Pending' | 'Paid' | 'Failed', userId: string): Promise<Shipment> {
+    // Verify ownership first
+    await this.findOne(shipment_id, userId);
     await this.shipmentRepository.update(shipment_id, { payment_status });
-    return await this.findOne(shipment_id);
+    return await this.findOne(shipment_id, userId);
   }
 
-  async remove(shipment_id: string): Promise<Shipment> {
+  async remove(shipment_id: string, userId: string): Promise<Shipment> {
     // Use transaction to ensure data consistency
     return await this.dataSource.transaction(async manager => {
-      // Get the shipment with its items before deletion
+      // Get the shipment with its items before deletion (verify ownership)
       const shipment = await manager.findOne(Shipment, {
-        where: { shipment_id },
+        where: { shipment_id, userId }, // Filter by user
         relations: ['shipmentItems'],
       });
 
@@ -160,10 +166,10 @@ export class ShipmentService {
         throw new NotFoundException(`Shipment with ID ${shipment_id} not found`);
       }
 
-      // Decrease inventory stock for each shipment item
+      // Decrease inventory stock for each shipment item (only user's products)
       for (const item of shipment.shipmentItems) {
         const product = await manager.findOne(Product, {
-          where: { product_id: parseInt(item.product_id) }
+          where: { product_id: parseInt(item.product_id), userId }
         });
 
         if (product) {

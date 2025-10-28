@@ -53,9 +53,9 @@ export default function TransactionsListPage() {
   // New Transaction Form State
   const [isNewTransactionFormOpen, setIsNewTransactionFormOpen] = useState(false);
 
-  // Fetch transactions from GraphQL with date filter
+  // Fetch transactions from GraphQL
   const {
-    transactions = [],
+    transactions: allTransactions = [],
     loading,
     error,
     refetch,
@@ -63,8 +63,19 @@ export default function TransactionsListPage() {
     page: currentPage,
     limit: itemsPerPage,
     status: statusFilter || undefined,
-    transaction_date: date ? date.toISOString().split('T')[0] : undefined,
   });
+
+  // Filter transactions by date on client side
+  const transactions = useMemo(() => {
+    if (!date) return allTransactions;
+
+    const selectedDate = date.toISOString().split('T')[0];
+    return allTransactions.filter((t: any) => {
+      if (!t.transaction_date) return false;
+      const transactionDate = new Date(t.transaction_date).toISOString().split('T')[0];
+      return transactionDate === selectedDate;
+    });
+  }, [allTransactions, date]);
 
   // Handle fetch errors
   useEffect(() => {
@@ -200,10 +211,9 @@ export default function TransactionsListPage() {
         page,
         limit: itemsPerPage,
         status: statusFilter || undefined,
-        transaction_date: date ? date.toISOString().split('T')[0] : undefined,
       });
     },
-    [setCurrentPage, refetch, itemsPerPage, statusFilter, date],
+    [setCurrentPage, refetch, itemsPerPage, statusFilter],
   );
 
   // Get total count from response or calculate based on available data
@@ -358,15 +368,7 @@ export default function TransactionsListPage() {
                       setDate(newDate);
                       setCurrentPage(1); // Reset to first page when date changes
                       setOpen(false);
-                      // Refetch transactions with the new date
-                      if (newDate) {
-                        refetch({
-                          page: 1,
-                          limit: itemsPerPage,
-                          status: statusFilter || undefined,
-                          transaction_date: newDate.toISOString().split('T')[0],
-                        });
-                      }
+                      // Date filtering is now handled client-side
                     }}
                   />
                 </PopoverContent>
@@ -377,13 +379,7 @@ export default function TransactionsListPage() {
                   onClick={() => {
                     setDate(undefined);
                     setCurrentPage(1); // Reset to first page
-                    // Refetch without date filter
-                    refetch({
-                      page: 1,
-                      limit: itemsPerPage,
-                      status: statusFilter || undefined,
-                      transaction_date: undefined,
-                    });
+                    // Date filtering is now handled client-side
                   }}
                 >
                   Reset

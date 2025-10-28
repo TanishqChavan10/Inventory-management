@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, ID, Int, ResolveField, Parent } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { TransactionModel, CustomerModel, EmployeeModel, TransactionItemModel } from './models/transaction.model';
 import { 
@@ -10,24 +11,32 @@ import {
 } from './models/analytics.model';
 import { CreateTransactionInput, CreateCustomerInput, CreateEmployeeInput } from './dto/create-transaction.input';
 import { Transaction } from './transaction.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from '../auth/entities/user.entity';
 
 @Resolver(() => TransactionModel)
+@UseGuards(JwtAuthGuard)
 export class TransactionResolver {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Mutation(() => TransactionModel, { name: 'createTransaction' })
-  createTransaction(@Args('createTransactionInput') createTransactionInput: CreateTransactionInput) {
-    return this.transactionService.createTransaction(createTransactionInput);
+  createTransaction(
+    @Args('createTransactionInput') createTransactionInput: CreateTransactionInput,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionService.createTransaction(createTransactionInput, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactions' })
   findAll(
-    @Args('page', { type: () => Int, defaultValue: 1 }) page?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
-    @Args('status', { type: () => String, nullable: true }) status?: string,
-    @Args('customer_id', { type: () => String, nullable: true }) customer_id?: string,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
+    @Args('status', { type: () => String, nullable: true }) status: string | undefined,
+    @Args('customer_id', { type: () => String, nullable: true }) customer_id: string | undefined,
+    @CurrentUser() user: User,
   ) {
-    return this.transactionService.findAll(page, limit, status, customer_id);
+    return this.transactionService.findAll(page, limit, status, customer_id, user.id);
   }
   
   @ResolveField(() => String, { nullable: true })
@@ -45,48 +54,60 @@ export class TransactionResolver {
   }
 
   @Query(() => TransactionModel, { name: 'transaction' })
-  findOne(@Args('transaction_id', { type: () => ID }) transaction_id: string) {
-    return this.transactionService.findOne(transaction_id);
+  findOne(
+    @Args('transaction_id', { type: () => ID }) transaction_id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionService.findOne(transaction_id, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactionsByCustomer' })
-  findByCustomer(@Args('customer_id', { type: () => ID }) customer_id: string) {
-    return this.transactionService.findByCustomer(customer_id);
+  findByCustomer(
+    @Args('customer_id', { type: () => ID }) customer_id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionService.findByCustomer(customer_id, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactionsByEmployee' })
-  findByEmployee(@Args('employee_id', { type: () => ID }) employee_id: string) {
-    return this.transactionService.findByEmployee(employee_id);
+  findByEmployee(
+    @Args('employee_id', { type: () => ID }) employee_id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionService.findByEmployee(employee_id, user.id);
   }
 
   // Sales Analytics Queries
   @Query(() => SalesOverviewModel, { name: 'salesOverview' })
-  getSalesOverview() {
-    return this.transactionService.getSalesOverview();
+  getSalesOverview(@CurrentUser() user: User) {
+    return this.transactionService.getSalesOverview(user.id);
   }
 
   @Query(() => [TopProductModel], { name: 'topProducts' })
-  getTopProducts(@Args('limit', { type: () => Int, defaultValue: 5 }) limit: number) {
-    return this.transactionService.getTopProducts(limit);
+  getTopProducts(
+    @Args('limit', { type: () => Int, defaultValue: 5 }) limit: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionService.getTopProducts(limit, user.id);
   }
 
   @Query(() => [PaymentMethodStatsModel], { name: 'paymentMethodStats' })
-  getPaymentMethodStats() {
-    return this.transactionService.getPaymentMethodStats();
+  getPaymentMethodStats(@CurrentUser() user: User) {
+    return this.transactionService.getPaymentMethodStats(user.id);
   }
 
   @Query(() => [RevenueByCategoryModel], { name: 'revenueByCategory' })
-  getRevenueByCategory() {
-    return this.transactionService.getRevenueByCategory();
+  getRevenueByCategory(@CurrentUser() user: User) {
+    return this.transactionService.getRevenueByCategory(user.id);
   }
 
   @Query(() => SalesAnalyticsModel, { name: 'salesAnalytics' })
-  async getSalesAnalytics(): Promise<SalesAnalyticsModel> {
+  async getSalesAnalytics(@CurrentUser() user: User): Promise<SalesAnalyticsModel> {
     const [overview, topProducts, paymentMethods, revenueByCategory] = await Promise.all([
-      this.transactionService.getSalesOverview(),
-      this.transactionService.getTopProducts(5),
-      this.transactionService.getPaymentMethodStats(),
-      this.transactionService.getRevenueByCategory(),
+      this.transactionService.getSalesOverview(user.id),
+      this.transactionService.getTopProducts(5, user.id),
+      this.transactionService.getPaymentMethodStats(user.id),
+      this.transactionService.getRevenueByCategory(user.id),
     ]);
 
     return {

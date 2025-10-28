@@ -2,6 +2,7 @@ import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn, Create
 import { Customer } from './customer.entity';
 import { Employee } from './employee.entity';
 import { TransactionItem } from './transaction-item.entity';
+import { User } from '../auth/entities/user.entity';
 
 export enum PaymentMethod {
   CASH = 'Cash',
@@ -60,6 +61,14 @@ export class Transaction {
 
   @Column({ nullable: true })
   notes: string;
+
+  // Multi-tenant: Each transaction belongs to a user
+  @Column({ nullable: true })
+  userId: string;
+
+  @ManyToOne(() => User, user => user.transactions)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @ManyToOne(() => Customer, customer => customer.transactions, { nullable: true })
   @JoinColumn({ name: 'customer_id' })

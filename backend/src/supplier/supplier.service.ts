@@ -22,12 +22,13 @@ export class SupplierService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createSupplierInput: CreateSupplierInput): Promise<Supplier> {
+  async create(createSupplierInput: CreateSupplierInput, userId: string): Promise<Supplier> {
     try {
       // Convert empty string to undefined for registration_number to avoid unique constraint issues
       const supplierData = {
         ...createSupplierInput,
         registration_number: createSupplierInput.registration_number?.trim() || undefined,
+        userId, // Set the owner
       };
       
       const supplier = this.supplierRepository.create(supplierData);
@@ -42,12 +43,13 @@ export class SupplierService {
     }
   }
 
-  async findAll(page: number = 1, limit: number = 10, status?: string): Promise<Supplier[]> {
+  async findAll(page: number = 1, limit: number = 10, status: string | undefined, userId: string): Promise<Supplier[]> {
     const queryBuilder = this.supplierRepository.createQueryBuilder('supplier')
-      .leftJoinAndSelect('supplier.category', 'category');
+      .leftJoinAndSelect('supplier.category', 'category')
+      .where('supplier.userId = :userId', { userId }); // Filter by user
 
     if (status) {
-      queryBuilder.where('supplier.status = :status', { status });
+      queryBuilder.andWhere('supplier.status = :status', { status });
     }
 
     return await queryBuilder
@@ -57,9 +59,9 @@ export class SupplierService {
       .getMany();
   }
 
-  async findOne(supplier_id: string): Promise<Supplier> {
+  async findOne(supplier_id: string, userId: string): Promise<Supplier> {
     const supplier = await this.supplierRepository.findOne({
-      where: { supplier_id },
+      where: { supplier_id, userId }, // Filter by user
       relations: ['shipments', 'category'],
     });
 
@@ -70,19 +72,23 @@ export class SupplierService {
     return supplier;
   }
 
-  async findProductsBySupplierCategory(supplier_id: string): Promise<Product[]> {
-    const supplier = await this.findOne(supplier_id);
+  async findProductsBySupplierCategory(supplier_id: string, userId: string): Promise<Product[]> {
+    const supplier = await this.findOne(supplier_id, userId);
     
     return await this.productRepository
       .createQueryBuilder('product')
       .innerJoin('product.categories', 'category')
       .where('category.category_id = :categoryId', { categoryId: supplier.category_id })
+      .andWhere('product.userId = :userId', { userId }) // Filter by user
       .getMany();
   }
 
-  async update(updateSupplierInput: UpdateSupplierInput): Promise<Supplier> {
+  async update(updateSupplierInput: UpdateSupplierInput, userId: string): Promise<Supplier> {
     try {
       const { supplier_id, ...updateData } = updateSupplierInput;
+      
+      // Verify ownership
+      await this.findOne(supplier_id, userId);
       
       // Convert empty string to undefined for registration_number to avoid unique constraint issues
       if ('registration_number' in updateData) {
@@ -96,7 +102,7 @@ export class SupplierService {
       
       await this.supplierRepository.update(supplier_id, updateData);
       
-      const updatedSupplier = await this.findOne(supplier_id);
+      const updatedSupplier = await this.findOne(supplier_id, userId);
       return updatedSupplier;
     } catch (error) {
       // Handle unique constraint violation for registration_number
@@ -108,14 +114,14 @@ export class SupplierService {
     }
   }
 
-  async remove(supplier_id: string): Promise<Supplier> {
-    const supplier = await this.findOne(supplier_id);
+  async remove(supplier_id: string, userId: string): Promise<Supplier> {
+    const supplier = await this.findOne(supplier_id, userId);
     
     // Use transaction to ensure data consistency
     await this.dataSource.transaction(async manager => {
       // First, get all shipments for this supplier
       const shipments = await manager.find(Shipment, {
-        where: { supplier_id },
+        where: { supplier_id, userId }, // Filter by user
         select: ['shipment_id']
       });
       
@@ -141,12 +147,13 @@ export class SupplierService {
     return supplier;
   }
 
-  async getSupplierStats(supplier_id: string): Promise<any> {
+  async getSupplierStats(supplier_id: string, userId: string): Promise<any> {
     const supplier = await this.supplierRepository
       .createQueryBuilder('supplier')
       .leftJoinAndSelect('supplier.shipments', 'shipment')
       .leftJoinAndSelect('supplier.category', 'category')
       .where('supplier.supplier_id = :supplier_id', { supplier_id })
+      .andWhere('supplier.userId = :userId', { userId }) // Filter by user
       .getOne();
 
     if (!supplier) {
