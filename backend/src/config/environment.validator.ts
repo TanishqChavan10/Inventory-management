@@ -1,45 +1,25 @@
 import { ConfigService } from '@nestjs/config';
+import { validateEnvironment } from './env.schema';
 
 /**
  * Environment Configuration Validator
- * This utility helps validate that all required environment variables are set
+ * This utility validates environment variables using Joi schema
  */
 export class EnvironmentValidator {
   constructor(private configService: ConfigService) {}
 
   validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const requiredEnvVars = [
-      'DATABASE_URL',
-      'JWT_SECRET'
-    ];
 
-    // Check required variables
-    requiredEnvVars.forEach(envVar => {
-      const value = this.configService.get(envVar);
-      if (!value || value === '') {
-        errors.push(`Missing required environment variable: ${envVar}`);
-      }
-    });
+    // Get all environment variables
+    const envVars = this.configService.get<Record<string, any>>('');
 
-    // Validate JWT secret strength
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
-    if (jwtSecret && jwtSecret.length < 32) {
-      errors.push('JWT_SECRET should be at least 32 characters long for security');
-    }
+    // Validate using Joi schema
+    const { error } = validateEnvironment(envVars || {});
 
-    // Production-specific validations
-    const nodeEnv = this.configService.get<string>('NODE_ENV');
-    if (nodeEnv === 'production') {
-      const dbSync = this.configService.get<boolean>('DB_SYNCHRONIZE');
-      if (dbSync === true) {
-        errors.push('DB_SYNCHRONIZE should be false in production environment');
-      }
-
-      const playground = this.configService.get<boolean>('GRAPHQL_PLAYGROUND');
-      if (playground === true) {
-        errors.push('GRAPHQL_PLAYGROUND should be false in production environment');
-      }
+    if (error) {
+      // Extract error messages from Joi validation
+      errors.push(...error.details.map(detail => detail.message));
     }
 
     return {

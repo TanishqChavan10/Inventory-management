@@ -31,9 +31,7 @@ export default function Navbar() {
           <ThemeToggle />
 
           {/* User Authentication Section */}
-          {isAuthenticated ? (
-            <UserButton appearance={darkMode ? { baseTheme: dark } : {}} />
-          ) : null}
+          {isAuthenticated ? <UserButton appearance={darkMode ? { baseTheme: dark } : {}} /> : null}
         </div>
         <button
           className="md:hidden ml-2"

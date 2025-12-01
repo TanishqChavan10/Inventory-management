@@ -29,25 +29,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         {/* --- 1) Theme Provider first for useTheme --- */}
         <ThemeProvider>
-        {/* --- 1) Theme Provider first for useTheme --- */}
-        <ThemeProvider>
-          {/* --- 2) Clerk with theme --- */}
-          <ClerkThemeProvider>
-            {/* --- 3) Apollo loads AFTER Clerk (prevents redirect loops) --- */}
-            <ApolloAppProvider>
-              {/* --- 4) Page wrapper handles animations only (safe) --- */}
-              <PageWrapper>
-                {/* --- 5) Layout wrapper for navbar/footer etc. --- */}
-                <AppLayoutWrapper>
-                  <main className="flex-1 min-h-screen">{children}</main>
-                </AppLayoutWrapper>
+          {/* --- 1) Theme Provider first for useTheme --- */}
+          <ThemeProvider>
+            {/* --- 2) Clerk with theme --- */}
+            <ClerkThemeProvider>
+              {/* --- 3) Apollo loads AFTER Clerk (prevents redirect loops) --- */}
+              <ApolloAppProvider>
+                {/* --- 4) Page wrapper handles animations only (safe) --- */}
+                <PageWrapper>
+                  {/* --- 5) Layout wrapper for navbar/footer etc. --- */}
+                  <AppLayoutWrapper>
+                    <main className="flex-1 min-h-screen">{children}</main>
+                  </AppLayoutWrapper>
 
-                {/* Toasts */}
-                <Toaster richColors position="top-center" />
-              </PageWrapper>
-            </ApolloAppProvider>
-          </ClerkThemeProvider>
-        </ThemeProvider>
+                  {/* Toasts */}
+                  <Toaster richColors position="top-center" />
+                </PageWrapper>
+              </ApolloAppProvider>
+            </ClerkThemeProvider>
+          </ThemeProvider>
         </ThemeProvider>
       </body>
     </html>
