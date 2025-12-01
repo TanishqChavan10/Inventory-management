@@ -59,7 +59,7 @@ function DashboardContent({
   >;
 }) {
   return (
-    <div className="px-32 py-8 min-h-screen bg-gray-50 dark:bg-neutral-950">
+    <div className="px-32 pt-8 min-h-screen bg-gray-50 dark:bg-neutral-950">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
@@ -83,9 +83,9 @@ function DashboardContent({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {loading
           ? // Loading skeletons
-            Array.from({ length: 6 }).map((_, index) => <StatCardSkeleton key={index} />)
+            Array.from({ length: 6 }).map((_, index: number) => <StatCardSkeleton key={index} />)
           : // Real data
-            stats.map((stat, index) => (
+            stats.map((stat: any, index: number) => (
               <StatCard key={index} stat={stat} onClick={() => setModal(stat.details)} />
             ))}
       </div>

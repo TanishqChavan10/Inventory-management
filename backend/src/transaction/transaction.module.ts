@@ -7,6 +7,7 @@ import { Employee } from './employee.entity';
 import { Product } from '../inventory/product/product.entity';
 import { TransactionService } from './transaction.service';
 import { TransactionResolver, CustomerResolver, EmployeeResolver } from './transaction.resolver';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TransactionResolver, CustomerResolver, EmployeeResolver } from './trans
       Employee,
       Product,
     ]),
+    AuthModule,
   ],
   providers: [
     TransactionService,

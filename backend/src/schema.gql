@@ -2,11 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type AuthResponse {
-  accessToken: String!
-  user: UserModel!
-}
-
 type Category {
   category_id: Int!
   name: String!
@@ -111,11 +106,6 @@ type EmployeeModel {
   transactions: [TransactionModel!]
 }
 
-input LoginInput {
-  password: String!
-  username: String!
-}
-
 type Mutation {
   addShipment(createShipmentInput: CreateShipmentInput!): ShipmentModel!
   addShipmentItem(createShipmentItemInput: CreateShipmentItemInput!): ShipmentItemModel!
@@ -131,8 +121,6 @@ type Mutation {
   deleteShipment(shipment_id: ID!): ShipmentModel!
   deleteShipmentItem(id: ID!): ShipmentItemModel!
   deleteSupplier(supplier_id: ID!): SupplierModel!
-  login(input: LoginInput!): AuthResponse!
-  register(input: RegisterInput!): AuthResponse!
   removeAllCategoriesFromProduct(productId: Int!): Boolean!
   removeAllProductsFromCategory(categoryId: Int!): Boolean!
   removeCategory(id: Int!): Boolean!
@@ -177,7 +165,7 @@ type Query {
   employees: [EmployeeModel!]!
   expiringShipmentItems(days: Int! = 30): [ShipmentItemModel!]!
   lowStockProducts: [Product!]!
-  me: UserModel!
+  me: UserModel
   paymentMethodStats: [PaymentMethodStatsModel!]!
   product(id: Int!): Product!
   productCategories: [ProductCategory!]!
@@ -208,13 +196,6 @@ type Query {
   transactions(customer_id: String, limit: Int! = 10, page: Int! = 1, status: String): [TransactionModel!]!
   transactionsByCustomer(customer_id: ID!): [TransactionModel!]!
   transactionsByEmployee(employee_id: ID!): [TransactionModel!]!
-}
-
-input RegisterInput {
-  email: String!
-  fullName: String
-  password: String!
-  username: String!
 }
 
 input RemoveProductCategoryInput {
@@ -356,13 +337,16 @@ input UpdateSupplierInput {
 }
 
 type UserModel {
+  clerkId: String!
   createdAt: DateTime!
   email: String!
-  fullName: String
+  firstName: String
   id: ID!
+  imageUrl: String
   isActive: Boolean!
   lastLogin: DateTime
+  lastName: String
   role: String!
   updatedAt: DateTime!
-  username: String!
+  username: String
 }

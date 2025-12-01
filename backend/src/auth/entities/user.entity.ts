@@ -18,16 +18,25 @@ export class User {
   id: string;
 
   @Column({ unique: true })
-  username: string;
-
-  @Column()
-  password: string;
+  clerkId: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: false })
-  fullName: string;
+  @Column({ nullable: true })
+  firstName: string;
+
+  @Column({ nullable: true })
+  lastName: string;
+
+  @Column({ nullable: true })
+  imageUrl: string;
+
+  @Column({ nullable: true })
+  username: string;
+
+  @Column({ nullable: true })
+  password: string;
 
   @Column({
     type: 'enum',

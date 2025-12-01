@@ -4,70 +4,81 @@ import { CategoryService } from './category.service';
 import { Category } from './category.model';
 import { CreateCategoryInput } from './dto/create-category.input';
 import { UpdateCategoryInput } from './dto/update-category.input';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { User } from '../../auth/entities/user.entity';
+import { ClerkAuthGuard } from '../../auth/guards/clerk-auth.guard';
+import { ClerkUser } from '../../auth/decorators/clerk-user.decorator';
+import { ClerkService } from '../../auth/clerk.service';
 
 @Resolver(() => Category)
-@UseGuards(JwtAuthGuard)
+@UseGuards(ClerkAuthGuard)
 export class CategoryResolver {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    private readonly categoryService: CategoryService,
+    private readonly clerkService: ClerkService,
+  ) {}
 
   @Mutation(() => Category)
   async createCategory(
     @Args('createCategoryInput') createCategoryInput: CreateCategoryInput,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.create(createCategoryInput, user.id);
   }
 
   @Query(() => [Category], { name: 'categories' })
-  async findAllCategories(@CurrentUser() user: User): Promise<Category[]> {
+  async findAllCategories(@ClerkUser() clerkUser: { clerkId: string }): Promise<Category[]> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findAll(user.id);
   }
 
   @Query(() => [Category], { name: 'categoriesSimple' })
-  async findAllCategoriesSimple(@CurrentUser() user: User): Promise<Category[]> {
+  async findAllCategoriesSimple(@ClerkUser() clerkUser: { clerkId: string }): Promise<Category[]> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findAllSimple(user.id);
   }
 
   @Query(() => Category, { name: 'category' })
   async findOneCategory(
     @Args('id', { type: () => Int }) id: number,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findOne(id, user.id);
   }
 
   @Query(() => [Category], { name: 'categoriesByName' })
   async findCategoriesByName(
     @Args('name') name: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category[]> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findByName(name, user.id);
   }
 
   @Query(() => [Category], { name: 'searchCategories' })
   async searchCategories(
     @Args('searchTerm') searchTerm: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category[]> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.searchByName(searchTerm, user.id);
   }
 
   @Mutation(() => Category)
   async updateCategory(
     @Args('updateCategoryInput') updateCategoryInput: UpdateCategoryInput,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.update(updateCategoryInput.category_id, updateCategoryInput, user.id);
   }
 
   @Mutation(() => Boolean)
   async removeCategory(
     @Args('id', { type: () => Int }) id: number,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<boolean> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.remove(id, user.id);
   }
 }

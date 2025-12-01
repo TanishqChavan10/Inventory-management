@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { MoveRight } from "lucide-react";
-import Link from "next/link";
+import { Button } from '@/components/ui/button';
+import { MoveRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function FinalCTA() {
   return (
@@ -8,7 +8,7 @@ export default function FinalCTA() {
       <h3 className="text-3xl md:text-4xl font-bold mb-8">
         Ready to transform inventory management?
       </h3>
-      <Link href="/login">
+      <Link href="/auth/sign-in">
         <Button
           size="lg"
           className="text-lg py-4 px-10 rounded-full bg-black text-white dark:bg-white dark:text-black hover:scale-[1.02] transition-all"

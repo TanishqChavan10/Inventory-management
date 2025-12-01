@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     if (!loading && !isAuthenticated) {
       // Add a small delay to prevent immediate redirect loops
       const timer = setTimeout(() => {
-        router.push('/login');
+        router.push('/auth/sign-in');
       }, 100);
       return () => clearTimeout(timer);
     }

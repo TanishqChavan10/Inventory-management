@@ -7,13 +7,22 @@ export class UserModel {
   id: string;
 
   @Field()
-  username: string;
+  clerkId: string;
 
   @Field()
   email: string;
 
   @Field({ nullable: true })
-  fullName?: string;
+  firstName?: string;
+
+  @Field({ nullable: true })
+  lastName?: string;
+
+  @Field({ nullable: true })
+  imageUrl?: string;
+
+  @Field({ nullable: true })
+  username?: string;
 
   @Field()
   role: string;

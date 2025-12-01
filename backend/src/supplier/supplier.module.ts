@@ -10,9 +10,10 @@ import { ShipmentItemService } from './shipment-item.service';
 import { SupplierResolver } from './supplier.resolver';
 import { ShipmentResolver } from './shipment.resolver';
 import { ShipmentItemResolver } from './shipment-item.resolver';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Supplier, Shipment, ShipmentItem, Product])],
+  imports: [TypeOrmModule.forFeature([Supplier, Shipment, ShipmentItem, Product]), AuthModule],
   providers: [
     SupplierService,
     ShipmentService,

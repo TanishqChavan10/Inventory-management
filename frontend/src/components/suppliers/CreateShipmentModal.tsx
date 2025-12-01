@@ -453,9 +453,10 @@ export function CreateShipmentModal({
                         <Input
                           type="number"
                           value={item.quantity_received}
-                          onChange={(e) =>
-                            updateItem(index, 'quantity_received', parseInt(e.target.value) || 0)
-                          }
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            updateItem(index, 'quantity_received', value > 0 ? value : 1);
+                          }}
                           min="1"
                           placeholder="Enter quantity received"
                           className={`h-11 ${errors[`item_${index}_quantity`] ? 'border-red-500' : 'border-gray-300 dark:border-neutral-600'}`}
@@ -489,9 +490,10 @@ export function CreateShipmentModal({
                           type="number"
                           step="0.01"
                           value={item.unit_price}
-                          onChange={(e) =>
-                            updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)
-                          }
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
+                            updateItem(index, 'unit_price', value >= 0 ? value : 0);
+                          }}
                           min="0"
                           placeholder="0.00"
                           className={`h-11 ${errors[`item_${index}_price`] ? 'border-red-500' : 'border-gray-300 dark:border-neutral-600'}`}
@@ -548,8 +550,6 @@ export function CreateShipmentModal({
                 </div>
               )}
             </div>
-
-            
 
             {/* Action Buttons */}
             <div className="flex gap-4 justify-end pt-6 border-t border-gray-200 dark:border-neutral-700">

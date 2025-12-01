@@ -73,8 +73,8 @@ export function TransactionDetailHeader({
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">Customer</p>
               <p className="text-sm text-gray-600 dark:text-gray-300">{customer.name}</p>
-              {customer.phone_no && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">{customer.phone_no}</p>
+              {customer.phone_number && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">{customer.phone_number}</p>
               )}
             </div>
           </div>

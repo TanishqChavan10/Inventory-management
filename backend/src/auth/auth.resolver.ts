@@ -1,34 +1,39 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Query } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { RegisterInput, LoginInput } from './dto/auth.input';
-import { AuthResponse, UserModel } from './models/user.model';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { User } from './entities/user.entity';
+import { UserModel } from './models/user.model';
+import { ClerkAuthGuard } from './guards/clerk-auth.guard';
+import { ClerkUser } from './decorators/clerk-user.decorator';
+import { ClerkService } from './clerk.service';
+import { GraphQLError } from 'graphql';
 
 @Resolver(() => UserModel)
 export class AuthResolver {
-  constructor(private authService: AuthService) {}
+  constructor(private clerkService: ClerkService) {}
 
-  @Mutation(() => AuthResponse)
-  async register(@Args('input') registerInput: RegisterInput): Promise<AuthResponse> {
-    return this.authService.register(registerInput);
-  }
+  @Query(() => UserModel, { nullable: true })
+  @UseGuards(ClerkAuthGuard)
+  async me(
+    @ClerkUser() clerkUser: { clerkId: string } | null
+  ): Promise<UserModel | null> {
+    
+    // If ClerkUser is null → return null (no redirect, no loop)
+    if (!clerkUser?.clerkId) return null;
 
-  @Mutation(() => AuthResponse)
-  async login(@Args('input') loginInput: LoginInput): Promise<AuthResponse> {
-    return this.authService.login(loginInput);
-  }
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
 
-  @Query(() => UserModel)
-  @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: User): Promise<UserModel> {
+    // If user doesn't exist → return null (again, no loop)
+    if (!user) return null;
+
+    await this.clerkService.updateLastLogin(clerkUser.clerkId);
+
     return {
       id: user.id,
-      username: user.username,
+      clerkId: user.clerkId,
       email: user.email,
-      fullName: user.fullName,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      imageUrl: user.imageUrl,
+      username: user.username,
       role: user.role,
       isActive: user.isActive,
       createdAt: user.createdAt,

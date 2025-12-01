@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@apollo/server": "^4.12.2",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@nestjs/apollo": "^13.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

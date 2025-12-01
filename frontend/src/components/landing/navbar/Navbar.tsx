@@ -2,24 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Warehouse, User, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Warehouse } from 'lucide-react';
 import NavLinks from './NavLinks';
 import ThemeToggle from './ThemeToggle';
 import MobileMenu from './MobileMenu';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
+import { UserButton } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { darkMode } = useTheme();
 
   return (
     <header className="bg-white dark:bg-black text-black dark:text-white sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 transition-colors">
@@ -37,41 +32,8 @@ export default function Navbar() {
 
           {/* User Authentication Section */}
           {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full overflow-hidden">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only">User menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user?.fullName || user?.username}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Go to Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-red-600 dark:text-red-400 cursor-pointer"
-                  onClick={logout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-            </div>
-          )}
+            <UserButton appearance={darkMode ? { baseTheme: dark } : {}} />
+          ) : null}
         </div>
         <button
           className="md:hidden ml-2"

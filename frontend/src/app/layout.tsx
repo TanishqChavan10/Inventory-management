@@ -1,28 +1,25 @@
 // src/app/layout.tsx
-
-import type { Metadata } from 'next';
+'use client';
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/landing/navbar/Navbar';
-import Footer from '@/components/landing/footer';
-import PageWrapper from '@/components/landing/PageWrapper';
-import { Toaster } from '@/components/ui/sonner';
+
+import { ClerkThemeProvider } from '@/components/ClerkThemeProvider';
+
+// Providers
+import { ApolloAppProvider } from '@/components/ApolloAppProvider';
 import { ThemeProvider } from '@/context/theme-context';
 
-// Import providers
-import { ApolloAppProvider } from '@/components/ApolloAppProvider';
+// UI Wrappers
+import PageWrapper from '@/components/landing/PageWrapper';
 import AppLayoutWrapper from './layout-wrapper';
+
+// UI
+import { Toaster } from '@/components/ui/sonner';
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
 });
-
-export const metadata: Metadata = {
-  title: 'MyWebsite - Modern Inventory Management',
-  description:
-    'Our modern inventory platform helps you understand your audience and drive meaningful interactions.',
-};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,20 +27,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${poppins.className} bg-white text-gray-800 dark:bg-black dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col`}
       >
-        {/* --- WRAP EVERYTHING IN THE APOLLO PROVIDER --- */}
-        <ApolloAppProvider>
-          <ThemeProvider>
-            <PageWrapper>
-              <AppLayoutWrapper>
-                <div className="min-h-screen flex flex-col">
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                </div>
-              </AppLayoutWrapper>
-              <Toaster richColors position="top-center" />
-            </PageWrapper>
-          </ThemeProvider>
-        </ApolloAppProvider>
+        {/* --- 1) Theme Provider first for useTheme --- */}
+        <ThemeProvider>
+        {/* --- 1) Theme Provider first for useTheme --- */}
+        <ThemeProvider>
+          {/* --- 2) Clerk with theme --- */}
+          <ClerkThemeProvider>
+            {/* --- 3) Apollo loads AFTER Clerk (prevents redirect loops) --- */}
+            <ApolloAppProvider>
+              {/* --- 4) Page wrapper handles animations only (safe) --- */}
+              <PageWrapper>
+                {/* --- 5) Layout wrapper for navbar/footer etc. --- */}
+                <AppLayoutWrapper>
+                  <main className="flex-1 min-h-screen">{children}</main>
+                </AppLayoutWrapper>
+
+                {/* Toasts */}
+                <Toaster richColors position="top-center" />
+              </PageWrapper>
+            </ApolloAppProvider>
+          </ClerkThemeProvider>
+        </ThemeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

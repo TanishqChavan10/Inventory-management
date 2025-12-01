@@ -6,10 +6,10 @@ import { useAuth } from '@/context/auth-context';
 import { LogOut } from 'lucide-react';
 
 export default function MobileMenu({ open, closeMenu }: { open: boolean; closeMenu: () => void }) {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, signOut, isAuthenticated } = useAuth();
 
   const handleLogout = () => {
-    logout();
+    signOut();
     closeMenu();
   };
 
@@ -25,7 +25,7 @@ export default function MobileMenu({ open, closeMenu }: { open: boolean; closeMe
         {isAuthenticated ? (
           <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
             <div className="mb-3">
-              <p className="text-sm font-medium">{user?.fullName || user?.username}</p>
+              <p className="text-sm font-medium">{user?.firstName || user?.username}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
             </div>
             <Button variant="outline" className="w-full mb-2" asChild onClick={closeMenu}>
@@ -40,13 +40,7 @@ export default function MobileMenu({ open, closeMenu }: { open: boolean; closeMe
               Log out
             </Button>
           </div>
-        ) : (
-          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 space-y-2">
-            <Button variant="outline" className="w-full" asChild onClick={closeMenu}>
-              <Link href="/login">Login</Link>
-            </Button>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

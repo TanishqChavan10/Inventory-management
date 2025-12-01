@@ -1,17 +1,18 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useMutation, useQuery, useLazyQuery } from '@apollo/client';
-import { useRouter } from 'next/navigation';
-import { LOGIN_USER, REGISTER_USER, GET_CURRENT_USER } from '@/app/graphql/auth';
-import { getAuthToken, setAuthToken, removeAuthToken } from '@/lib/auth-utils';
+import { useQuery } from '@apollo/client';
+import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
+import { GET_CURRENT_USER } from '@/app/graphql/auth';
 
-// Define types
 interface User {
   id: string;
-  username: string;
+  clerkId: string;
   email: string;
-  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+  username?: string;
   role: string;
   isActive: boolean;
 }
@@ -21,142 +22,79 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
-  logout: () => void;
+  clerkUser: any;
+  signOut: () => void;
 }
 
-interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-  fullName?: string;
-}
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Auth provider component
-export function AuthProvider({ children }: AuthProviderProps) {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { isSignedIn, isLoaded, signOut, getToken } = useClerkAuth();
+  const { user: clerkUser } = useUser();
 
-  // Setup GraphQL operations
-  const [loginMutation] = useMutation(LOGIN_USER);
-  const [registerMutation] = useMutation(REGISTER_USER);
-  const [getCurrentUser, { loading: fetchingUser }] = useLazyQuery(GET_CURRENT_USER, {
-    fetchPolicy: 'network-only',
-    errorPolicy: 'ignore', // Don't throw errors, handle them gracefully
+  const [user, setUser] = useState<User | null>(null);
+  const [internalLoading, setInternalLoading] = useState(true);
+  const [tokenReady, setTokenReady] = useState(false);
+
+  // Ensure token is available before making queries
+  useEffect(() => {
+    const setupToken = async () => {
+      if (isSignedIn && isLoaded) {
+        try {
+          const token = await getToken();
+          if (token && typeof window !== 'undefined') {
+            (window as any).__clerk_session_token = token;
+            // Small delay to ensure token is set before queries run
+            setTimeout(() => setTokenReady(true), 100);
+          } else {
+            setTokenReady(false);
+          }
+        } catch (err) {
+          console.error('Error setting up token:', err);
+          setTokenReady(false);
+        }
+      } else {
+        setTokenReady(false);
+      }
+    };
+    setupToken();
+  }, [isSignedIn, isLoaded, getToken]);
+
+  const { data, loading, error } = useQuery(GET_CURRENT_USER, {
+    skip: !isSignedIn || !isLoaded || !tokenReady,
+    fetchPolicy: 'network-only', // Always fetch fresh user data
+    errorPolicy: 'all', // Don't throw on errors, handle them gracefully
     onCompleted: (data) => {
-      if (data?.me) {
-        setUser(data.me);
-      }
+      setUser(data?.me || null);
+      setInternalLoading(false);
     },
-    onError: (error) => {
-      console.error('Error fetching user:', error);
-      setError(error);
-      // Only logout if it's specifically an unauthorized error AND we're not on auth pages
-      if (
-        error.message.includes('Unauthorized') &&
-        !window.location.pathname.includes('/login') &&
-        !window.location.pathname.includes('/signup')
-      ) {
-        logout();
-      }
+    onError: (err) => {
+      // Silently handle auth errors - user will just not be authenticated
+      setUser(null);
+      setInternalLoading(false);
     },
   });
 
-  // Check if user is logged in on initial load
+  // When Clerk signs out:
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = getAuthToken();
-        if (token) {
-          await getCurrentUser();
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        // Don't throw error, just log it - let user stay on current page
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - prevents infinite loops
-
-  // Login function
-  const login = async (username: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await loginMutation({
-        variables: {
-          input: { username, password },
-        },
-      });
-
-      if (data?.login) {
-        setAuthToken(data.login.accessToken);
-        setUser(data.login.user);
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
+    if (!isSignedIn) {
+      setUser(null);
+      setInternalLoading(false);
+      setTokenReady(false);
     }
-  };
+  }, [isSignedIn]);
 
-  // Register function
-  const register = async (userData: RegisterData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await registerMutation({
-        variables: {
-          input: userData,
-        },
-      });
-
-      if (data?.register) {
-        setAuthToken(data.register.accessToken);
-        setUser(data.register.user);
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Logout function
-  const logout = () => {
-    removeAuthToken();
-    setUser(null);
-    router.push('/login');
-  };
+  const isAuthResolved = isLoaded && !internalLoading;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
-        loading: loading || fetchingUser,
-        error,
-        login,
-        register,
-        logout,
+        isAuthenticated: !!isSignedIn && !!user,
+        loading: !isAuthResolved || loading,
+        error: error || null,
+        clerkUser,
+        signOut,
       }}
     >
       {children}
@@ -164,11 +102,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// Hook for using auth context
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be inside AuthProvider');
   return context;
 }

@@ -1,50 +1,44 @@
-// lib/apollo-client.ts
-import { ApolloClient, InMemoryCache, from, ApolloLink } from "@apollo/client";
+import { ApolloClient, InMemoryCache, from, ApolloLink, Observable } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { HttpLink } from "@apollo/client/link/http";
-import { getAuthToken } from "./auth-utils";
 
 // Error handling link
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors)
-    graphQLErrors.forEach(({ message, locations, path }) => {
-      console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-      );
-      // Don't auto-redirect on auth errors - let the components handle it
-      // This prevents infinite redirect loops
-      if (message.includes('Unauthorized') || message.includes('Invalid token')) {
-        console.log('Authentication error detected, components will handle redirect');
+    graphQLErrors.forEach(({ message }) => {
+      // Suppress auth-related errors to prevent console spam
+      if (!message.includes('No token provided') && 
+          !message.includes('Invalid or expired token') &&
+          !message.includes('Unauthorized')) {
+        console.error(`[GraphQL error]: ${message}`);
       }
     });
   if (networkError) console.error(`[Network error]: ${networkError}`);
 });
 
-// Auth middleware link
-const authMiddleware = new ApolloLink((operation, forward) => {
-  // Get the auth token from local storage
-  const token = getAuthToken();
-  
-  // Add the auth token to the headers
+// Auth link that gets token from window (set by ApolloAppProvider)
+const authLink = new ApolloLink((operation, forward) => {
+  const token = typeof window !== 'undefined' 
+    ? (window as any).__clerk_session_token 
+    : null;
+
   operation.setContext(({ headers = {} }) => ({
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      Authorization: token ? `Bearer ${token}` : "",
     }
   }));
 
   return forward(operation);
 });
 
-// HTTP link
 const httpLink = new HttpLink({
-  uri: "http://localhost:5000/api/graphql",
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:5000/api/graphql",
 });
 
 const client = new ApolloClient({
-  link: from([errorLink, authMiddleware, httpLink]),
+  link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
-  connectToDevTools: true, // Enable dev tools in development
 });
 
 export default client;

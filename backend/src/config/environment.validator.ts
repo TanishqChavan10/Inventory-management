@@ -10,11 +10,7 @@ export class EnvironmentValidator {
   validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     const requiredEnvVars = [
-      'DB_HOST',
-      'DB_PORT', 
-      'DB_USERNAME',
-      'DB_PASSWORD',
-      'DB_DATABASE',
+      'DATABASE_URL',
       'JWT_SECRET'
     ];
 
@@ -30,12 +26,6 @@ export class EnvironmentValidator {
     const jwtSecret = this.configService.get<string>('JWT_SECRET');
     if (jwtSecret && jwtSecret.length < 32) {
       errors.push('JWT_SECRET should be at least 32 characters long for security');
-    }
-
-    // Validate database port
-    const dbPort = this.configService.get<number>('DB_PORT');
-    if (dbPort && (isNaN(dbPort) || dbPort < 1 || dbPort > 65535)) {
-      errors.push('DB_PORT must be a valid port number (1-65535)');
     }
 
     // Production-specific validations
@@ -62,14 +52,11 @@ export class EnvironmentValidator {
     console.log('🔧 Environment Configuration:');
     console.log(`   NODE_ENV: ${this.configService.get('NODE_ENV', 'development')}`);
     console.log(`   PORT: ${this.configService.get('PORT', 5000)}`);
-    console.log(`   DB_HOST: ${this.configService.get('DB_HOST', 'localhost')}`);
-    console.log(`   DB_PORT: ${this.configService.get('DB_PORT', 5432)}`);
-    console.log(`   DB_DATABASE: ${this.configService.get('DB_DATABASE', 'inventory')}`);
+    console.log(`   DATABASE_URL: ${this.configService.get('DATABASE_URL') ? '***SET***' : '***NOT SET***'}`);
     console.log(`   GRAPHQL_PATH: ${this.configService.get('GRAPHQL_PATH', '/api/graphql')}`);
     console.log(`   CORS_ORIGIN: ${this.configService.get('CORS_ORIGIN', 'http://localhost:3000')}`);
     
     // Don't log sensitive information
     console.log(`   JWT_SECRET: ${this.configService.get('JWT_SECRET') ? '***SET***' : '***NOT SET***'}`);
-    console.log(`   DB_PASSWORD: ${this.configService.get('DB_PASSWORD') ? '***SET***' : '***NOT SET***'}`);
   }
 }

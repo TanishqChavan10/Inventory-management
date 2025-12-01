@@ -1,28 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
+import { ConfigModule } from '@nestjs/config';
 import { AuthResolver } from './auth.resolver';
 import { User } from './entities/user.entity';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ClerkService } from './clerk.service';
+import { ClerkAuthGuard } from './guards/clerk-auth.guard';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'inventory_management_secret'),
-        signOptions: { expiresIn: '7d' },
-      }),
-      inject: [ConfigService],
-    }),
+    ConfigModule,
   ],
-  providers: [AuthService, AuthResolver, JwtStrategy, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard],
+  providers: [AuthResolver, ClerkService, ClerkAuthGuard],
+  exports: [ClerkService, ClerkAuthGuard],
 })
 export class AuthModule {}

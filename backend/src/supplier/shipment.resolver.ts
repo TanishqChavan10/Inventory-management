@@ -3,63 +3,72 @@ import { UseGuards } from '@nestjs/common';
 import { ShipmentService } from './shipment.service';
 import { ShipmentModel } from './models/shipment.model';
 import { CreateShipmentInput } from './dto/create-shipment.input';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User } from '../auth/entities/user.entity';
+import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
+import { ClerkUser } from '../auth/decorators/clerk-user.decorator';
+import { ClerkService } from '../auth/clerk.service';
 
 @Resolver(() => ShipmentModel)
-@UseGuards(JwtAuthGuard)
+@UseGuards(ClerkAuthGuard)
 export class ShipmentResolver {
-  constructor(private readonly shipmentService: ShipmentService) {}
+  constructor(
+    private readonly shipmentService: ShipmentService,
+    private readonly clerkService: ClerkService,
+  ) {}
 
   @Mutation(() => ShipmentModel, { name: 'addShipment' })
-  createShipment(
+  async createShipment(
     @Args('createShipmentInput') createShipmentInput: CreateShipmentInput,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.create(createShipmentInput, user.id);
   }
 
   @Query(() => [ShipmentModel], { name: 'shipments' })
-  findAll(
+  async findAll(
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
     @Args('supplier_id', { type: () => String, nullable: true }) supplier_id: string | undefined,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.findAll(page, limit, supplier_id, user.id);
   }
 
   @Query(() => ShipmentModel, { name: 'shipment' })
-  findOne(
+  async findOne(
     @Args('shipment_id', { type: () => ID }) shipment_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.findOne(shipment_id, user.id);
   }
 
   @Query(() => [ShipmentModel], { name: 'shipmentsBySupplier' })
-  findBySupplier(
+  async findBySupplier(
     @Args('supplier_id', { type: () => ID }) supplier_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.findBySupplier(supplier_id, user.id);
   }
 
   @Mutation(() => ShipmentModel, { name: 'updateShipmentPaymentStatus' })
-  updatePaymentStatus(
+  async updatePaymentStatus(
     @Args('shipment_id', { type: () => ID }) shipment_id: string,
     @Args('payment_status', { type: () => String }) payment_status: 'Pending' | 'Paid' | 'Failed',
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.updatePaymentStatus(shipment_id, payment_status, user.id);
   }
 
   @Mutation(() => ShipmentModel, { name: 'deleteShipment' })
-  removeShipment(
+  async removeShipment(
     @Args('shipment_id', { type: () => ID }) shipment_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.shipmentService.remove(shipment_id, user.id);
   }
 }

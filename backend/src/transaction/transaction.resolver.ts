@@ -11,31 +11,36 @@ import {
 } from './models/analytics.model';
 import { CreateTransactionInput, CreateCustomerInput, CreateEmployeeInput } from './dto/create-transaction.input';
 import { Transaction } from './transaction.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User } from '../auth/entities/user.entity';
+import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
+import { ClerkUser } from '../auth/decorators/clerk-user.decorator';
+import { ClerkService } from '../auth/clerk.service';
 
 @Resolver(() => TransactionModel)
-@UseGuards(JwtAuthGuard)
+@UseGuards(ClerkAuthGuard)
 export class TransactionResolver {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(
+    private readonly transactionService: TransactionService,
+    private readonly clerkService: ClerkService,
+  ) {}
 
   @Mutation(() => TransactionModel, { name: 'createTransaction' })
-  createTransaction(
+  async createTransaction(
     @Args('createTransactionInput') createTransactionInput: CreateTransactionInput,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.createTransaction(createTransactionInput, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactions' })
-  findAll(
+  async findAll(
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
     @Args('status', { type: () => String, nullable: true }) status: string | undefined,
     @Args('customer_id', { type: () => String, nullable: true }) customer_id: string | undefined,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.findAll(page, limit, status, customer_id, user.id);
   }
   
@@ -54,55 +59,63 @@ export class TransactionResolver {
   }
 
   @Query(() => TransactionModel, { name: 'transaction' })
-  findOne(
+  async findOne(
     @Args('transaction_id', { type: () => ID }) transaction_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.findOne(transaction_id, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactionsByCustomer' })
-  findByCustomer(
+  async findByCustomer(
     @Args('customer_id', { type: () => ID }) customer_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.findByCustomer(customer_id, user.id);
   }
 
   @Query(() => [TransactionModel], { name: 'transactionsByEmployee' })
-  findByEmployee(
+  async findByEmployee(
     @Args('employee_id', { type: () => ID }) employee_id: string,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.findByEmployee(employee_id, user.id);
   }
 
   // Sales Analytics Queries
   @Query(() => SalesOverviewModel, { name: 'salesOverview' })
-  getSalesOverview(@CurrentUser() user: User) {
+  async getSalesOverview(@ClerkUser() clerkUser: { clerkId: string }) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.getSalesOverview(user.id);
   }
 
   @Query(() => [TopProductModel], { name: 'topProducts' })
-  getTopProducts(
+  async getTopProducts(
     @Args('limit', { type: () => Int, defaultValue: 5 }) limit: number,
-    @CurrentUser() user: User,
+    @ClerkUser() clerkUser: { clerkId: string },
   ) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.getTopProducts(limit, user.id);
   }
 
   @Query(() => [PaymentMethodStatsModel], { name: 'paymentMethodStats' })
-  getPaymentMethodStats(@CurrentUser() user: User) {
+  async getPaymentMethodStats(@ClerkUser() clerkUser: { clerkId: string }) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.getPaymentMethodStats(user.id);
   }
 
   @Query(() => [RevenueByCategoryModel], { name: 'revenueByCategory' })
-  getRevenueByCategory(@CurrentUser() user: User) {
+  async getRevenueByCategory(@ClerkUser() clerkUser: { clerkId: string }) {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return this.transactionService.getRevenueByCategory(user.id);
   }
 
   @Query(() => SalesAnalyticsModel, { name: 'salesAnalytics' })
-  async getSalesAnalytics(@CurrentUser() user: User): Promise<SalesAnalyticsModel> {
+  async getSalesAnalytics(@ClerkUser() clerkUser: { clerkId: string }): Promise<SalesAnalyticsModel> {
+    const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     const [overview, topProducts, paymentMethods, revenueByCategory] = await Promise.all([
       this.transactionService.getSalesOverview(user.id),
       this.transactionService.getTopProducts(5, user.id),

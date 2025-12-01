@@ -440,9 +440,10 @@ export function NewTransactionForm({
                             <Input
                               type="number"
                               value={item.quantity}
-                              onChange={(e) =>
-                                updateItemQuantity(item.product_id, parseInt(e.target.value) || 0)
-                              }
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value) || 0;
+                                updateItemQuantity(item.product_id, value > 0 ? value : 1);
+                              }}
                               className="text-center"
                               min="1"
                               max={item.available_stock}
