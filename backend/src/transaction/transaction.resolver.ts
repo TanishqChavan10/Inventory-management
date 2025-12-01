@@ -1,15 +1,33 @@
-import { Resolver, Query, Mutation, Args, ID, Int, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ID,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { TransactionModel, CustomerModel, EmployeeModel, TransactionItemModel } from './models/transaction.model';
-import { 
-  SalesAnalyticsModel, 
-  SalesOverviewModel, 
-  TopProductModel, 
-  PaymentMethodStatsModel, 
-  RevenueByCategoryModel 
+import {
+  TransactionModel,
+  CustomerModel,
+  EmployeeModel,
+  TransactionItemModel,
+} from './models/transaction.model';
+import {
+  SalesAnalyticsModel,
+  SalesOverviewModel,
+  TopProductModel,
+  PaymentMethodStatsModel,
+  RevenueByCategoryModel,
 } from './models/analytics.model';
-import { CreateTransactionInput, CreateCustomerInput, CreateEmployeeInput } from './dto/create-transaction.input';
+import {
+  CreateTransactionInput,
+  CreateCustomerInput,
+  CreateEmployeeInput,
+} from './dto/create-transaction.input';
 import { Transaction } from './transaction.entity';
 import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
 import { ClerkUser } from '../auth/decorators/clerk-user.decorator';
@@ -25,36 +43,52 @@ export class TransactionResolver {
 
   @Mutation(() => TransactionModel, { name: 'createTransaction' })
   async createTransaction(
-    @Args('createTransactionInput') createTransactionInput: CreateTransactionInput,
+    @Args('createTransactionInput')
+    createTransactionInput: CreateTransactionInput,
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return this.transactionService.createTransaction(createTransactionInput, user.id);
+    return this.transactionService.createTransaction(
+      createTransactionInput,
+      user.id,
+    );
   }
 
   @Query(() => [TransactionModel], { name: 'transactions' })
   async findAll(
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-    @Args('status', { type: () => String, nullable: true }) status: string | undefined,
-    @Args('customer_id', { type: () => String, nullable: true }) customer_id: string | undefined,
+    @Args('status', { type: () => String, nullable: true })
+    status: string | undefined,
+    @Args('customer_id', { type: () => String, nullable: true })
+    customer_id: string | undefined,
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return this.transactionService.findAll(page, limit, status, customer_id, user.id);
+    return this.transactionService.findAll(
+      page,
+      limit,
+      status,
+      customer_id,
+      user.id,
+    );
   }
-  
+
   @ResolveField(() => String, { nullable: true })
   async customer_name(@Parent() transaction: Transaction) {
     if (!transaction.customer_id) return 'Walk-in Customer';
-    const customer = await this.transactionService.findCustomer(transaction.customer_id);
+    const customer = await this.transactionService.findCustomer(
+      transaction.customer_id,
+    );
     return customer ? customer.name : 'Unknown Customer';
   }
-  
+
   @ResolveField(() => String, { nullable: true })
   async employee_name(@Parent() transaction: Transaction) {
     if (!transaction.employee_id) return 'Unknown';
-    const employee = await this.transactionService.findEmployee(transaction.employee_id);
+    const employee = await this.transactionService.findEmployee(
+      transaction.employee_id,
+    );
     return employee ? employee.name : 'Unknown Employee';
   }
 
@@ -114,14 +148,17 @@ export class TransactionResolver {
   }
 
   @Query(() => SalesAnalyticsModel, { name: 'salesAnalytics' })
-  async getSalesAnalytics(@ClerkUser() clerkUser: { clerkId: string }): Promise<SalesAnalyticsModel> {
+  async getSalesAnalytics(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<SalesAnalyticsModel> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    const [overview, topProducts, paymentMethods, revenueByCategory] = await Promise.all([
-      this.transactionService.getSalesOverview(user.id),
-      this.transactionService.getTopProducts(5, user.id),
-      this.transactionService.getPaymentMethodStats(user.id),
-      this.transactionService.getRevenueByCategory(user.id),
-    ]);
+    const [overview, topProducts, paymentMethods, revenueByCategory] =
+      await Promise.all([
+        this.transactionService.getSalesOverview(user.id),
+        this.transactionService.getTopProducts(5, user.id),
+        this.transactionService.getPaymentMethodStats(user.id),
+        this.transactionService.getRevenueByCategory(user.id),
+      ]);
 
     return {
       overview,
@@ -132,9 +169,11 @@ export class TransactionResolver {
   }
 
   @ResolveField(() => [TransactionItemModel])
-  async items(@Parent() transaction: Transaction): Promise<TransactionItemModel[]> {
+  async items(
+    @Parent() transaction: Transaction,
+  ): Promise<TransactionItemModel[]> {
     const items = transaction.items || [];
-    return items.map(item => ({
+    return items.map((item) => ({
       transaction_id: item.transaction_id,
       product_id: item.product_id,
       quantity: item.quantity,
@@ -151,7 +190,9 @@ export class CustomerResolver {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Mutation(() => CustomerModel, { name: 'createCustomer' })
-  createCustomer(@Args('createCustomerInput') createCustomerInput: CreateCustomerInput) {
+  createCustomer(
+    @Args('createCustomerInput') createCustomerInput: CreateCustomerInput,
+  ) {
     return this.transactionService.createCustomer(createCustomerInput);
   }
 
@@ -171,7 +212,9 @@ export class EmployeeResolver {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Mutation(() => EmployeeModel, { name: 'createEmployee' })
-  createEmployee(@Args('createEmployeeInput') createEmployeeInput: CreateEmployeeInput) {
+  createEmployee(
+    @Args('createEmployeeInput') createEmployeeInput: CreateEmployeeInput,
+  ) {
     return this.transactionService.createEmployee(createEmployeeInput);
   }
 

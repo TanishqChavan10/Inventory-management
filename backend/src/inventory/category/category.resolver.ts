@@ -26,13 +26,17 @@ export class CategoryResolver {
   }
 
   @Query(() => [Category], { name: 'categories' })
-  async findAllCategories(@ClerkUser() clerkUser: { clerkId: string }): Promise<Category[]> {
+  async findAllCategories(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<Category[]> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findAll(user.id);
   }
 
   @Query(() => [Category], { name: 'categoriesSimple' })
-  async findAllCategoriesSimple(@ClerkUser() clerkUser: { clerkId: string }): Promise<Category[]> {
+  async findAllCategoriesSimple(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<Category[]> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.categoryService.findAllSimple(user.id);
   }
@@ -70,7 +74,11 @@ export class CategoryResolver {
     @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Category> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return await this.categoryService.update(updateCategoryInput.category_id, updateCategoryInput, user.id);
+    return await this.categoryService.update(
+      updateCategoryInput.category_id,
+      updateCategoryInput,
+      user.id,
+    );
   }
 
   @Mutation(() => Boolean)

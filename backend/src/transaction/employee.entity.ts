@@ -9,6 +9,6 @@ export class Employee {
   @Column()
   name: string;
 
-  @OneToMany(() => Transaction, transaction => transaction.employee)
+  @OneToMany(() => Transaction, (transaction) => transaction.employee)
   transactions: Transaction[];
 }

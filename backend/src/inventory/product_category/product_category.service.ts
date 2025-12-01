@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductCategory } from './product_category.entity';
@@ -18,7 +22,9 @@ export class ProductCategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createProductCategoryInput: CreateProductCategoryInput): Promise<ProductCategory> {
+  async create(
+    createProductCategoryInput: CreateProductCategoryInput,
+  ): Promise<ProductCategory> {
     const { product_id, category_id } = createProductCategoryInput;
 
     // Check if product exists
@@ -85,7 +91,9 @@ export class ProductCategoryService {
     });
   }
 
-  async remove(removeProductCategoryInput: RemoveProductCategoryInput): Promise<boolean> {
+  async remove(
+    removeProductCategoryInput: RemoveProductCategoryInput,
+  ): Promise<boolean> {
     const { product_id, category_id } = removeProductCategoryInput;
 
     const productCategory = await this.productCategoryRepository.findOne({
@@ -128,7 +136,10 @@ export class ProductCategoryService {
     // Create new associations
     const productCategories: ProductCategory[] = [];
     for (const categoryId of categoryIds) {
-      const productCategory = await this.create({ product_id: productId, category_id: categoryId });
+      const productCategory = await this.create({
+        product_id: productId,
+        category_id: categoryId,
+      });
       productCategories.push(productCategory);
     }
 

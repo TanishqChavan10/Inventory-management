@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Product } from '../product/product.entity';
 import { Supplier } from '../../supplier/supplier.entity';
 import { User } from '../../auth/entities/user.entity';
@@ -15,7 +23,7 @@ export class Category {
   @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, user => user.categories)
+  @ManyToOne(() => User, (user) => user.categories)
   @JoinColumn({ name: 'userId' })
   user: User;
 

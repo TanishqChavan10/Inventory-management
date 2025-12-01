@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Supplier } from './supplier.entity';
 import { ShipmentItem } from './shipment-item.entity';
 import { User } from '../auth/entities/user.entity';
@@ -33,15 +41,15 @@ export class Shipment {
   @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, user => user.shipments)
+  @ManyToOne(() => User, (user) => user.shipments)
   @JoinColumn({ name: 'userId' })
   user: User;
 
   // Relationships
-  @ManyToOne(() => Supplier, supplier => supplier.shipments)
+  @ManyToOne(() => Supplier, (supplier) => supplier.shipments)
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
-  @OneToMany(() => ShipmentItem, shipmentItem => shipmentItem.shipment)
+  @OneToMany(() => ShipmentItem, (shipmentItem) => shipmentItem.shipment)
   shipmentItems: ShipmentItem[];
 }

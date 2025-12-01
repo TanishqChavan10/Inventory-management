@@ -13,9 +13,8 @@ export class AuthResolver {
   @Query(() => UserModel, { nullable: true })
   @UseGuards(ClerkAuthGuard)
   async me(
-    @ClerkUser() clerkUser: { clerkId: string } | null
+    @ClerkUser() clerkUser: { clerkId: string } | null,
   ): Promise<UserModel | null> {
-    
     // If ClerkUser is null → return null (no redirect, no loop)
     if (!clerkUser?.clerkId) return null;
 

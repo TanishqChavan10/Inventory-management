@@ -41,9 +41,7 @@ export const envValidationSchema = Joi.object({
     .description('Synchronize database schema (dangerous in production)'),
 
   // Port Configuration
-  PORT: Joi.number()
-    .default(3000)
-    .description('Application port'),
+  PORT: Joi.number().default(3000).description('Application port'),
 
   // CORS Configuration
   CORS_ORIGIN: Joi.string()

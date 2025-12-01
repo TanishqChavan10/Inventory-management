@@ -6,11 +6,14 @@ import { RemoveProductCategoryInput } from './dto/remove-product-category.input'
 
 @Resolver(() => ProductCategory)
 export class ProductCategoryResolver {
-  constructor(private readonly productCategoryService: ProductCategoryService) {}
+  constructor(
+    private readonly productCategoryService: ProductCategoryService,
+  ) {}
 
   @Mutation(() => ProductCategory)
   async createProductCategory(
-    @Args('createProductCategoryInput') createProductCategoryInput: CreateProductCategoryInput,
+    @Args('createProductCategoryInput')
+    createProductCategoryInput: CreateProductCategoryInput,
   ): Promise<ProductCategory> {
     return await this.productCategoryService.create(createProductCategoryInput);
   }
@@ -36,7 +39,8 @@ export class ProductCategoryResolver {
 
   @Mutation(() => Boolean)
   async removeProductCategory(
-    @Args('removeProductCategoryInput') removeProductCategoryInput: RemoveProductCategoryInput,
+    @Args('removeProductCategoryInput')
+    removeProductCategoryInput: RemoveProductCategoryInput,
   ): Promise<boolean> {
     return await this.productCategoryService.remove(removeProductCategoryInput);
   }
@@ -60,6 +64,9 @@ export class ProductCategoryResolver {
     @Args('productId', { type: () => Int }) productId: number,
     @Args('categoryIds', { type: () => [Int] }) categoryIds: number[],
   ): Promise<ProductCategory[]> {
-    return await this.productCategoryService.bulkAssignCategoriesToProduct(productId, categoryIds);
+    return await this.productCategoryService.bulkAssignCategoriesToProduct(
+      productId,
+      categoryIds,
+    );
   }
 }

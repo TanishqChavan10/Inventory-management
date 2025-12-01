@@ -24,26 +24,26 @@ import { TransactionModule } from './transaction/transaction.module';
       path: '/api/graphql',
     }),
     TypeOrmModule.forRootAsync({
-  imports: [ConfigModule],
-  useFactory: (configService: ConfigService) => ({
-    type: 'postgres',
-    url: configService.get<string>('DATABASE_URL'),
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        url: configService.get<string>('DATABASE_URL'),
 
-    ssl: { rejectUnauthorized: false },
+        ssl: { rejectUnauthorized: false },
 
-    autoLoadEntities: true,
-    synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
+        autoLoadEntities: true,
+        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
 
-    logging: configService.get<string>('NODE_ENV') === 'development',
+        logging: configService.get<string>('NODE_ENV') === 'development',
 
-    // IMPORTANT for Supabase Pooler
-    extra: {
-      max: 10,
-    },
-    prepare: false, // Disable prepared statements
-  }),
-  inject: [ConfigService],
-}),
+        // IMPORTANT for Supabase Pooler
+        extra: {
+          max: 10,
+        },
+        prepare: false, // Disable prepared statements
+      }),
+      inject: [ConfigService],
+    }),
 
     AuthModule,
     InventoryModule,

@@ -28,7 +28,8 @@ export class ShipmentResolver {
   async findAll(
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-    @Args('supplier_id', { type: () => String, nullable: true }) supplier_id: string | undefined,
+    @Args('supplier_id', { type: () => String, nullable: true })
+    supplier_id: string | undefined,
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
@@ -56,11 +57,16 @@ export class ShipmentResolver {
   @Mutation(() => ShipmentModel, { name: 'updateShipmentPaymentStatus' })
   async updatePaymentStatus(
     @Args('shipment_id', { type: () => ID }) shipment_id: string,
-    @Args('payment_status', { type: () => String }) payment_status: 'Pending' | 'Paid' | 'Failed',
+    @Args('payment_status', { type: () => String })
+    payment_status: 'Pending' | 'Paid' | 'Failed',
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return this.shipmentService.updatePaymentStatus(shipment_id, payment_status, user.id);
+    return this.shipmentService.updatePaymentStatus(
+      shipment_id,
+      payment_status,
+      user.id,
+    );
   }
 
   @Mutation(() => ShipmentModel, { name: 'deleteShipment' })

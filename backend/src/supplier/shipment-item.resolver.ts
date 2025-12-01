@@ -8,12 +8,18 @@ export class ShipmentItemResolver {
   constructor(private readonly shipmentItemService: ShipmentItemService) {}
 
   @Mutation(() => ShipmentItemModel, { name: 'addShipmentItem' })
-  createShipmentItem(@Args('createShipmentItemInput') createShipmentItemInput: CreateShipmentItemInput) {
+  createShipmentItem(
+    @Args('createShipmentItemInput')
+    createShipmentItemInput: CreateShipmentItemInput,
+  ) {
     return this.shipmentItemService.create(createShipmentItemInput);
   }
 
   @Mutation(() => [ShipmentItemModel], { name: 'addShipmentItems' })
-  createMultipleShipmentItems(@Args('createShipmentItemsInput', { type: () => [CreateShipmentItemInput] }) createShipmentItemsInput: CreateShipmentItemInput[]) {
+  createMultipleShipmentItems(
+    @Args('createShipmentItemsInput', { type: () => [CreateShipmentItemInput] })
+    createShipmentItemsInput: CreateShipmentItemInput[],
+  ) {
     return this.shipmentItemService.createMultiple(createShipmentItemsInput);
   }
 
@@ -41,7 +47,9 @@ export class ShipmentItemResolver {
   }
 
   @Query(() => [ShipmentItemModel], { name: 'expiringShipmentItems' })
-  getExpiringItems(@Args('days', { type: () => Int, defaultValue: 30 }) days?: number) {
+  getExpiringItems(
+    @Args('days', { type: () => Int, defaultValue: 30 }) days?: number,
+  ) {
     return this.shipmentItemService.getExpiringItems(days);
   }
 

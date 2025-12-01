@@ -1,7 +1,14 @@
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Category } from '../category/category.entity';
 import { User } from '../../auth/entities/user.entity';
-
 
 @Entity()
 export class Product {
@@ -24,7 +31,7 @@ export class Product {
   @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, user => user.products)
+  @ManyToOne(() => User, (user) => user.products)
   @JoinColumn({ name: 'userId' })
   user: User;
 
@@ -33,7 +40,10 @@ export class Product {
   @JoinTable({
     name: 'product_category', // join table name
     joinColumn: { name: 'product_id', referencedColumnName: 'product_id' },
-    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'category_id' },
+    inverseJoinColumn: {
+      name: 'category_id',
+      referencedColumnName: 'category_id',
+    },
   })
   categories: Category[];
 }

@@ -19,7 +19,9 @@ export class TransactionItem {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   discount: number;
 
-  @ManyToOne(() => Transaction, transaction => transaction.items, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Transaction, (transaction) => transaction.items, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction;
 

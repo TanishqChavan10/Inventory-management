@@ -13,7 +13,10 @@ import { ShipmentItemResolver } from './shipment-item.resolver';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Supplier, Shipment, ShipmentItem, Product]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([Supplier, Shipment, ShipmentItem, Product]),
+    AuthModule,
+  ],
   providers: [
     SupplierService,
     ShipmentService,

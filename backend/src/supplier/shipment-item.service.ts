@@ -15,45 +15,63 @@ export class ShipmentItemService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createShipmentItemInput: CreateShipmentItemInput): Promise<ShipmentItem> {
-    return await this.dataSource.transaction(async manager => {
-      const shipmentItem = manager.create(ShipmentItem, createShipmentItemInput);
+  async create(
+    createShipmentItemInput: CreateShipmentItemInput,
+  ): Promise<ShipmentItem> {
+    return await this.dataSource.transaction(async (manager) => {
+      const shipmentItem = manager.create(
+        ShipmentItem,
+        createShipmentItemInput,
+      );
       const savedShipmentItem = await manager.save(shipmentItem);
 
       // Update inventory stock
       const product = await manager.findOne(Product, {
-        where: { product_id: parseInt(savedShipmentItem.product_id) }
+        where: { product_id: parseInt(savedShipmentItem.product_id) },
       });
 
       if (product) {
         product.stock += savedShipmentItem.quantity_received;
         await manager.save(Product, product);
-        console.log(`✅ Updated inventory for ${product.product_name}: +${savedShipmentItem.quantity_received} (New stock: ${product.stock})`);
+        console.log(
+          `✅ Updated inventory for ${product.product_name}: +${savedShipmentItem.quantity_received} (New stock: ${product.stock})`,
+        );
       } else {
-        console.warn(`⚠️ Product with ID ${savedShipmentItem.product_id} not found in inventory. Stock not updated.`);
+        console.warn(
+          `⚠️ Product with ID ${savedShipmentItem.product_id} not found in inventory. Stock not updated.`,
+        );
       }
 
       return savedShipmentItem;
     });
   }
 
-  async createMultiple(createShipmentItemsInput: CreateShipmentItemInput[]): Promise<ShipmentItem[]> {
-    return await this.dataSource.transaction(async manager => {
-      const shipmentItems = manager.create(ShipmentItem, createShipmentItemsInput);
+  async createMultiple(
+    createShipmentItemsInput: CreateShipmentItemInput[],
+  ): Promise<ShipmentItem[]> {
+    return await this.dataSource.transaction(async (manager) => {
+      const shipmentItems = manager.create(
+        ShipmentItem,
+        createShipmentItemsInput,
+      );
       const savedShipmentItems = await manager.save(shipmentItems);
 
       // Update inventory stock for each item
       for (const item of savedShipmentItems) {
         const product = await manager.findOne(Product, {
-          where: { product_id: parseInt(item.product_id) }
+          where: { product_id: parseInt(item.product_id) },
         });
 
         if (product) {
           product.stock += item.quantity_received;
           await manager.save(Product, product);
-          console.log(`✅ Updated inventory for ${product.product_name}: +${item.quantity_received} (New stock: ${product.stock})`);
+          console.log(
+            `✅ Updated inventory for ${product.product_name}: +${item.quantity_received} (New stock: ${product.stock})`,
+          );
         } else {
-          console.warn(`⚠️ Product with ID ${item.product_id} not found in inventory. Stock not updated.`);
+          console.warn(
+            `⚠️ Product with ID ${item.product_id} not found in inventory. Stock not updated.`,
+          );
         }
       }
 
@@ -100,7 +118,7 @@ export class ShipmentItemService {
   }
 
   async remove(id: string): Promise<ShipmentItem> {
-    return await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async (manager) => {
       const shipmentItem = await manager.findOne(ShipmentItem, {
         where: { id },
         relations: ['shipment'],
@@ -112,15 +130,22 @@ export class ShipmentItemService {
 
       // Update inventory stock - decrease
       const product = await manager.findOne(Product, {
-        where: { product_id: parseInt(shipmentItem.product_id) }
+        where: { product_id: parseInt(shipmentItem.product_id) },
       });
 
       if (product) {
-        product.stock = Math.max(0, product.stock - shipmentItem.quantity_received);
+        product.stock = Math.max(
+          0,
+          product.stock - shipmentItem.quantity_received,
+        );
         await manager.save(Product, product);
-        console.log(`✅ Reverted inventory for ${product.product_name}: -${shipmentItem.quantity_received} (New stock: ${product.stock})`);
+        console.log(
+          `✅ Reverted inventory for ${product.product_name}: -${shipmentItem.quantity_received} (New stock: ${product.stock})`,
+        );
       } else {
-        console.warn(`⚠️ Product with ID ${shipmentItem.product_id} not found in inventory. Stock not reverted.`);
+        console.warn(
+          `⚠️ Product with ID ${shipmentItem.product_id} not found in inventory. Stock not reverted.`,
+        );
       }
 
       await manager.delete(ShipmentItem, id);
@@ -136,7 +161,9 @@ export class ShipmentItemService {
       .createQueryBuilder('shipmentItem')
       .where('shipmentItem.expiry_date IS NOT NULL')
       .andWhere('shipmentItem.expiry_date <= :expiryDate', { expiryDate })
-      .andWhere('shipmentItem.expiry_date > :currentDate', { currentDate: new Date() })
+      .andWhere('shipmentItem.expiry_date > :currentDate', {
+        currentDate: new Date(),
+      })
       .orderBy('shipmentItem.expiry_date', 'ASC')
       .getMany();
   }

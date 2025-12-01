@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Shipment } from './shipment.entity';
 
 @Entity('shipment_items')
@@ -31,7 +37,7 @@ export class ShipmentItem {
   batch_number?: string;
 
   // Relationships
-  @ManyToOne(() => Shipment, shipment => shipment.shipmentItems)
+  @ManyToOne(() => Shipment, (shipment) => shipment.shipmentItems)
   @JoinColumn({ name: 'shipment_id' })
   shipment: Shipment;
 }

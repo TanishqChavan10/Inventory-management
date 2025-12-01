@@ -26,7 +26,9 @@ export class ProductResolver {
   }
 
   @Query(() => [Product], { name: 'products' })
-  async findAllProducts(@ClerkUser() clerkUser: { clerkId: string }): Promise<Product[]> {
+  async findAllProducts(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<Product[]> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.productService.findAll(user.id);
   }
@@ -59,7 +61,9 @@ export class ProductResolver {
   }
 
   @Query(() => [Product], { name: 'lowStockProducts' })
-  async findLowStockProducts(@ClerkUser() clerkUser: { clerkId: string }): Promise<Product[]> {
+  async findLowStockProducts(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<Product[]> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.productService.findLowStockProducts(user.id);
   }
@@ -74,7 +78,9 @@ export class ProductResolver {
   }
 
   @Query(() => Float, { name: 'totalInventoryValue' })
-  async getTotalInventoryValue(@ClerkUser() clerkUser: { clerkId: string }): Promise<number> {
+  async getTotalInventoryValue(
+    @ClerkUser() clerkUser: { clerkId: string },
+  ): Promise<number> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
     return await this.productService.getTotalValue(user.id);
   }
@@ -85,7 +91,11 @@ export class ProductResolver {
     @ClerkUser() clerkUser: { clerkId: string },
   ): Promise<Product> {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return await this.productService.update(updateProductInput.product_id, updateProductInput, user.id);
+    return await this.productService.update(
+      updateProductInput.product_id,
+      updateProductInput,
+      user.id,
+    );
   }
 
   @Mutation(() => Product)

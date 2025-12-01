@@ -32,7 +32,10 @@ export class ClerkService {
       firstName: clerkUser.firstName || undefined,
       lastName: clerkUser.lastName || undefined,
       imageUrl: clerkUser.imageUrl || undefined,
-      username: clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] || '',
+      username:
+        clerkUser.username ||
+        clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] ||
+        '',
       isActive: !clerkUser.banned,
       lastLogin: new Date(),
     };
@@ -68,9 +71,6 @@ export class ClerkService {
    * Update user's last login time
    */
   async updateLastLogin(clerkId: string): Promise<void> {
-    await this.userRepository.update(
-      { clerkId },
-      { lastLogin: new Date() },
-    );
+    await this.userRepository.update({ clerkId }, { lastLogin: new Date() });
   }
 }

@@ -32,14 +32,17 @@ export class ShipmentService {
     return { mfg_date, expiry_date };
   }
 
-  async create(createShipmentInput: CreateShipmentInput, userId: string): Promise<Shipment> {
+  async create(
+    createShipmentInput: CreateShipmentInput,
+    userId: string,
+  ): Promise<Shipment> {
     const { items, ...shipmentData } = createShipmentInput;
-    
-    console.log('🔄 Creating shipment with data:', { 
-      ...shipmentData, 
-      itemsCount: items.length 
+
+    console.log('🔄 Creating shipment with data:', {
+      ...shipmentData,
+      itemsCount: items.length,
     });
-    
+
     // Set received_date to current date if not provided
     if (!shipmentData.received_date) {
       shipmentData.received_date = new Date();
@@ -48,7 +51,7 @@ export class ShipmentService {
     let shipmentId: string | undefined;
 
     // Use transaction to ensure data consistency
-    await this.dataSource.transaction(async manager => {
+    await this.dataSource.transaction(async (manager) => {
       try {
         // Create and save shipment with userId
         const shipment = manager.create(Shipment, {
@@ -57,13 +60,15 @@ export class ShipmentService {
         });
         const savedShipment = await manager.save(shipment);
         shipmentId = savedShipment.shipment_id;
-        
+
         console.log('✅ Shipment saved with ID:', savedShipment.shipment_id);
 
         // Create shipment items with auto-generated dates
-        const shipmentItems = items.map(item => {
-          const { mfg_date, expiry_date } = this.generateRandomDates(shipmentData.received_date as Date);
-          
+        const shipmentItems = items.map((item) => {
+          const { mfg_date, expiry_date } = this.generateRandomDates(
+            shipmentData.received_date as Date,
+          );
+
           return manager.create(ShipmentItem, {
             ...item,
             shipment_id: savedShipment.shipment_id,
@@ -79,17 +84,21 @@ export class ShipmentService {
         for (const item of shipmentItems) {
           // Find the product by product_id and userId
           const product = await manager.findOne(Product, {
-            where: { product_id: parseInt(item.product_id), userId }
+            where: { product_id: parseInt(item.product_id), userId },
           });
 
           if (product) {
             // Add the received quantity to the existing stock
             product.stock += item.quantity_received;
             await manager.save(Product, product);
-            
-            console.log(`✅ Updated inventory for ${product.product_name}: +${item.quantity_received} (New stock: ${product.stock})`);
+
+            console.log(
+              `✅ Updated inventory for ${product.product_name}: +${item.quantity_received} (New stock: ${product.stock})`,
+            );
           } else {
-            console.warn(`⚠️ Product with ID ${item.product_id} not found in inventory. Stock not updated.`);
+            console.warn(
+              `⚠️ Product with ID ${item.product_id} not found in inventory. Stock not updated.`,
+            );
           }
         }
 
@@ -104,17 +113,25 @@ export class ShipmentService {
     if (!shipmentId) {
       throw new Error('Shipment creation failed - no shipment ID generated');
     }
-    
+
     console.log('🔍 Loading shipment with relations for ID:', shipmentId);
     return await this.findOne(shipmentId, userId);
   }
 
-  async findAll(page: number = 1, limit: number = 10, supplier_id: string | undefined, userId: string): Promise<Shipment[]> {
-    const queryBuilder = this.shipmentRepository.createQueryBuilder('shipment')
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+    supplier_id: string | undefined,
+    userId: string,
+  ): Promise<Shipment[]> {
+    const queryBuilder = this.shipmentRepository
+      .createQueryBuilder('shipment')
       .where('shipment.userId = :userId', { userId }); // Filter by user
 
     if (supplier_id) {
-      queryBuilder.andWhere('shipment.supplier_id = :supplier_id', { supplier_id });
+      queryBuilder.andWhere('shipment.supplier_id = :supplier_id', {
+        supplier_id,
+      });
     }
 
     return await queryBuilder
@@ -138,7 +155,10 @@ export class ShipmentService {
     return shipment;
   }
 
-  async findBySupplier(supplier_id: string, userId: string): Promise<Shipment[]> {
+  async findBySupplier(
+    supplier_id: string,
+    userId: string,
+  ): Promise<Shipment[]> {
     return await this.shipmentRepository.find({
       where: { supplier_id, userId }, // Filter by user
       relations: ['shipmentItems'],
@@ -146,7 +166,11 @@ export class ShipmentService {
     });
   }
 
-  async updatePaymentStatus(shipment_id: string, payment_status: 'Pending' | 'Paid' | 'Failed', userId: string): Promise<Shipment> {
+  async updatePaymentStatus(
+    shipment_id: string,
+    payment_status: 'Pending' | 'Paid' | 'Failed',
+    userId: string,
+  ): Promise<Shipment> {
     // Verify ownership first
     await this.findOne(shipment_id, userId);
     await this.shipmentRepository.update(shipment_id, { payment_status });
@@ -155,7 +179,7 @@ export class ShipmentService {
 
   async remove(shipment_id: string, userId: string): Promise<Shipment> {
     // Use transaction to ensure data consistency
-    return await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async (manager) => {
       // Get the shipment with its items before deletion (verify ownership)
       const shipment = await manager.findOne(Shipment, {
         where: { shipment_id, userId }, // Filter by user
@@ -163,29 +187,35 @@ export class ShipmentService {
       });
 
       if (!shipment) {
-        throw new NotFoundException(`Shipment with ID ${shipment_id} not found`);
+        throw new NotFoundException(
+          `Shipment with ID ${shipment_id} not found`,
+        );
       }
 
       // Decrease inventory stock for each shipment item (only user's products)
       for (const item of shipment.shipmentItems) {
         const product = await manager.findOne(Product, {
-          where: { product_id: parseInt(item.product_id), userId }
+          where: { product_id: parseInt(item.product_id), userId },
         });
 
         if (product) {
           // Subtract the received quantity from the existing stock
           product.stock = Math.max(0, product.stock - item.quantity_received);
           await manager.save(Product, product);
-          
-          console.log(`✅ Reverted inventory for ${product.product_name}: -${item.quantity_received} (New stock: ${product.stock})`);
+
+          console.log(
+            `✅ Reverted inventory for ${product.product_name}: -${item.quantity_received} (New stock: ${product.stock})`,
+          );
         } else {
-          console.warn(`⚠️ Product with ID ${item.product_id} not found in inventory. Stock not reverted.`);
+          console.warn(
+            `⚠️ Product with ID ${item.product_id} not found in inventory. Stock not reverted.`,
+          );
         }
       }
 
       // Delete the shipment (shipment items will be deleted by cascade)
       await manager.delete(Shipment, shipment_id);
-      
+
       return shipment;
     });
   }

@@ -19,24 +19,34 @@ export class EnvironmentValidator {
 
     if (error) {
       // Extract error messages from Joi validation
-      errors.push(...error.details.map(detail => detail.message));
+      errors.push(...error.details.map((detail) => detail.message));
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   logConfiguration(): void {
     console.log('🔧 Environment Configuration:');
-    console.log(`   NODE_ENV: ${this.configService.get('NODE_ENV', 'development')}`);
+    console.log(
+      `   NODE_ENV: ${this.configService.get('NODE_ENV', 'development')}`,
+    );
     console.log(`   PORT: ${this.configService.get('PORT', 5000)}`);
-    console.log(`   DATABASE_URL: ${this.configService.get('DATABASE_URL') ? '***SET***' : '***NOT SET***'}`);
-    console.log(`   GRAPHQL_PATH: ${this.configService.get('GRAPHQL_PATH', '/api/graphql')}`);
-    console.log(`   CORS_ORIGIN: ${this.configService.get('CORS_ORIGIN', 'http://localhost:3000')}`);
-    
+    console.log(
+      `   DATABASE_URL: ${this.configService.get('DATABASE_URL') ? '***SET***' : '***NOT SET***'}`,
+    );
+    console.log(
+      `   GRAPHQL_PATH: ${this.configService.get('GRAPHQL_PATH', '/api/graphql')}`,
+    );
+    console.log(
+      `   CORS_ORIGIN: ${this.configService.get('CORS_ORIGIN', 'http://localhost:3000')}`,
+    );
+
     // Don't log sensitive information
-    console.log(`   JWT_SECRET: ${this.configService.get('JWT_SECRET') ? '***SET***' : '***NOT SET***'}`);
+    console.log(
+      `   JWT_SECRET: ${this.configService.get('JWT_SECRET') ? '***SET***' : '***NOT SET***'}`,
+    );
   }
 }

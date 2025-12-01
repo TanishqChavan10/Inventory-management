@@ -7,10 +7,7 @@ import { ClerkService } from './clerk.service';
 import { ClerkAuthGuard } from './guards/clerk-auth.guard';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    ConfigModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User]), ConfigModule],
   providers: [AuthResolver, ClerkService, ClerkAuthGuard],
   exports: [ClerkService, ClerkAuthGuard],
 })

@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Shipment } from './shipment.entity';
 import { Category } from '../inventory/category/category.entity';
 import { User } from '../auth/entities/user.entity';
@@ -45,15 +54,15 @@ export class Supplier {
   @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, user => user.suppliers)
+  @ManyToOne(() => User, (user) => user.suppliers)
   @JoinColumn({ name: 'userId' })
   user: User;
 
   // Relationships
-  @OneToMany(() => Shipment, shipment => shipment.supplier)
+  @OneToMany(() => Shipment, (shipment) => shipment.supplier)
   shipments: Shipment[];
 
-  @ManyToOne(() => Category, category => category.suppliers)
+  @ManyToOne(() => Category, (category) => category.suppliers)
   @JoinColumn({ name: 'category_id' })
   category: Category;
 }

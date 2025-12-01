@@ -1,4 +1,12 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Customer } from './customer.entity';
 import { Employee } from './employee.entity';
 import { TransactionItem } from './transaction-item.entity';
@@ -8,13 +16,13 @@ export enum PaymentMethod {
   CASH = 'Cash',
   CREDIT_CARD = 'Credit Card',
   DEBIT_CARD = 'Debit Card',
-  MOBILE_PAYMENT = 'Mobile Payment'
+  MOBILE_PAYMENT = 'Mobile Payment',
 }
 
 export enum TransactionStatus {
   PENDING = 'Pending',
   COMPLETED = 'Completed',
-  FAILED = 'Failed'
+  FAILED = 'Failed',
 }
 
 @Entity('transactions')
@@ -46,7 +54,7 @@ export class Transaction {
   @Column({
     type: 'enum',
     enum: TransactionStatus,
-    default: TransactionStatus.PENDING
+    default: TransactionStatus.PENDING,
   })
   status: TransactionStatus;
 
@@ -66,18 +74,22 @@ export class Transaction {
   @Column({ nullable: true })
   userId: string;
 
-  @ManyToOne(() => User, user => user.transactions)
+  @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToOne(() => Customer, customer => customer.transactions, { nullable: true })
+  @ManyToOne(() => Customer, (customer) => customer.transactions, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @ManyToOne(() => Employee, employee => employee.transactions)
+  @ManyToOne(() => Employee, (employee) => employee.transactions)
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 
-  @OneToMany(() => TransactionItem, item => item.transaction, { cascade: true })
+  @OneToMany(() => TransactionItem, (item) => item.transaction, {
+    cascade: true,
+  })
   items: TransactionItem[];
 }

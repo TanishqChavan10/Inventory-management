@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product } from './product.entity';
@@ -15,9 +19,12 @@ export class ProductService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createProductInput: CreateProductInput, userId: string): Promise<Product> {
+  async create(
+    createProductInput: CreateProductInput,
+    userId: string,
+  ): Promise<Product> {
     const { categoryIds, ...productData } = createProductInput;
-    
+
     const product = this.productRepository.create({
       ...productData,
       userId, // Set the owner
@@ -54,7 +61,11 @@ export class ProductService {
     return product;
   }
 
-  async update(id: number, updateProductInput: UpdateProductInput, userId: string): Promise<Product> {
+  async update(
+    id: number,
+    updateProductInput: UpdateProductInput,
+    userId: string,
+  ): Promise<Product> {
     const { categoryIds, ...productData } = updateProductInput;
     const product = await this.findOne(id, userId);
 
@@ -91,7 +102,9 @@ export class ProductService {
   async searchByName(searchTerm: string, userId: string): Promise<Product[]> {
     return await this.productRepository
       .createQueryBuilder('product')
-      .where('product.product_name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+      .where('product.product_name ILIKE :searchTerm', {
+        searchTerm: `%${searchTerm}%`,
+      })
       .andWhere('product.userId = :userId', { userId }) // Filter by user
       .leftJoinAndSelect('product.categories', 'categories')
       .getMany();
@@ -115,7 +128,11 @@ export class ProductService {
       .getMany();
   }
 
-  async updateStock(id: number, quantity: number, userId: string): Promise<Product> {
+  async updateStock(
+    id: number,
+    quantity: number,
+    userId: string,
+  ): Promise<Product> {
     const product = await this.findOne(id, userId);
     product.stock += quantity;
     return await this.productRepository.save(product);
@@ -127,7 +144,7 @@ export class ProductService {
       .select('SUM(product.stock * product.default_price)', 'total')
       .where('product.userId = :userId', { userId }) // Filter by user
       .getRawOne();
-    
+
     return parseFloat(result.total) || 0;
   }
 }

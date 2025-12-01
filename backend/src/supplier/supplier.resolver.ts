@@ -30,7 +30,8 @@ export class SupplierResolver {
   async findAll(
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-    @Args('status', { type: () => String, nullable: true }) status: string | undefined,
+    @Args('status', { type: () => String, nullable: true })
+    status: string | undefined,
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
@@ -52,7 +53,10 @@ export class SupplierResolver {
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    return this.supplierService.findProductsBySupplierCategory(supplier_id, user.id);
+    return this.supplierService.findProductsBySupplierCategory(
+      supplier_id,
+      user.id,
+    );
   }
 
   @Mutation(() => SupplierModel, { name: 'updateSupplier' })
@@ -79,7 +83,10 @@ export class SupplierResolver {
     @ClerkUser() clerkUser: { clerkId: string },
   ) {
     const user = await this.clerkService.getUserByClerkId(clerkUser.clerkId);
-    const stats = await this.supplierService.getSupplierStats(supplier_id, user.id);
+    const stats = await this.supplierService.getSupplierStats(
+      supplier_id,
+      user.id,
+    );
     return JSON.stringify(stats);
   }
 }

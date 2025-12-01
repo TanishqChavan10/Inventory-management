@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { Product } from '../../inventory/product/product.entity';
 import { Category } from '../../inventory/category/category.entity';
 import { Supplier } from '../../supplier/supplier.entity';
@@ -9,7 +16,7 @@ export enum UserRole {
   ADMIN = 'admin',
   MANAGER = 'manager',
   CASHIER = 'cashier',
-  INVENTORY = 'inventory'
+  INVENTORY = 'inventory',
 }
 
 @Entity('users')
@@ -41,7 +48,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.CASHIER
+    default: UserRole.CASHIER,
   })
   role: UserRole;
 
@@ -58,18 +65,18 @@ export class User {
   lastLogin: Date;
 
   // Relationships for multi-tenant data isolation
-  @OneToMany(() => Product, product => product.user)
+  @OneToMany(() => Product, (product) => product.user)
   products: Product[];
 
-  @OneToMany(() => Category, category => category.user)
+  @OneToMany(() => Category, (category) => category.user)
   categories: Category[];
 
-  @OneToMany(() => Supplier, supplier => supplier.user)
+  @OneToMany(() => Supplier, (supplier) => supplier.user)
   suppliers: Supplier[];
 
-  @OneToMany(() => Shipment, shipment => shipment.user)
+  @OneToMany(() => Shipment, (shipment) => shipment.user)
   shipments: Shipment[];
 
-  @OneToMany(() => Transaction, transaction => transaction.user)
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
   transactions: Transaction[];
 }

@@ -1,4 +1,10 @@
-import { Entity, PrimaryColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+} from 'typeorm';
 import { Transaction } from './transaction.entity';
 
 @Entity('customers')
@@ -15,6 +21,6 @@ export class Customer {
   @CreateDateColumn()
   created_date: Date;
 
-  @OneToMany(() => Transaction, transaction => transaction.customer)
+  @OneToMany(() => Transaction, (transaction) => transaction.customer)
   transactions: Transaction[];
 }

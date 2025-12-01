@@ -6,7 +6,11 @@ import { Customer } from './customer.entity';
 import { Employee } from './employee.entity';
 import { Product } from '../inventory/product/product.entity';
 import { TransactionService } from './transaction.service';
-import { TransactionResolver, CustomerResolver, EmployeeResolver } from './transaction.resolver';
+import {
+  TransactionResolver,
+  CustomerResolver,
+  EmployeeResolver,
+} from './transaction.resolver';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({

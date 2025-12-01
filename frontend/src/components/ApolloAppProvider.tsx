@@ -2,28 +2,64 @@
 
 import { ApolloProvider } from '@apollo/client';
 import { useAuth } from '@clerk/nextjs';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import client from '@/lib/apollo-client';
 import { AuthProvider } from '@/context/auth-context';
 
 export function ApolloAppProvider({ children }: { children: React.ReactNode }) {
-  const { isLoaded, getToken } = useAuth();
+  const { isLoaded, getToken, isSignedIn } = useAuth();
 
-  useEffect(() => {
-    if (!isLoaded) return;
+  const updateToken = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) {
+      if (typeof window !== 'undefined') {
+        (window as any).__clerk_session_token = null;
+      }
+      return;
+    }
 
-    const injectToken = async () => {
-      // Remove template parameter - just get the default session token
+    try {
       const token = await getToken();
-
-      // Set token in window for Apollo client auth link to use
       if (typeof window !== 'undefined') {
         (window as any).__clerk_session_token = token;
       }
+    } catch (error) {
+      console.error('Failed to get token:', error);
+      if (typeof window !== 'undefined') {
+        (window as any).__clerk_session_token = null;
+      }
+    }
+  }, [isLoaded, isSignedIn, getToken]);
+
+  useEffect(() => {
+    // Update token immediately when auth state changes
+    updateToken();
+
+    // Set up periodic token refresh every 5 minutes (300000 ms)
+    const interval = setInterval(updateToken, 300000);
+
+    // Refresh token when user becomes active (clicks, scrolls, etc.)
+    const handleActivity = () => {
+      updateToken();
     };
 
-    injectToken();
-  }, [isLoaded, getToken]);
+    // Add activity listeners
+    if (typeof window !== 'undefined') {
+      window.addEventListener('click', handleActivity);
+      window.addEventListener('scroll', handleActivity);
+      window.addEventListener('keydown', handleActivity);
+      window.addEventListener('mousemove', handleActivity);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('click', handleActivity);
+        window.removeEventListener('scroll', handleActivity);
+        window.removeEventListener('keydown', handleActivity);
+        window.removeEventListener('mousemove', handleActivity);
+      }
+    };
+  }, [updateToken]);
 
   if (!isLoaded) {
     // Prevent Apollo from running before Clerk is ready

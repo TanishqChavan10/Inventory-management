@@ -12,7 +12,10 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createCategoryInput: CreateCategoryInput, userId: string): Promise<Category> {
+  async create(
+    createCategoryInput: CreateCategoryInput,
+    userId: string,
+  ): Promise<Category> {
     const category = this.categoryRepository.create({
       ...createCategoryInput,
       userId, // Set the owner
@@ -46,9 +49,13 @@ export class CategoryService {
     return category;
   }
 
-  async update(id: number, updateCategoryInput: UpdateCategoryInput, userId: string): Promise<Category> {
+  async update(
+    id: number,
+    updateCategoryInput: UpdateCategoryInput,
+    userId: string,
+  ): Promise<Category> {
     const category = await this.findOne(id, userId);
-    
+
     Object.assign(category, updateCategoryInput);
     return await this.categoryRepository.save(category);
   }
@@ -69,7 +76,9 @@ export class CategoryService {
   async searchByName(searchTerm: string, userId: string): Promise<Category[]> {
     return await this.categoryRepository
       .createQueryBuilder('category')
-      .where('category.name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+      .where('category.name ILIKE :searchTerm', {
+        searchTerm: `%${searchTerm}%`,
+      })
       .andWhere('category.userId = :userId', { userId }) // Filter by user
       .leftJoinAndSelect('category.products', 'products')
       .getMany();
