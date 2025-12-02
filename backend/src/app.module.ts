@@ -10,12 +10,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { InventoryModule } from './inventory/inventory.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { RedisModule } from './redis';
+import { S3Module } from './s3';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Makes ConfigService available everywhere
     }),
+    RedisModule.forRootAsync(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -49,6 +52,8 @@ import { TransactionModule } from './transaction/transaction.module';
     InventoryModule,
     SupplierModule,
     TransactionModule,
+    RedisModule.forRootAsync(),
+    S3Module.forRootAsync(),
   ],
   controllers: [AppController],
   providers: [AppService],

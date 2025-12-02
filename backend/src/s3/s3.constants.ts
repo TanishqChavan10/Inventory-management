@@ -1,0 +1,2 @@
+export const S3_MODULE_OPTIONS = 'S3_MODULE_OPTIONS';
+export const S3_SERVICE = 'S3_SERVICE';
