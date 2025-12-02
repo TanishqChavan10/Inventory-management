@@ -1,6 +1,6 @@
-# 📃️ Inventory Management - Frontend
+# 📦 Flowventory - Smart Inventory Management System
 
-This is the **frontend** for our Inventory Management System built with:
+This is the **frontend** for Flowventory built with:
 
 * Next.js 14 (App Router)
 * TypeScript
@@ -10,7 +10,7 @@ This is the **frontend** for our Inventory Management System built with:
 * PostgreSQL (via backend API)
 
 ---
-This is the **Backend** for our Inventory Management System built with:
+This is the **Backend** for Flowventory built with:
 *Neeraj and Hrishikesh eventually will fill this*
 
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Warehouse } from 'lucide-react';
+import Image from 'next/image';
 import NavLinks from './NavLinks';
 import ThemeToggle from './ThemeToggle';
 import MobileMenu from './MobileMenu';
@@ -18,10 +18,16 @@ export default function Navbar() {
 
   return (
     <header className="bg-white dark:bg-black text-black dark:text-white sticky top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 transition-colors">
-      <nav className="container mx-auto flex items-center justify-between px-6 py-4">
+      <nav className="container mx-auto flex items-center justify-between px-10 py-4">
         <Link href="/" className="flex items-center gap-2 group">
-          <Warehouse className="h-7 w-7" />
-          <span className="text-2xl font-extrabold tracking-tight">InventoryMS</span>
+          <Image
+            src="/logos/newImage.png"
+            alt="Flowventory Logo"
+            width={400}
+            height={50}
+            className="h-15 w-auto"
+            priority
+          />
         </Link>
         <NavLinks
           className="hidden md:flex items-center gap-8 flex-1 justify-center"

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -12,6 +12,11 @@ import { SupplierModule } from './supplier/supplier.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { RedisModule } from './redis';
 import { S3Module } from './s3';
+import { CompanyModule } from './company/company.module';
+import { InviteModule } from './invite/invite.module';
+import { UserCompanyModule } from './user-company/user-company.module';
+import { RoleModule } from './role/role.module';
+import { CompanyContextMiddleware } from './common/middleware/company-context.middleware';
 
 @Module({
   imports: [
@@ -54,8 +59,16 @@ import { S3Module } from './s3';
     TransactionModule,
     RedisModule.forRootAsync(),
     S3Module.forRootAsync(),
+    CompanyModule,
+    UserCompanyModule,
+    InviteModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CompanyContextMiddleware).forRoutes('*');
+  }
+}

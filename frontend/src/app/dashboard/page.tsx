@@ -85,9 +85,7 @@ function DashboardContent({
           ? // Loading skeletons
             Array.from({ length: 6 }).map((_, index: number) => <StatCardSkeleton key={index} />)
           : // Real data
-            stats.map((stat: any, index: number) => (
-              <StatCard key={index} stat={stat} onClick={() => setModal(stat.details)} />
-            ))}
+            stats.map((stat: any, index: number) => <StatCard key={index} stat={stat} />)}
       </div>
 
       {/* Bottom Section */}

@@ -25,7 +25,7 @@ function StatCard({ stat, onClick }: StatCardProps) {
     const IconComponent = iconMap[stat.icon as keyof typeof iconMap]?.component || Box;
     const iconColor =
       iconMap[stat.icon as keyof typeof iconMap]?.color || 'text-gray-500 dark:text-gray-400';
-    const cardClassName = `bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 ${
+    const cardClassName = `h-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 ${
       onClick
         ? 'hover:shadow-lg hover:scale-[1.01] transition-all duration-200 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 cursor-pointer'
         : ''
