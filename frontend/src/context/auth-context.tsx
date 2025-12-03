@@ -5,6 +5,13 @@ import { useQuery } from '@apollo/client';
 import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 import { GET_CURRENT_USER } from '@/app/graphql/auth';
 
+interface Company {
+  id: string;
+  name: string;
+  role: string;
+  isActive: boolean;
+}
+
 interface User {
   id: string;
   clerkId: string;
@@ -15,6 +22,8 @@ interface User {
   username?: string;
   role: string;
   isActive: boolean;
+  companies?: Company[];
+  activeCompanyId?: string;
 }
 
 interface AuthContextType {

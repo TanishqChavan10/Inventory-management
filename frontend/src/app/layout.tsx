@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 'use client';
-import { Poppins } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 
 import { ClerkThemeProvider } from '@/components/ClerkThemeProvider';
@@ -16,16 +16,14 @@ import AppLayoutWrapper from './layout-wrapper';
 // UI
 import { Toaster } from '@/components/ui/sonner';
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-});
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta' });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${poppins.className} bg-white text-gray-800 dark:bg-black dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col`}
+        className={`${inter.variable} ${plusJakarta.variable} font-sans bg-white text-gray-800 dark:bg-black dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col`}
       >
         {/* --- 1) Theme Provider first for useTheme --- */}
         <ThemeProvider>

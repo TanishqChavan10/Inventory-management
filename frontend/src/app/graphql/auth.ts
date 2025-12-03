@@ -15,37 +15,63 @@ export const GET_CURRENT_USER = gql`
       createdAt
       updatedAt
       lastLogin
+      companies {
+        id
+        name
+        role
+        isActive
+      }
+      activeCompanyId
     }
   }
 `;
 
-// Legacy mutations - no longer used with Clerk
-export const REGISTER_USER = gql`
-  mutation Register($input: RegisterInput!) {
-    register(input: $input) {
-      accessToken
-      user {
-        id
-        username
-        email
-        role
-        isActive
-      }
+// Company mutations
+export const CREATE_COMPANY = gql`
+  mutation CreateCompany($input: CreateCompanyInput!) {
+    createCompany(input: $input) {
+      id
+      name
+      gstNumber
+      currency
+      businessType
+      logoUrl
+      createdAt
     }
   }
 `;
 
-export const LOGIN_USER = gql`
-  mutation Login($input: LoginInput!) {
-    login(input: $input) {
-      accessToken
-      user {
+export const SWITCH_COMPANY = gql`
+  mutation SwitchCompany($companyId: ID!) {
+    switchCompany(companyId: $companyId) {
+      success
+      activeCompanyId
+    }
+  }
+`;
+
+export const ACCEPT_INVITE = gql`
+  mutation AcceptInvite($token: String!) {
+    acceptInvite(token: $token) {
+      success
+      company {
         id
-        username
-        email
-        role
-        isActive
+        name
       }
+      role
+    }
+  }
+`;
+
+export const JOIN_COMPANY_WITH_CODE = gql`
+  mutation JoinCompanyWithCode($code: String!) {
+    joinCompanyWithCode(code: $code) {
+      success
+      company {
+        id
+        name
+      }
+      role
     }
   }
 `;
